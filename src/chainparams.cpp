@@ -111,9 +111,8 @@ public:
         nDefaultPort = 9265;
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
-        nSubsidyHalvingInterval = 788000; // 3 years (just under)
-        nTargetTimespan = 24 * 60 * 60; // one week
-        nTargetSpacing = 2 * 60; // 2 minutes
+        nSubsidyHalvingInterval = 788000;
+
         // Build the genesis block. Note that the output of the genesis coinbase cannot
         // be spent as it did not originally exist in the database.
         //
@@ -200,8 +199,6 @@ public:
         nDefaultPort = 19265;
         nRPCPort = 19266;
         strDataDir = "testnet3";
-        nTargetTimespan = 24 * 60 * 60; // one week
-        nTargetSpacing = 2 * 60; // 2 minutes
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.nTime = 1296688602;
@@ -243,8 +240,6 @@ public:
         hashGenesisBlock = genesis.GetHash();
         nDefaultPort = 18444;
         strDataDir = "regtest";
-        nTargetTimespan = 24 * 60 * 60; // one week
-        nTargetSpacing = 2 * 60; // 2 minutes
         assert(hashGenesisBlock == uint256("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.

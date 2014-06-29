@@ -2622,8 +2622,8 @@ Address: %4
         <translation>Вкажіть робочий каталог</translation>
     </message>
     <message>
-        <source>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</source>
-        <translation>Чекати на з&apos;єднання на &lt;port&gt; (типово: 8333 або тестова мережа: 18333)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 9265 or testnet: 19265)</source>
+        <translation>Чекати на з&apos;єднання на &lt;port&gt; (типово: 9265 або тестова мережа: 19265)</translation>
     </message>
     <message>
         <source>Maintain at most &lt;n&gt; connections to peers (default: 125)</source>
@@ -2650,8 +2650,8 @@ Address: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
-        <translation>Прослуховувати &lt;port&gt; для JSON-RPC-з&apos;єднань (типово: 8332 або тестова мережа: 18332)</translation>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 9266 or testnet: 19266)</source>
+        <translation>Прослуховувати &lt;port&gt; для JSON-RPC-з&apos;єднань (типово: 9266 або тестова мережа: 19266)</translation>
     </message>
     <message>
         <source>Accept command line and JSON-RPC commands</source>
@@ -2824,7 +2824,7 @@ for example: alertnotify=echo %%s | mail -s &quot;Bitmark Alert&quot; admin@foo.
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Connect to JSON-RPC on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
+        <source>Connect to JSON-RPC on &lt;port&gt; (default: 9266 or testnet: 19266)</source>
         <translation type="unfinished"/>
     </message>
     <message>

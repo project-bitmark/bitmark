@@ -75,7 +75,7 @@ QT_TRANSLATE_NOOP("bitmark-core", ""
 "In this mode -genproclimit controls how many blocks are generated "
 "immediately."),
 QT_TRANSLATE_NOOP("bitmark-core", ""
-"Listen for JSON-RPC connections on <port> (default: 8332 or testnet: 18332)"),
+"Listen for JSON-RPC connections on <port> (default: 9266 or testnet: 19266)"),
 QT_TRANSLATE_NOOP("bitmark-core", ""
 "Number of seconds to keep misbehaving peers from reconnecting (default: "
 "86400)"),
@@ -141,7 +141,7 @@ QT_TRANSLATE_NOOP("bitmark-core", "Cannot write default address"),
 QT_TRANSLATE_NOOP("bitmark-core", "Clear list of wallet transactions (diagnostic tool; implies -rescan)"),
 QT_TRANSLATE_NOOP("bitmark-core", "Connect only to the specified node(s)"),
 QT_TRANSLATE_NOOP("bitmark-core", "Connect through SOCKS proxy"),
-QT_TRANSLATE_NOOP("bitmark-core", "Connect to JSON-RPC on <port> (default: 8332 or testnet: 18332)"),
+QT_TRANSLATE_NOOP("bitmark-core", "Connect to JSON-RPC on <port> (default: 9266 or testnet: 19266)"),
 QT_TRANSLATE_NOOP("bitmark-core", "Connect to a node to retrieve peer addresses, and disconnect"),
 QT_TRANSLATE_NOOP("bitmark-core", "Connection options:"),
 QT_TRANSLATE_NOOP("bitmark-core", "Corrupted block database detected"),
@@ -194,7 +194,7 @@ QT_TRANSLATE_NOOP("bitmark-core", "Invalid amount for -paytxfee=<amount>: '%s'")
 QT_TRANSLATE_NOOP("bitmark-core", "Invalid amount"),
 QT_TRANSLATE_NOOP("bitmark-core", "Limit size of signature cache to <n> entries (default: 50000)"),
 QT_TRANSLATE_NOOP("bitmark-core", "List commands"),
-QT_TRANSLATE_NOOP("bitmark-core", "Listen for connections on <port> (default: 8333 or testnet: 18333)"),
+QT_TRANSLATE_NOOP("bitmark-core", "Listen for connections on <port> (default: 9265 or testnet: 19265)"),
 QT_TRANSLATE_NOOP("bitmark-core", "Loading addresses..."),
 QT_TRANSLATE_NOOP("bitmark-core", "Loading block index..."),
 QT_TRANSLATE_NOOP("bitmark-core", "Loading wallet..."),

@@ -49,6 +49,7 @@ bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 
+/** The term "satoshi" is kept in homage to entity who gave the block chain to the world */
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64_t CTransaction::nMinTxFee = 10000;  // Override with -mintxfee
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying and mining) */
@@ -1182,7 +1183,7 @@ void static PruneOrphanBlocks()
 
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
-    int64_t nSubsidy = 50 * COIN;
+    int64_t nSubsidy = 20 * COIN;
     int halvings = nHeight / Params().SubsidyHalvingInterval();
 
     // Force block reward to zero when right shift is undefined.
@@ -1195,9 +1196,9 @@ int64_t GetBlockValue(int nHeight, int64_t nFees)
     return nSubsidy + nFees;
 }
 
-static const int64_t nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
-static const int64_t nTargetSpacing = 10 * 60;
-static const int64_t nInterval = nTargetTimespan / nTargetSpacing;
+static const int64_t nTargetTimespan = Params().TargetTimespan();
+static const int64_t nTargetSpacing = Params().TargetSpacing();
+static const int64_t nInterval = nParams().Interval();
 
 //
 // minimum amount of work that could possibly be required nTime after
@@ -1239,7 +1240,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         if (TestNet())
         {
             // Special difficulty rule for testnet:
-            // If the new block's timestamp is more than 2* 10 minutes
+            // If the new block's timestamp is more than 2* 2 minutes
             // then allow mining of a min-difficulty block.
             if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
                 return nProofOfWorkLimit;
@@ -1255,7 +1256,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return pindexLast->nBits;
     }
 
-    // Go back by what we want to be 14 days worth of blocks
+    // Go back by what we want to be a days worth of blocks
     const CBlockIndex* pindexFirst = pindexLast;
     for (int i = 0; pindexFirst && i < nInterval-1; i++)
         pindexFirst = pindexFirst->pprev;
@@ -1321,6 +1322,8 @@ bool IsInitialBlockDownload()
         pindexLastBest = chainActive.Tip();
         nLastUpdate = GetTime();
     }
+
+    // todo check this
     return (GetTime() - nLastUpdate < 10 &&
             chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
 }
@@ -1337,9 +1340,9 @@ void CheckForkWarningConditions()
     if (IsInitialBlockDownload())
         return;
 
-    // If our best fork is no longer within 72 blocks (+/- 12 hours if no one mines it)
+    // If our best fork is no longer within 180 blocks (+/- 6 hours if no one mines it)
     // of our head, drop it
-    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 72)
+    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 180)
         pindexBestForkTip = NULL;
 
     if (pindexBestForkTip || (pindexBestInvalid && pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (chainActive.Tip()->GetBlockWork() * 6).getuint256()))
@@ -1391,7 +1394,7 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex* pindexNewForkTip)
     }
 
     // We define a condition which we should warn the user about as a fork of at least 7 blocks
-    // who's tip is within 72 blocks (+/- 12 hours if no one mines it) of ours
+    // who's tip is within 180 blocks (+/- 6 hours if no one mines it) of ours
     // We use 7 blocks rather arbitrarily as it represents just under 10% of sustained network
     // hash rate operating on the fork.
     // or a chain that is entirely longer than ours and invalid (note that this should be detected by both)
@@ -1399,7 +1402,7 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex* pindexNewForkTip)
     // the 7-block condition and from this always have the most-likely-to-cause-warning fork
     if (pfork && (!pindexBestForkTip || (pindexBestForkTip && pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
             pindexNewForkTip->nChainWork - pfork->nChainWork > (pfork->GetBlockWork() * 7).getuint256() &&
-            chainActive.Height() - pindexNewForkTip->nHeight < 72)
+            chainActive.Height() - pindexNewForkTip->nHeight < 180)
     {
         pindexBestForkTip = pindexNewForkTip;
         pindexBestForkBase = pfork;
@@ -1745,6 +1748,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     }
 
     bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
+
+    // todo phase out conditionals and have this all the time
 
     // Do not allow blocks that contain transactions which 'overwrite' older transactions,
     // unless those are already completely spent.
@@ -2398,6 +2403,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight)
             return state.DoS(100, error("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
+
+        // todo update this
 
         // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
         if (block.nVersion < 2)
@@ -3854,7 +3861,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
 
     else if (strCommand == "ping")
-    {
+    {	// todo remove version checking here
         if (pfrom->nVersion > BIP0031_VERSION)
         {
             uint64_t nonce = 0;

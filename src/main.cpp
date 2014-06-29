@@ -1198,7 +1198,7 @@ int64_t GetBlockValue(int nHeight, int64_t nFees)
 
 static const int64_t nTargetTimespan = Params().TargetTimespan();
 static const int64_t nTargetSpacing = Params().TargetSpacing();
-static const int64_t nInterval = nParams().Interval();
+static const int64_t nInterval = Params().Interval();
 
 //
 // minimum amount of work that could possibly be required nTime after

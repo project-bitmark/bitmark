@@ -1751,8 +1751,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
 
-    // todo phase out conditionals and have this all the time
-
     // Do not allow blocks that contain transactions which 'overwrite' older transactions,
     // unless those are already completely spent.
     // If such overwrites are allowed, coinbases and transactions depending upon those
@@ -1765,24 +1763,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Now that the whole chain is irreversibly beyond that time it is applied to all blocks except the
     // two in the chain that violate it. This prevents exploiting the issue against nodes in their
     // initial block download.
-    bool fEnforceBIP30 = (!pindex->phashBlock) || // Enforce on CreateNewBlock invocations which don't have a hash.
-                          !((pindex->nHeight==91842 && pindex->GetBlockHash() == uint256("0x00000000000a4d0a398161ffc163c503763b1f4360639393e0e4c8e300e0caec")) ||
-                           (pindex->nHeight==91880 && pindex->GetBlockHash() == uint256("0x00000000000743f190a18c5577a3c2d2a1f610ae9601ac046a38084ccb7cd721")));
-    if (fEnforceBIP30) {
-        for (unsigned int i = 0; i < block.vtx.size(); i++) {
-            uint256 hash = block.GetTxHash(i);
-            if (view.HaveCoins(hash) && !view.GetCoins(hash).IsPruned())
-                return state.DoS(100, error("ConnectBlock() : tried to overwrite transaction"),
-                                 REJECT_INVALID, "bad-txns-BIP30");
-        }
-    }
 
-    // BIP16 didn't become active until Apr 1 2012
-    int64_t nBIP16SwitchTime = 1333238400;
-    bool fStrictPayToScriptHash = (pindex->nTime >= nBIP16SwitchTime);
+	for (unsigned int i = 0; i < block.vtx.size(); i++) {
+		uint256 hash = block.GetTxHash(i);
+		if (view.HaveCoins(hash) && !view.GetCoins(hash).IsPruned())
+			return state.DoS(100, error("ConnectBlock() : tried to overwrite transaction"),
+							 REJECT_INVALID, "bad-txns-BIP30");
+	}
 
-    unsigned int flags = SCRIPT_VERIFY_NOCACHE |
-                         (fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE);
+    // BIP16
+    unsigned int flags = SCRIPT_VERIFY_NOCACHE | SCRIPT_VERIFY_P2SH;
 
     CBlockUndo blockundo;
 
@@ -1811,16 +1801,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                 return state.DoS(100, error("ConnectBlock() : inputs missing/spent"),
                                  REJECT_INVALID, "bad-txns-inputs-missingorspent");
 
-            if (fStrictPayToScriptHash)
-            {
-                // Add in sigops done by pay-to-script-hash inputs;
-                // this is to prevent a "rogue miner" from creating
-                // an incredibly-expensive-to-validate block.
-                nSigOps += GetP2SHSigOpCount(tx, view);
-                if (nSigOps > MAX_BLOCK_SIGOPS)
-                    return state.DoS(100, error("ConnectBlock() : too many sigops"),
-                                     REJECT_INVALID, "bad-blk-sigops");
-            }
+			// Add in sigops done by pay-to-script-hash inputs;
+			// this is to prevent a "rogue miner" from creating
+			// an incredibly-expensive-to-validate block.
+			nSigOps += GetP2SHSigOpCount(tx, view);
+			if (nSigOps > MAX_BLOCK_SIGOPS)
+				return state.DoS(100, error("ConnectBlock() : too many sigops"),
+								 REJECT_INVALID, "bad-blk-sigops");
 
             nFees += view.GetValueIn(tx)-tx.GetValueOut();
 
@@ -3863,24 +3850,22 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
 
     else if (strCommand == "ping")
-    {	// todo remove version checking here
-        if (pfrom->nVersion > BIP0031_VERSION)
-        {
-            uint64_t nonce = 0;
-            vRecv >> nonce;
-            // Echo the message back with the nonce. This allows for two useful features:
-            //
-            // 1) A remote node can quickly check if the connection is operational
-            // 2) Remote nodes can measure the latency of the network thread. If this node
-            //    is overloaded it won't respond to pings quickly and the remote node can
-            //    avoid sending us more work, like chain download requests.
-            //
-            // The nonce stops the remote getting confused between different pings: without
-            // it, if the remote node sends a ping once per second and this node takes 5
-            // seconds to respond to each, the 5th ping the remote sends would appear to
-            // return very quickly.
-            pfrom->PushMessage("pong", nonce);
-        }
+    {
+    	// BIP0031
+		uint64_t nonce = 0;
+		vRecv >> nonce;
+		// Echo the message back with the nonce. This allows for two useful features:
+		//
+		// 1) A remote node can quickly check if the connection is operational
+		// 2) Remote nodes can measure the latency of the network thread. If this node
+		//    is overloaded it won't respond to pings quickly and the remote node can
+		//    avoid sending us more work, like chain download requests.
+		//
+		// The nonce stops the remote getting confused between different pings: without
+		// it, if the remote node sends a ping once per second and this node takes 5
+		// seconds to respond to each, the 5th ping the remote sends would appear to
+		// return very quickly.
+		pfrom->PushMessage("pong", nonce);
     }
 
 

@@ -53,12 +53,12 @@ public:
         genesis.nVersion = 1;
         genesis.nTime    = 1404127719;
         genesis.nBits    = 0x1e0ffff0;
-        genesis.nNonce   = 0;
+        genesis.nNonce   = 820318;
 
         hashGenesisBlock = genesis.GetHash();
-        // todo no main net genesis block yet :)
-        //assert(hashGenesisBlock == uint256("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
-        //assert(genesis.hashMerkleRoot == uint256("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+        // todo swap this to another chain once ready for live
+        assert(hashGenesisBlock == uint256("0x43aa2f3a30f773b9f958c1e3e0760980e64660052532a06c702b0140d5fe7ee8"));
+        assert(genesis.hashMerkleRoot == uint256("0x355fc1adce5be62303a2b7b10c9e5f093ffd1f7dcc88983b8c748ee7b4667324"));
 
         // todo add some dns seeders
         vSeeds.push_back(CDNSSeedData("bitmark.sipa.be", "seed.bitmark.sipa.be"));
@@ -149,9 +149,9 @@ public:
         pchMessageStart[3] = 0xda;
         nSubsidyHalvingInterval = 150;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
-        genesis.nTime = 1296688602;
+        genesis.nTime = 1404159747;
         genesis.nBits = 0x207fffff;
-        genesis.nNonce = 2;
+        genesis.nNonce = 0;
         hashGenesisBlock = genesis.GetHash();
         nDefaultPort = 18444;
         strDataDir = "regtest";

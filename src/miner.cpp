@@ -515,8 +515,7 @@ void static BitmarkMiner(CWallet *pwallet)
         //
         int64_t nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        uint256 hashbuf[2];
-        uint256& hash = *alignup<16>(hashbuf);
+
         while (true)
         {
             unsigned int nHashesDone = 0;
@@ -530,8 +529,6 @@ void static BitmarkMiner(CWallet *pwallet)
 
                 if (thash <= hashTarget)
                 {
-                	assert(hash == pblock->GetHash());
-                    // Found a solution
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
                     CheckWork(pblock, *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);

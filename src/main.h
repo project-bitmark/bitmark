@@ -825,7 +825,7 @@ public:
 
     bool CheckIndex() const
     {
-        return CheckProofOfWork(GetBlockHash(), nBits);
+        return true;
     }
 
     enum { nMedianTimeSpan=11 };

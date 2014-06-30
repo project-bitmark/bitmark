@@ -4,5 +4,5 @@ This is a 'getwork' CPU mining client for Bitmark. It is pure-python, and theref
 
 ### Other Resources ###
 
-- [BitmarkTalk Thread](https://bitmarktalk.org/index.php?topic=3546.0)
+- [bitcointalk Thread](https://bitcointalk.org/index.php?topic=3546.0)
 - [Jgarzik Repo](https://github.com/jgarzik/pyminer)

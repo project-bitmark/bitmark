@@ -8,13 +8,13 @@ A fresh install of the Bitmark client software.
 
 ### Download the blockchain via Bittorent
 
-Jeff Garzik, Bitmark core developer, offers an [torrent file](https://bitmarktalk.org/index.php?topic=145386.0) for bootstrapping purposes that is updated often. Bittorrent is a protocol that speeds up the downloading of large files by using the other clients in the network. Examples of free and safe open-source clients are [Deluge](http://deluge-torrent.org/) or [QBittorent](http://www.qbittorrent.org/). A guide to installing and configuring the torrent clients can be found [here](http://dev.deluge-torrent.org/wiki/UserGuide) for Deluge and [here](http://qbforums.shiki.hu/) for QBittorent. A further in-depth tutorial on Bittorent can be found [here](http://www.howtogeek.com/howto/31846/bittorrent-for-beginners-how-get-started-downloading-torrents/).
+Jeff Garzik, Bitmark core developer, offers an [torrent file](https://bitcointalk.org/index.php?topic=145386.0) for bootstrapping purposes that is updated often. Bittorrent is a protocol that speeds up the downloading of large files by using the other clients in the network. Examples of free and safe open-source clients are [Deluge](http://deluge-torrent.org/) or [QBittorent](http://www.qbittorrent.org/). A guide to installing and configuring the torrent clients can be found [here](http://dev.deluge-torrent.org/wiki/UserGuide) for Deluge and [here](http://qbforums.shiki.hu/) for QBittorent. A further in-depth tutorial on Bittorent can be found [here](http://www.howtogeek.com/howto/31846/bittorrent-for-beginners-how-get-started-downloading-torrents/).
 
 With the client installed we’ll proceed to download the blockchain torrent file. Use the following magnet link:
 
 	magnet:?xt=urn:btih:2d4e6c1f96c5d5fb260dff92aea4e600227f1aea&dn=bootstrap.dat&tr=udp://tracker.openbittorrent.com:80&tr=udp://tracker.publicbt.com:80&tr=udp://tracker.ccc.de:80&tr=udp://tracker.istole.it:80
 	
- or go to [Jeff Garzik's topic](https://bitmarktalk.org/index.php?topic=145386.0) for a signed magnet link. Alternately you can use the [.torrent file](http://sourceforge.net/projects/bitmark/files/Bitmark/blockchain/bootstrap.dat.torrent/download) found on Sourceforge.
+ or go to [Jeff Garzik's topic](https://bitcointalk.org/index.php?topic=145386.0) for a signed magnet link. Alternately you can use the [.torrent file](http://sourceforge.net/projects/bitmark/files/Bitmark/blockchain/bootstrap.dat.torrent/download) found on Sourceforge.
      
 ![Fig1](img/bootstrap1.png)
 

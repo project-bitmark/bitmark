@@ -38,7 +38,7 @@ Drag Bitmark-Qt to your applications folder, and then run Bitmark-Qt.
 * See the documentation at the [Bitmark Wiki](https://en.bitmark.it/wiki/Main_Page)
 for help and more information.
 * Ask for help on [#bitmark](http://webchat.freenode.net?channels=bitmark) on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net?channels=bitmark).
-* Ask for help on the [BitmarkTalk](https://bitmarktalk.org/) forums, in the [Technical Support board](https://bitmarktalk.org/index.php?board=4.0).
+* Ask for help on the [bitcointalk](https://bitcointalk.org/) forums, in the [Technical Support board](https://bitcointalk.org/index.php?board=4.0).
 
 Building
 ---------------------
@@ -61,7 +61,7 @@ The Bitmark repo's [root README](https://github.com/bitmark/bitmark/blob/master/
 - [Unit Tests](unit-tests.md)
 
 ### Resources
-* Discuss on the [BitmarkTalk](https://bitmarktalk.org/) forums, in the [Development & Technical Discussion board](https://bitmarktalk.org/index.php?board=6.0).
+* Discuss on the [bitcointalk](https://bitcointalk.org/) forums, in the [Development & Technical Discussion board](https://bitcointalk.org/index.php?board=6.0).
 * Discuss on [#bitmark-dev](http://webchat.freenode.net/?channels=bitmark) on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net/?channels=bitmark-dev).
 
 ### Miscellaneous

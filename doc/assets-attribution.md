@@ -47,7 +47,7 @@ md2k7
 * Designer: md2k7
 * License: You are free to do with these icons as you wish, including selling, copying, modifying etc.
 * License: MIT
-* Site: [https://bitmarktalk.org/index.php?topic=15276.0](https://bitmarktalk.org/index.php?topic=15276.0)
+* Site: [https://bitcointalk.org/index.php?topic=15276.0](https://bitcointalk.org/index.php?topic=15276.0)
 
 ### Assets Used
 	src/qt/res/icons/transaction*.png

@@ -214,7 +214,7 @@ From a directory containing bitmark source, gitian.sigs and gitian zips
 
   - Add the release to bitmark.org: https://github.com/bitmark/bitmark.org/tree/master/_releases
 
-  - Release sticky on bitmarktalk: https://bitmarktalk.org/index.php?board=1.0
+  - Release sticky on bitcointalk: https://bitcointalk.org/index.php?board=1.0
 
   - Bitmark-development mailing list
 

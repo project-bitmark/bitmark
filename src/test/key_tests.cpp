@@ -16,46 +16,17 @@
 
 using namespace std;
 
-static const string strSecret1     ("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
-static const string strSecret2     ("5KC4ejrDjv152FGwP386VD1i2NYc5KkfSMyv1nGy1VGDxGHqVY3");
-static const string strSecret1C    ("Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw");
-static const string strSecret2C    ("L3Hq7a8FEQwJkW1M2GNKDW28546Vp5miewcCzSqUD9kCAXrJdS3g");
-static const CBitmarkAddress addr1 ("1QFqqMUD55ZV3PJEJZtaKCsQmjLT6JkjvJ");
-static const CBitmarkAddress addr2 ("1F5y5E5FMc5YzdJtB9hLaUe43GDxEKXENJ");
-static const CBitmarkAddress addr1C("1NoJrossxPBKfCHuJXT4HadJrXRE9Fxiqs");
-static const CBitmarkAddress addr2C("1CRj2HyM1CXWzHAXLQtiGLyggNT9WQqsDs");
+static const string strSecret1     ("3T8LfmmT4UE526vZ5zfDYeca69GV5iBio8M6udc8wHQyQcsqFJD");
+static const string strSecret2     ("3UYjmH8Ye2jvDbwyDUWJx3LjmhL5sfeXg5ty7PjwUgMUg3tW66X");
+static const string strSecret1C    ("BpKPp8bC2KAgjs9Nd3VgNh213hVLwnnKUbRj5Ja62bSoyEuTVvsN");
+static const string strSecret2C    ("Bvb5kSCJeSgRtdFd84QNDwL7nH1EWdaePWcNfDNXTAhP8z8SLQYr");
+static const CBitmarkAddress addr1 ("bVkSsJU8pi7PvEWN4jgHkLAd6jo4ZWYd16");
+static const CBitmarkAddress addr2 ("bWRDtv3FPPAii7SSJ6zR3dMnDEAXFk1koe");
+static const CBitmarkAddress addr1C("bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR");
+static const CBitmarkAddress addr2C("bGvwzZoFyDvxGDjPGQmzA9hgeWRHXDsZQo");
 
 
-static const string strAddressBad("1HV9Lc3sNHZxwj4Zk6fB38tEmBryq2cBiF");
-
-
-#ifdef KEY_TESTS_DUMPINFO
-void dumpKeyInfo(uint256 privkey)
-{
-    CKey key;
-    key.resize(32);
-    memcpy(&secret[0], &privkey, 32);
-    vector<unsigned char> sec;
-    sec.resize(32);
-    memcpy(&sec[0], &secret[0], 32);
-    printf("  * secret (hex): %s\n", HexStr(sec).c_str());
-
-    for (int nCompressed=0; nCompressed<2; nCompressed++)
-    {
-        bool fCompressed = nCompressed == 1;
-        printf("  * %s:\n", fCompressed ? "compressed" : "uncompressed");
-        CBitmarkSecret bsecret;
-        bsecret.SetSecret(secret, fCompressed);
-        printf("    * secret (base58): %s\n", bsecret.ToString().c_str());
-        CKey key;
-        key.SetSecret(secret, fCompressed);
-        vector<unsigned char> vchPubKey = key.GetPubKey();
-        printf("    * pubkey (hex): %s\n", HexStr(vchPubKey).c_str());
-        printf("    * address (base58): %s\n", CBitmarkAddress(vchPubKey).ToString().c_str());
-    }
-}
-#endif
-
+static const string strAddressBad("bHV9Lc3sNHZxwj4Zk6fB38tEmBryq2cBiF");
 
 BOOST_AUTO_TEST_SUITE(key_tests)
 

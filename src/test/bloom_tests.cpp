@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize_with_tweak)
 
 BOOST_AUTO_TEST_CASE(bloom_create_insert_key)
 {
-    string strSecret = string("5Kg1gnAjaLfKiwhhPpGS3QfRg2m6awQvaj98JCZBZQ5SuS2F15C");
+    string strSecret = string("3T8LfmmT4UE526vZ5zfDYeca69GV5iBio8M6udc8wHQyQcsqFJD");
     CBitmarkSecret vchSecret;
     BOOST_CHECK(vchSecret.SetString(strSecret));
 
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_key)
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     filter.Serialize(stream, SER_NETWORK, PROTOCOL_VERSION);
 
-    vector<unsigned char> vch = ParseHex("038fc16b080000000000000001");
+    vector<unsigned char> vch = ParseHex("03144de3080000000000000001");
     vector<char> expected(vch.size());
 
     for (unsigned int i = 0; i < vch.size(); i++)

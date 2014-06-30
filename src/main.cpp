@@ -4191,15 +4191,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             }
             pto->nPingNonceSent = nonce;
             pto->fPingQueued = false;
-            if (pto->nVersion > BIP0031_VERSION) {
-                // Take timestamp as close as possible before transmitting ping
-                pto->nPingUsecStart = GetTimeMicros();
-                pto->PushMessage("ping", nonce);
-            } else {
-                // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
-                pto->nPingUsecStart = 0;
-                pto->PushMessage("ping");
-            }
+			// Take timestamp as close as possible before transmitting ping
+			pto->nPingUsecStart = GetTimeMicros();
+			pto->PushMessage("ping", nonce);
         }
 
         TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()

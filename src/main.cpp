@@ -2352,6 +2352,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
     AssertLockHeld(cs_main);
+    block.print();
     // Check for duplicate
     uint256 hash = block.GetHash();
     if (mapBlockIndex.count(hash))
@@ -2393,15 +2394,13 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         if (pcheckpoint && nHeight < pcheckpoint->nHeight)
             return state.DoS(100, error("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
 
-        // todo update this
-
         // Reject block.nVersion=1 blocks
         if (block.nVersion < 2)
         {
 			return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
 								 REJECT_OBSOLETE, "bad-version");
         }
-        block.print();
+
         // Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
         if (block.nVersion >= 2)
         {

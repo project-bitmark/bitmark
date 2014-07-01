@@ -2401,6 +2401,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
 								 REJECT_OBSOLETE, "bad-version");
         }
+        block.print();
         // Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
         if (block.nVersion >= 2)
         {

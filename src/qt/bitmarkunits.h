@@ -24,8 +24,8 @@ public:
     enum Unit
     {
         BTM,
-        mBTM,
-        uBTM
+        MARK,
+        mb
     };
 
     //! @name Static API

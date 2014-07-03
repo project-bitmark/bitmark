@@ -16,8 +16,8 @@ QList<BitmarkUnits::Unit> BitmarkUnits::availableUnits()
 {
     QList<BitmarkUnits::Unit> unitlist;
     unitlist.append(BTM);
-    unitlist.append(mBTM);
-    unitlist.append(uBTM);
+    unitlist.append(MARK);
+    unitlist.append(mb);
     return unitlist;
 }
 
@@ -26,8 +26,8 @@ bool BitmarkUnits::valid(int unit)
     switch(unit)
     {
     case BTM:
-    case mBTM:
-    case uBTM:
+    case MARK:
+    case mb:
         return true;
     default:
         return false;
@@ -39,8 +39,8 @@ QString BitmarkUnits::name(int unit)
     switch(unit)
     {
     case BTM: return QString("BTM");
-    case mBTM: return QString("mBTM");
-    case uBTM: return QString::fromUtf8("μBTM");
+    case MARK: return QString("MARK");
+    case mb: return QString::fromUtf8("mb");
     default: return QString("???");
     }
 }
@@ -50,8 +50,8 @@ QString BitmarkUnits::description(int unit)
     switch(unit)
     {
     case BTM: return QString("Bitmarks");
-    case mBTM: return QString("Milli-Bitmarks (1 / 1,000)");
-    case uBTM: return QString("Micro-Bitmarks (1 / 1,000,000)");
+    case MARK: return QString("Marks (1 / 1,000)");
+    case mb: return QString("MarkBits (1 / 1,000,000)");
     default: return QString("???");
     }
 }
@@ -61,8 +61,8 @@ qint64 BitmarkUnits::factor(int unit)
     switch(unit)
     {
     case BTM:  return 100000000;
-    case mBTM: return 100000;
-    case uBTM: return 100;
+    case MARK: return 100000;
+    case mb: return 100;
     default:   return 100000000;
     }
 }
@@ -72,8 +72,8 @@ qint64 BitmarkUnits::maxAmount(int unit)
     switch(unit)
     {
     case BTM:  return Q_INT64_C(21000000);
-    case mBTM: return Q_INT64_C(21000000000);
-    case uBTM: return Q_INT64_C(21000000000000);
+    case MARK: return Q_INT64_C(21000000000);
+    case mb: return Q_INT64_C(21000000000000);
     default:   return 0;
     }
 }
@@ -83,8 +83,8 @@ int BitmarkUnits::amountDigits(int unit)
     switch(unit)
     {
     case BTM: return 8; // 21,000,000 (# digits, without commas)
-    case mBTM: return 11; // 21,000,000,000
-    case uBTM: return 14; // 21,000,000,000,000
+    case MARK: return 11; // 21,000,000,000
+    case mb: return 14; // 21,000,000,000,000
     default: return 0;
     }
 }
@@ -94,8 +94,8 @@ int BitmarkUnits::decimals(int unit)
     switch(unit)
     {
     case BTM: return 8;
-    case mBTM: return 5;
-    case uBTM: return 2;
+    case MARK: return 5;
+    case mb: return 2;
     default: return 0;
     }
 }

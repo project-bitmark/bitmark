@@ -19,7 +19,7 @@ public:
     explicit BitmarkUnits(QObject *parent);
 
     /** Bitmark units.
-      @note Source: https://en.bitmark.it/wiki/Units . Please add only sensible ones
+      @note Source: https://github.com/coinsolidation/bitmark/wiki/Currency . Please add only sensible ones
      */
     enum Unit
     {

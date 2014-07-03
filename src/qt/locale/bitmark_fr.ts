@@ -1361,8 +1361,8 @@ Adresse : %4
         <translation>Bitmark Core ne s&apos;est pas encore arrêté en toute sécurité...</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Saisir une adresse Bitmark (par ex. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Saisir une adresse Bitmark (par ex. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
 </context>
 <context>
@@ -1906,8 +1906,8 @@ Adresse : %4
         <translation>&amp;Payer à :</translation>
     </message>
     <message>
-        <source>The address to send the payment to (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>L&apos;adresse à laquelle le paiement sera envoyé (par ex. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to send the payment to (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>L&apos;adresse à laquelle le paiement sera envoyé (par ex. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Enter a label for this address to add it to your address book</source>
@@ -1996,8 +1996,8 @@ Adresse : %4
         <translation>Vous pouvez signer des messages avec vos adresses pour prouver que vous les détenez. Faites attention de ne pas signer de vague car des attaques d&apos;hameçonnage peuvent essayer d&apos;usurper votre identité par votre signature. Ne signez que des déclarations entièrement détaillées et avec lesquelles vous serez d&apos;accord.</translation>
     </message>
     <message>
-        <source>The address to sign the message with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>L&apos;adresse avec laquelle le message sera signé (par ex. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to sign the message with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>L&apos;adresse avec laquelle le message sera signé (par ex. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2052,8 +2052,8 @@ Adresse : %4
         <translation>Saisir ci-dessous l&apos;adresse de signature, le message (assurez-vous d&apos;avoir copié exactement les retours à la ligne, les espaces, tabulations etc...) et la signature pour vérifier le message. Faire attention à ne pas déduire davantage de la signature que ce qui est contenu dans le message signé lui-même pour éviter d&apos;être trompé par une attaque d&apos;homme du milieu.</translation>
     </message>
     <message>
-        <source>The address the message was signed with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>L&apos;adresse avec laquelle le message a été signé (par ex. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address the message was signed with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>L&apos;adresse avec laquelle le message a été signé (par ex. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Bitmark address</source>
@@ -2068,8 +2068,8 @@ Adresse : %4
         <translation>Réinitialiser tous les champs de vérification de message</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Saisir une adresse Bitmark (par ex. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Saisir une adresse Bitmark (par ex. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Click &quot;Sign Message&quot; to generate signature</source>

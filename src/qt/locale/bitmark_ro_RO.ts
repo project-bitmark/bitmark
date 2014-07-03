@@ -1361,8 +1361,8 @@ Adresa: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Introdu o adresă Bitmark (de exemplu: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Introdu o adresă Bitmark (de exemplu: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
 </context>
 <context>
@@ -1906,8 +1906,8 @@ Adresa: %4
         <translation>Plătește că&amp;tre:</translation>
     </message>
     <message>
-        <source>The address to send the payment to (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Adresa către care se va face plata  (de exemplu: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to send the payment to (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Adresa către care se va face plata  (de exemplu: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Enter a label for this address to add it to your address book</source>
@@ -1996,8 +1996,8 @@ Adresa: %4
         <translation>Puteti semna mesaje cu adresa dumneavoastra pentru a demostra ca sunteti proprietarul lor. Aveti grija sa nu semnati nimic vag, deoarece atacurile de tip phishing va pot pacali sa le transferati identitatea. Semnati numai declaratiile detaliate cu care sunteti deacord.</translation>
     </message>
     <message>
-        <source>The address to sign the message with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Introduceţi o adresă Bitmark (de exemplu: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to sign the message with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Introduceţi o adresă Bitmark (de exemplu: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2052,8 +2052,8 @@ Adresa: %4
         <translation>Introduceti adresa de semnatura, mesajul (asigurati-va ca ati copiat spatiile, taburile etc. exact) si semnatura dedesubt pentru a verifica mesajul. Aveti grija sa nu cititi mai mult in semnatura decat mesajul in sine, pentru a evita sa fiti pacaliti de un atac de tip man-in-the-middle.</translation>
     </message>
     <message>
-        <source>The address the message was signed with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Introduceţi o adresă Bitmark (de exemplu: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address the message was signed with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Introduceţi o adresă Bitmark (de exemplu: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Bitmark address</source>
@@ -2068,8 +2068,8 @@ Adresa: %4
         <translation>Reseteaza toate spatiile mesajelor semnate.</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Introduceţi o adresă Bitmark (de exemplu: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Introduceţi o adresă Bitmark (de exemplu: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Click &quot;Sign Message&quot; to generate signature</source>

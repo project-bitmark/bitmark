@@ -1361,8 +1361,8 @@ Adrese: %4
         <translation>Bitmark Core vel neizgāja droši...</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Ierakstiet Bitmark adresi (piem. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Ierakstiet Bitmark adresi (piem. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
 </context>
 <context>
@@ -1906,8 +1906,8 @@ Adrese: %4
         <translation>&amp;Saņēmējs:</translation>
     </message>
     <message>
-        <source>The address to send the payment to (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Adrese lai sūtītu maksājumu uz (piem. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to send the payment to (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Adrese lai sūtītu maksājumu uz (piem. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Enter a label for this address to add it to your address book</source>
@@ -1996,8 +1996,8 @@ Adrese: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>The address to sign the message with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Adrese ar kuru parakstīt ziņojumu (piem. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to sign the message with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Adrese ar kuru parakstīt ziņojumu (piem. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2052,8 +2052,8 @@ Adrese: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>The address the message was signed with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Adrese ar kādu ziņojums tika parakstīts (piem. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address the message was signed with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Adrese ar kādu ziņojums tika parakstīts (piem. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Bitmark address</source>
@@ -2068,8 +2068,8 @@ Adrese: %4
         <translation>Atiestatīt visus laukus</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Ierakstiet Bitmark adresi (piem. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Ierakstiet Bitmark adresi (piem. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Click &quot;Sign Message&quot; to generate signature</source>

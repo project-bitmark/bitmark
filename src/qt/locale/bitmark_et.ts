@@ -1360,8 +1360,8 @@ Aadress: %4⏎</translation>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Sisesta Bitmarki aadress (nt: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Sisesta Bitmarki aadress (nt: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
 </context>
 <context>
@@ -1905,8 +1905,8 @@ Aadress: %4⏎</translation>
         <translation>Maksa &amp;:</translation>
     </message>
     <message>
-        <source>The address to send the payment to (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Tehingu saaja aadress (nt: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to send the payment to (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Tehingu saaja aadress (nt: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Enter a label for this address to add it to your address book</source>
@@ -1995,8 +1995,8 @@ Aadress: %4⏎</translation>
         <translation>Omandiõigsuse tõestamiseks saad sõnumeid allkirjastada oma aadressiga. Ettevaatust petturitega, kes üritavad saada sinu allkirja endale saada. Allkirjasta ainult korralikult täidetud avaldusi, millega nõustud.</translation>
     </message>
     <message>
-        <source>The address to sign the message with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Sõnumi signeerimise aadress (nt: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to sign the message with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Sõnumi signeerimise aadress (nt: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2051,8 +2051,8 @@ Aadress: %4⏎</translation>
         <translation>Kinnitamiseks sisesta allkirjastamise aadress, sõnum (kindlasti kopeeri täpselt ka reavahetused, tühikud, tabulaatorid jms) ning allolev signatuur.</translation>
     </message>
     <message>
-        <source>The address the message was signed with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Aadress, millega sõnum allkirjastati (nt: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address the message was signed with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Aadress, millega sõnum allkirjastati (nt: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Bitmark address</source>
@@ -2067,8 +2067,8 @@ Aadress: %4⏎</translation>
         <translation>Tühjenda kõik sõnumi kinnitamise väljad</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Sisesta Bitmarki aadress (nt: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Sisesta Bitmarki aadress (nt: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Click &quot;Sign Message&quot; to generate signature</source>

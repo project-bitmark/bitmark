@@ -1356,8 +1356,8 @@ Address: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Bitmark एड्रेस लिखें (उदाहरण: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Bitmark एड्रेस लिखें (उदाहरण: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
 </context>
 <context>
@@ -1902,7 +1902,7 @@ Address: %4
         <translation>प्राप्तकर्ता:</translation>
     </message>
     <message>
-        <source>The address to send the payment to (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <source>The address to send the payment to (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -1992,7 +1992,7 @@ Address: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>The address to sign the message with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <source>The address to sign the message with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -2048,7 +2048,7 @@ Address: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>The address the message was signed with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <source>The address the message was signed with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -2064,8 +2064,8 @@ Address: %4
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Bitmark एड्रेस लिखें (उदाहरण: 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Bitmark एड्रेस लिखें (उदाहरण: bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Click &quot;Sign Message&quot; to generate signature</source>

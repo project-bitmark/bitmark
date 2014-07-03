@@ -1363,8 +1363,8 @@ Address: %4
         <translation>位元幣核心還沒有安全地結束...</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>請輸入位元幣位址(像是 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>請輸入位元幣位址(像是 bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
 </context>
 <context>
@@ -1908,8 +1908,8 @@ Address: %4
         <translation>付給:</translation>
     </message>
     <message>
-        <source>The address to send the payment to (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>付款的目標位址(像是 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to send the payment to (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>付款的目標位址(像是 bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Enter a label for this address to add it to your address book</source>
@@ -1998,8 +1998,8 @@ Address: %4
         <translation>你可以用自己的位址簽署訊息，來證明你對位址的所有權。但是請小心，不要簽署語意含糊不清的內容，因為釣魚式詐騙可能會用騙你簽署的手法來冒充是你。只有在語句中的細節你都同意時才簽署。</translation>
     </message>
     <message>
-        <source>The address to sign the message with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>用來簽署訊息的位址(像是 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to sign the message with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>用來簽署訊息的位址(像是 bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2054,8 +2054,8 @@ Address: %4
         <translation>請在下面輸入簽署的位址，訊息(請確定完整複製了所包含的換行，空格，跳位符號等等)，以及簽章，來驗證這個訊息。請小心，除了訊息內容以外，不要對簽章本身過度解讀，以避免被用「中間人攻擊法」詐騙。</translation>
     </message>
     <message>
-        <source>The address the message was signed with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>簽署這個訊息的位址(像是 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address the message was signed with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>簽署這個訊息的位址(像是 bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Bitmark address</source>
@@ -2070,8 +2070,8 @@ Address: %4
         <translation>重設所有訊息驗證欄位</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>請輸入位元幣位址(像是 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>請輸入位元幣位址(像是 bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Click &quot;Sign Message&quot; to generate signature</source>

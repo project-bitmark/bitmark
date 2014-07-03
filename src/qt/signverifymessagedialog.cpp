@@ -27,7 +27,7 @@ SignVerifyMessageDialog::SignVerifyMessageDialog(QWidget *parent) :
 
 #if QT_VERSION >= 0x040700
     ui->signatureOut_SM->setPlaceholderText(tr("Click \"Sign Message\" to generate signature"));
-    ui->addressIn_VM->setPlaceholderText(tr("Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)"));
+    ui->addressIn_VM->setPlaceholderText(tr("Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)"));
 #endif
 
     GUIUtil::setupAddressWidget(ui->addressIn_SM, this);

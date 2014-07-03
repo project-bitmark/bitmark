@@ -1361,8 +1361,8 @@ Adresa: %4
         <translation>Bitmark Core ještě bezpečně neskončil...</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Zadej Bitmarkovou adresu (např. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Zadej Bitmarkovou adresu (např. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
 </context>
 <context>
@@ -1906,8 +1906,8 @@ Adresa: %4
         <translation>&amp;Komu:</translation>
     </message>
     <message>
-        <source>The address to send the payment to (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Adresa příjemce (např. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to send the payment to (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Adresa příjemce (např. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Enter a label for this address to add it to your address book</source>
@@ -1996,8 +1996,8 @@ Adresa: %4
         <translation>Podepsáním zprávy svými adresami můžeš prokázat, že je skutečně vlastníš. Buď opatrný a nepodepisuj nic vágního; například při phishingových útocích můžeš být lákán, abys něco takového podepsal. Podepisuj pouze zcela úplná a detailní prohlášení, se kterými souhlasíš.</translation>
     </message>
     <message>
-        <source>The address to sign the message with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Adresa, kterou se zpráva podepíše (např. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address to sign the message with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Adresa, kterou se zpráva podepíše (např. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2052,8 +2052,8 @@ Adresa: %4
         <translation>K ověření podpisu zprávy zadej podepisující adresu, zprávu (ověř si, že správně kopíruješ zalomení řádků, mezery, tabulátory apod.) a podpis. Dávej pozor na to, abys nezkopíroval do podpisu víc, než co je v samotné podepsané zprávě, abys nebyl napálen man-in-the-middle útokem.</translation>
     </message>
     <message>
-        <source>The address the message was signed with (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Adresa, kterou je zpráva podepsána (např. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>The address the message was signed with (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Adresa, kterou je zpráva podepsána (např. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Bitmark address</source>
@@ -2068,8 +2068,8 @@ Adresa: %4
         <translation>Vymaž všechna pole formuláře pro ověření zrávy</translation>
     </message>
     <message>
-        <source>Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Zadej Bitmarkovou adresu (např. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</translation>
+        <source>Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</source>
+        <translation>Zadej Bitmarkovou adresu (např. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)</translation>
     </message>
     <message>
         <source>Click &quot;Sign Message&quot; to generate signature</source>

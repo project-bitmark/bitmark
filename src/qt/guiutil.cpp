@@ -90,7 +90,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
 
     widget->setFont(bitmarkAddressFont());
 #if QT_VERSION >= 0x040700
-    widget->setPlaceholderText(QObject::tr("Enter a Bitmark address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)"));
+    widget->setPlaceholderText(QObject::tr("Enter a Bitmark address (e.g. bQ3Gyigyd12kJDkhwi9M9QSZ9qu6M4NZzR)"));
 #endif
     widget->setValidator(new BitmarkAddressEntryValidator(parent));
     widget->setCheckValidator(new BitmarkAddressCheckValidator(parent));

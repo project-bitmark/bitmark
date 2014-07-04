@@ -1,4 +1,5 @@
-// Copyright (c) 2011-2014 The Bitcoin Core Developers
+// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
+// Modified Code: Copyright (c) 2014 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -77,7 +78,7 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f, bool isTest
     // draw copyright stuff
     pixPaint.setFont(QFont(font, 10*fontFactor));
     pixPaint.drawText(newPixmap.width()-titleTextWidth-paddingRight,paddingTop+titleCopyrightVSpace,copyrightText);
-    pixPaint.drawText(newPixmap.width()-titleTextWidth-paddingRight,paddingTop+titleCopyrightVSpace+16,copyrightTextBTM);
+    pixPaint.drawText(newPixmap.width()-titleTextWidth-paddingRight,paddingTop+titleCopyrightVSpace+14,copyrightTextBTM);
 
     // draw testnet string if testnet is on
     if(isTestNet) {

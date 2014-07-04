@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2013 The Bitcoin Core Developers
+// Original Code: Copyright (c) 2012-2014 The Bitcoin Core Developers
+// Modified Code: Copyright (c) 2014 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 

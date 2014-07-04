@@ -22,7 +22,7 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f, bool isTest
     setAutoFillBackground(true);
 
     // set reference point, paddings
-    int paddingRight            = 20;
+    int paddingRight            = 25;
     int paddingTop              = 35;
     int titleVersionVSpace      = 17;
     int titleCopyrightVSpace    = 40;
@@ -32,8 +32,8 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f, bool isTest
     // define text to place
     QString titleText       = tr("Bitmark Core");
     QString versionText     = QString("Version %1").arg(QString::fromStdString(FormatFullVersion()));
-    QString copyrightText   = QChar(0xA9)+QString(" 2009-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Bitcoin Core Developers"));
-	QString copyrightTextBTM   = QChar(0xA9) + QString(tr(" 2014 The Bitmark Core Developers"));
+    QString copyrightTextBTM   = QChar(0xA9)+QString(" 2009-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Bitcoin Core Developers"));
+	QString copyrightText   = QChar(0xA9) + QString(tr(" 2014 The Bitmark Core Developers"));
     QString testnetAddText  = QString(tr("[testnet]")); // define text to place as single text object
 
     QString font            = "Arial";

@@ -91,6 +91,22 @@
         <cursorShape>IBeamCursor</cursorShape>
        </property>
        <property name="text">
+        <string notr="true">Copyright &amp;copy; YYYY The Bitcoin Core Developers</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="copyrightLabelTwo">
+       <property name="cursor">
+        <cursorShape>IBeamCursor</cursorShape>
+       </property>
+       <property name="text">
         <string notr="true">Copyright &amp;copy; YYYY The Bitmark Core Developers</string>
        </property>
        <property name="textFormat">

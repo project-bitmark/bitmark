@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The Bitcoin Core Developers
+// Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
+// Modified Code: Copyright (c) 2014 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef BITMARK_COINS_H

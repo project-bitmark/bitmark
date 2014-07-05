@@ -3,7 +3,7 @@ Our aim is to create a relatively stable, user focussed, crypto currency which r
 
 **Technically**: Light and stable with a modern codebase, [maturing features from the alternative currency sector](https://github.com/project-bitmark/bitmark/wiki#maturing-innovations) which *benefit* users added on a faster timeline than bitcoin. Think of it more as [standardization rather than innovation](https://github.com/project-bitmark/bitmark/wiki#relatively-stable).
 
-**User focussed**: Most development effort and [innovation](https://github.com/project-bitmark/bitmark/wiki/Scratchpad) goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focussed) with, as possible.
+**User focussed**: Most development effort and [innovation](https://github.com/project-bitmark/bitmark/wiki/Scratchpad) goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focussed) as possible.
 
 **Adoption**: In line with being user focussed, all marketing and outreach will be to potential adopters, such as [microtransaction marketplaces](https://github.com/project-bitmark/bitmark/wiki/Microtransactions-and-Microtrust). The project is crafted in such a way that encourages all involved to focus on adoption.
 
@@ -21,12 +21,8 @@ So, no hype or gimmicks, just a project which focusses on becoming a stable ever
 
 ## SOURCE CODE IS UNDER DEVELOPMENT
 
-### Current status
- * fully working with temporary chains *all chains will be wiped before release*
- * desperately require a dedicated server so we can launch Bitmark
-
 ### Building
- * Tested bitmark-qt, bitmarkd and bitmark-cli on various linux distributions
+ * bitmark-qt, bitmarkd and bitmark-cli have been built and tested on various linux distributions
  * check doc/build-* for details on how to build (same as bitcoin, different to alts based on old codebases)
 
 ### Testing

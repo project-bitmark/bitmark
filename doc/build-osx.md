@@ -56,7 +56,7 @@ Optional: install Qt4
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone git@github.com:bitmark/bitmark.git bitmark
+        git clone git@github.com:project-bitmark/bitmark.git bitmark
         cd bitmark
 
 2.  Build bitmarkd (and Bitmark-Qt, if configured):

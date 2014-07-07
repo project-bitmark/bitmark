@@ -57,4 +57,4 @@ script: |
   export FAKETIME=$REFERENCE_DATETIME
   export TZ=UTC
   make deploy
-  dmg dmg bitmark-Qt.dmg $OUTDIR/bitmark-Qt.dmg
+  dmg dmg Bitmark-Qt.dmg $OUTDIR/Bitmark-Qt.dmg

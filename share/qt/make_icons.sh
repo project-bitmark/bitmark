@@ -29,6 +29,8 @@ convert ../pixmaps/bitmark32.png ../pixmaps/bitmark32.xpm
 convert ../pixmaps/bitmark64.png ../pixmaps/bitmark64.xpm
 convert ../pixmaps/bitmark128.png ../pixmaps/bitmark128.xpm
 convert ../pixmaps/bitmark256.png ../pixmaps/bitmark256.xpm
+# create apple icns file
+png2icns ../../src/qt/res/icons/bitmark.icns ../pixmaps/bitmark*.png
 # clean up
 rm bitmark-48.png
 rm bitmark-test-*.png

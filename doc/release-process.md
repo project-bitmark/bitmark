@@ -53,7 +53,7 @@ Release Process
 	wget 'https://svn.boost.org/trac/boost/raw-attachment/ticket/7262/boost-mingw.patch' -O \ 
 	     boost-mingw-gas-cross-compile-2013-03-03.patch
 	wget 'https://download.qt-project.org/official_releases/qt/5.2/5.2.0/single/qt-everywhere-opensource-src-5.2.0.tar.gz'
-	wget 'https://download.qt-project.org/archive/qt/4.6/qt-everywhere-opensource-src-4.6.4.tar.gz'
+	wget 'https://download.qt-project.org/archive/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz'
 	wget 'https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.bz2'
 	wget 'https://github.com/mingwandroid/toolchain4/archive/10cc648683617cca8bcbeae507888099b41b530c.tar.gz'
 	wget 'http://www.opensource.apple.com/tarballs/cctools/cctools-809.tar.gz'

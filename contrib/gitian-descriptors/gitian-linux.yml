@@ -29,8 +29,8 @@ files:
 - "bitmark-deps-linux64-gitian-r6.zip"
 - "boost-linux32-1.55.0-gitian-r1.zip"
 - "boost-linux64-1.55.0-gitian-r1.zip"
-- "qt-linux32-4.6.4-gitian-r1.tar.gz"
-- "qt-linux64-4.6.4-gitian-r1.tar.gz"
+- "qt-linux32-4.8.6-gitian-r1.tar.gz"
+- "qt-linux64-4.8.6-gitian-r1.tar.gz"
 script: |
   STAGING="$HOME/install"
   OPTFLAGS='-O2'
@@ -45,7 +45,7 @@ script: |
   cd $STAGING
   unzip ../build/bitmark-deps-linux${GBUILD_BITS}-gitian-r6.zip
   unzip ../build/boost-linux${GBUILD_BITS}-1.55.0-gitian-r1.zip
-  tar -zxf ../build/qt-linux${GBUILD_BITS}-4.6.4-gitian-r1.tar.gz
+  tar -zxf ../build/qt-linux${GBUILD_BITS}-4.8.6-gitian-r1.tar.gz
   cd ../build
 
   # Avoid exporting *any* symbols from the executable

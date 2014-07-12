@@ -15,7 +15,7 @@ convert ${ICON_SRC} -resize 256x256 ../pixmaps/bitmark256.png
 convert ${ICON_SRC} -resize 512x512 ../pixmaps/bitmark512.png
 cp ../pixmaps/bitmark256.png ../../src/qt/res/icons/bitmark.png
 # create mainnet windows icon with all variant sizes
-convert +matte ../pixmaps/bitmark16.png ../pixmaps/bitmark32.png bitmark-48.png ../pixmaps/bitmark256.png ${ICON_DST}
+convert ../pixmaps/bitmark16.png ../pixmaps/bitmark32.png bitmark-48.png ../pixmaps/bitmark256.png ${ICON_DST}
 cp ../pixmaps/bitmark16.png ../../src/qt/res/icons/toolbar.png
 # create base for all testnet icons 
 convert ${ICON_SRC_TEST} -resize 16x16 bitmark-test-16.png
@@ -33,7 +33,7 @@ convert ../pixmaps/bitmark32.png ../pixmaps/bitmark32.xpm
 convert ../pixmaps/bitmark64.png ../pixmaps/bitmark64.xpm
 convert ../pixmaps/bitmark128.png ../pixmaps/bitmark128.xpm
 convert ../pixmaps/bitmark256.png ../pixmaps/bitmark256.xpm
-# create apple icns file
+# create apple icns file, use libicns 8.2.1 not the default
 mv ../pixmaps/bitmark64.png ../pixmaps/tempbitmark64.png
 png2icns ../../src/qt/res/icons/bitmark.icns ../pixmaps/bitmark*.png
 mv ../pixmaps/tempbitmark64.png ../pixmaps/bitmark64.png

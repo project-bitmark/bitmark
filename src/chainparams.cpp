@@ -21,7 +21,7 @@ using namespace boost::assign;
 
 unsigned int pnSeed[] =
 {
-    0x7e6a692e,
+	0xa7582308, 0xac1f1f0a, 0xae240982
 };
 
 class CMainParams : public CChainParams {
@@ -62,7 +62,7 @@ public:
         assert(genesis.hashMerkleRoot == uint256("0x355fc1adce5be62303a2b7b10c9e5f093ffd1f7dcc88983b8c748ee7b4667324"));
 
         // todo add some dns seeders
-        vSeeds.push_back(CDNSSeedData("bitmark.sipa.be", "seed.bitmark.sipa.be"));
+        vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(85); // b
         base58Prefixes[SCRIPT_ADDRESS] = list_of(5);
@@ -125,7 +125,7 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("bitmark.petertodd.org", "testnet-seed.bitmark.petertodd.org"));
+        vSeeds.push_back(CDNSSeedData("bitmark.co", "test.bitmark.co"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(130); // u
         base58Prefixes[SCRIPT_ADDRESS] = list_of(196);

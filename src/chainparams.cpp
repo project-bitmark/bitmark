@@ -37,7 +37,7 @@ public:
         vAlertPubKey = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284");
         nDefaultPort = 9265;
         nRPCPort = 9266;
-        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
         nSubsidyHalvingInterval = 788000;
 
         // Build the genesis block.
@@ -54,14 +54,14 @@ public:
         genesis.nVersion = 1;
         genesis.nTime    = 1405274400;
         genesis.nBits    = 0x1d00ffff;
-        genesis.nNonce   = 0;
+        genesis.nNonce   = 25000000;
 
         hashGenesisBlock = genesis.GetHash();
-        // todo swap this to another chain once ready for live
-        //assert(hashGenesisBlock == uint256("0x43aa2f3a30f773b9f958c1e3e0760980e64660052532a06c702b0140d5fe7ee8"));
-        //assert(genesis.hashMerkleRoot == uint256("0x355fc1adce5be62303a2b7b10c9e5f093ffd1f7dcc88983b8c748ee7b4667324"));
 
-        // todo add some dns seeders
+        //assert(hashGenesisBlock == uint256("0x61d6c47f5b9965852cf7dfde6f28b0242365a3a99dbfb74b6b5965a0001395a3"));
+        //assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
+
+        // todo add more dns seeders
         vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(85); // b
@@ -118,7 +118,7 @@ public:
         strDataDir = "testnet3";
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nTime = 1405274400;
+        genesis.nTime = 1405274401;
         genesis.nNonce = 0;
         hashGenesisBlock = genesis.GetHash();
         //assert(hashGenesisBlock == uint256("0xf4dd31813f948437c0b8f0669f52ba62b5c237880716bf28d9b480bf81490659"));

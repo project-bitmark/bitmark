@@ -18,6 +18,7 @@ cp ../pixmaps/bitmark256.png ../../src/qt/res/icons/bitmark.png
 convert ../pixmaps/bitmark16.png ../pixmaps/bitmark32.png bitmark-48.png ../pixmaps/bitmark256.png ${ICON_DST}
 cp ../pixmaps/bitmark16.png ../../src/qt/res/icons/toolbar.png
 # create base for all testnet icons 
+convert ../pixmaps/Tbitmark1024.png -resize 256x256 ${ICON_SRC_TEST}
 convert ${ICON_SRC_TEST} -resize 16x16 bitmark-test-16.png
 convert ${ICON_SRC_TEST} -resize 32x32 bitmark-test-32.png
 convert ${ICON_SRC_TEST} -resize 48x48 bitmark-test-48.png

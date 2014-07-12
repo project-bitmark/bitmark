@@ -41,7 +41,7 @@ public:
         nSubsidyHalvingInterval = 788000;
 
         // Build the genesis block.
-        const char* pszTimestamp = "BBC 30/Jun/2014 Is deflation such a bad thing?";
+        const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -52,14 +52,14 @@ public:
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
-        genesis.nTime    = 1404127719;
-        genesis.nBits    = 0x1e0ffff0;
-        genesis.nNonce   = 820318;
+        genesis.nTime    = 1405274400;
+        genesis.nBits    = 0x1d00ffff;
+        genesis.nNonce   = 0;
 
         hashGenesisBlock = genesis.GetHash();
         // todo swap this to another chain once ready for live
-        assert(hashGenesisBlock == uint256("0x43aa2f3a30f773b9f958c1e3e0760980e64660052532a06c702b0140d5fe7ee8"));
-        assert(genesis.hashMerkleRoot == uint256("0x355fc1adce5be62303a2b7b10c9e5f093ffd1f7dcc88983b8c748ee7b4667324"));
+        //assert(hashGenesisBlock == uint256("0x43aa2f3a30f773b9f958c1e3e0760980e64660052532a06c702b0140d5fe7ee8"));
+        //assert(genesis.hashMerkleRoot == uint256("0x355fc1adce5be62303a2b7b10c9e5f093ffd1f7dcc88983b8c748ee7b4667324"));
 
         // todo add some dns seeders
         vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
@@ -118,10 +118,10 @@ public:
         strDataDir = "testnet3";
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nTime = 1404127718;
-        genesis.nNonce = 736466;
+        genesis.nTime = 1405274400;
+        genesis.nNonce = 0;
         hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0xf4dd31813f948437c0b8f0669f52ba62b5c237880716bf28d9b480bf81490659"));
+        //assert(hashGenesisBlock == uint256("0xf4dd31813f948437c0b8f0669f52ba62b5c237880716bf28d9b480bf81490659"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -150,7 +150,7 @@ public:
         pchMessageStart[3] = 0xda;
         nSubsidyHalvingInterval = 150;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
-        genesis.nTime = 1404159747;
+        genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;
         genesis.nNonce = 0;
         hashGenesisBlock = genesis.GetHash();

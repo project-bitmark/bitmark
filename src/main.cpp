@@ -2950,7 +2950,7 @@ bool LoadBlockIndex()
     return true;
 }
 
-void static BitmarkGenesisMiner(CBlock block, int start)
+void static BitmarkGenesisMiner(CBlock block, int start, int threads)
 {
     LogPrintf("BitmarkMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -2975,7 +2975,7 @@ void static BitmarkGenesisMiner(CBlock block, int start)
 			if (block.nNonce == 0)
 			{
 				printf("NONCE WRAPPED, incrementing time\n");
-				block.nTime+=4;
+				block.nTime+=threads;
 			}
 		}
 		printf("block.nTime = %u \n", block.nTime);
@@ -3007,7 +3007,7 @@ void GenesisBitmark(CBlock block)
 
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++)
-        minerThreads->create_thread(boost::bind(&BitmarkGenesisMiner, block, i));
+        minerThreads->create_thread(boost::bind(&BitmarkGenesisMiner, block, i, nThreads));
 }
 
 

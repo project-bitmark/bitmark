@@ -52,14 +52,14 @@ public:
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
-        genesis.nTime    = 1405274400;
+        genesis.nTime    = 1405274442;
         genesis.nBits    = 0x1d00ffff;
-        genesis.nNonce   = 0;
+        genesis.nNonce   = 14385103;
 
         hashGenesisBlock = genesis.GetHash();
 
-        //assert(hashGenesisBlock == uint256("0x61d6c47f5b9965852cf7dfde6f28b0242365a3a99dbfb74b6b5965a0001395a3"));
-        //assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
+        assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
+        assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
         // todo add more dns seeders
         vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
@@ -108,6 +108,8 @@ public:
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
+
+    	// Testnet Genesis has a lower difficulty
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
         pchMessageStart[2] = 0x09;
@@ -115,13 +117,14 @@ public:
         vAlertPubKey = ParseHex("04302390343f91cc401d56d68b123028bf52e5fca1939df127f63c6467cdf9c8e2c14b61104cf817d0b780da337893ecc4aaff1309e536162dabbdb45200ca2b0a");
         nDefaultPort = 19265;
         nRPCPort = 19266;
+        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20);
         strDataDir = "testnet3";
 
-        // Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nTime = 1405274401;
-        genesis.nNonce = 0;
+        genesis.nTime = 1405274408;
+        genesis.nBits = 0x1e0ffff0;
+        genesis.nNonce = 16687;
         hashGenesisBlock = genesis.GetHash();
-        //assert(hashGenesisBlock == uint256("0xf4dd31813f948437c0b8f0669f52ba62b5c237880716bf28d9b480bf81490659"));
+        assert(hashGenesisBlock == uint256("0x1d6329aeff3ff6786635afd5d6715b24667329cfda199bd7a1d6626d81a4573c"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

@@ -2950,6 +2950,66 @@ bool LoadBlockIndex()
     return true;
 }
 
+void static BitmarkGenesisMiner(CBlock block, int start)
+{
+    LogPrintf("BitmarkMiner started\n");
+    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    RenameThread("bitmark-miner");
+    block.nTime += start;
+    try { while (true) {
+		printf("Searching for genesis block...\n");
+		uint256 hashTarget = Params().ProofOfWorkLimit().getuint256();
+		uint256 thash;
+		char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+
+		while(true)
+		{
+			scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+			if (thash <= hashTarget)
+				break;
+			if ((block.nNonce & 0xFFF) == 0)
+			{
+				printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
+			}
+			++block.nNonce;
+			if (block.nNonce == 0)
+			{
+				printf("NONCE WRAPPED, incrementing time\n");
+				block.nTime+=4;
+			}
+		}
+		printf("block.nTime = %u \n", block.nTime);
+		printf("block.nNonce = %u \n", block.nNonce);
+		printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
+    } }
+    catch (boost::thread_interrupted)
+    {
+        LogPrintf("BitmarkMiner terminated\n");
+        throw;
+    }
+}
+
+void GenesisBitmark(CBlock block)
+{
+    static boost::thread_group* minerThreads = NULL;
+
+    int nThreads = boost::thread::hardware_concurrency();
+
+    if (minerThreads != NULL)
+    {
+        minerThreads->interrupt_all();
+        delete minerThreads;
+        minerThreads = NULL;
+    }
+
+    if (nThreads == 0)
+        return;
+
+    minerThreads = new boost::thread_group();
+    for (int i = 0; i < nThreads; i++)
+        minerThreads->create_thread(boost::bind(&BitmarkGenesisMiner, block, i));
+}
+
 
 bool InitBlockIndex() {
     LOCK(cs_main);
@@ -2977,36 +3037,11 @@ bool InitBlockIndex() {
         // If genesis block hash does not match, then generate new genesis hash.
 		if (true && block.GetHash() != hashGenesisBlock)
 		{
-			printf("Searching for genesis block...\n");
-			// This will figure out a valid hash and Nonce if you're
-			// creating a different genesis block:
-			uint256 hashTarget = Params().ProofOfWorkLimit().getuint256();
-			uint256 thash;
-			char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-
-			while(true)
-			{
-				scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
-				if (thash <= hashTarget)
-					break;
-				if ((block.nNonce & 0xFFF) == 0)
-				{
-					printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
-				}
-				++block.nNonce;
-				if (block.nNonce == 0)
-				{
-					printf("NONCE WRAPPED, incrementing time\n");
-					++block.nTime;
-				}
-			}
-			printf("block.nTime = %u \n", block.nTime);
-			printf("block.nNonce = %u \n", block.nNonce);
-			printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
+			GenesisBitmark(block);
 		}
 
         block.print();
-        assert(hash == hashGenesisBlock);
+        while(true) {}
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
             // Start new block file

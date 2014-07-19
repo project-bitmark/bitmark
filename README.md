@@ -19,11 +19,9 @@ So, no hype or gimmicks, just a project which focusses on becoming a stable ever
 * [Project Project - Documentation and Plan](https://github.com/project-bitmark/bitmark/wiki)
 * [Discussion and Updates](https://bitcointalk.org/index.php?topic=660544.0)
 
-## SOURCE CODE IS UNDER DEVELOPMENT
+## Released
 
-### Building
- * bitmark-qt, bitmarkd and bitmark-cli have been built and tested on various linux distributions
- * check doc/build-* for details on how to build (same as bitcoin, different to alts based on old codebases)
+Check the releases tab above for the latest release.
 
 ### Testing
  * please help test, follow the [ann thread](https://bitcointalk.org/index.php?topic=660544.0) to discuss and make contact

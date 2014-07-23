@@ -1,7 +1,7 @@
 # Bitmark
 Our aim is to create a relatively stable, user focussed, crypto currency which refines and implements maturing innovations from the crypto currency sector.
 
-## Unique creations since launch
+### Unique creations since launch
 * [getMarked](http://getmarked.org), our flagship global adoption program
 * [Investor Public Mining (IPM)](https://github.com/project-bitmark/bitmark/wiki/IPM-Pool)
 

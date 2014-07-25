@@ -1,9 +1,14 @@
 # Bitmark
 Our aim is to create a relatively stable, user focussed, crypto currency which refines and implements maturing innovations from the crypto currency sector.
 
+### Unique creations since launch
+* [getMarked](http://getmarked.org), our flagship global adoption program
+* [Investor Public Mining (IPM)](https://github.com/project-bitmark/bitmark/wiki/IPM-Pool)
+
+### Overview
 **Technically**: Light and stable with a modern codebase, [maturing features from the alternative currency sector](https://github.com/project-bitmark/bitmark/wiki#maturing-innovations) which *benefit* users added on a faster timeline than bitcoin. Think of it more as [standardization rather than innovation](https://github.com/project-bitmark/bitmark/wiki#relatively-stable).
 
-**User focussed**: Most development effort and [innovation](https://github.com/project-bitmark/bitmark/wiki/Scratchpad) goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focussed) as possible.
+**User focussed**: Daily development effort and innovation goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focussed) as possible.
 
 **Adoption**: In line with being user focussed, all marketing and outreach will be to potential adopters, such as [microtransaction marketplaces](https://github.com/project-bitmark/bitmark/wiki/Microtransactions-and-Microtrust). The project is crafted in such a way that encourages all involved to focus on adoption.
 

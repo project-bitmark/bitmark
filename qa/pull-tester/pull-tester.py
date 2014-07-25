@@ -162,7 +162,7 @@ environ_default("BUILD_PATH", "/mnt/bitmark")
 os.environ["BUILD_DIR"] = os.environ["CHROOT_COPY"] + os.environ["BUILD_PATH"]
 environ_default("RESULTS_DIR", "/mnt/www/pull-tester")
 environ_default("RESULTS_URL", "http://jenkins.bluematt.me/pull-tester/")
-environ_default("GITHUB_REPO", "bitmark/bitmark")
+environ_default("GITHUB_REPO", "project-bitmark/bitmark")
 environ_default("TESTED_DB", "/mnt/commits-tested.txt")
 environ_default("BUILD_USER", "matt")
 environ_default("BUILD_GROUP", "matt")

@@ -94,7 +94,7 @@ PATH.
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone https://github.com/bitmark/bitmark.git
+        git clone https://github.com/project-bitmark/bitmark.git
         cd bitmark
 
 2.  Build bitmarkd:

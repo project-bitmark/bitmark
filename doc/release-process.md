@@ -1,11 +1,6 @@
 Release Process
 ====================
 
-* update translations (ping wumpus, Diapolo or tcatm on IRC)
-* see https://github.com/bitmark/bitmark/blob/master/doc/translation_process.md#syncing-with-transifex
-
-* * *
-
 ###update (commit) version in sources
 
 	contrib/verifysfbinaries/verify.sh
@@ -212,7 +207,7 @@ From a directory containing bitmark source, gitian.sigs and gitian zips
 
 - Announce the release:
 
-  - Add the release to bitmark.org: https://github.com/bitmark/bitmark.org/tree/master/_releases
+  - Add the release to bitmark.org: https://github.com/project-bitmark/bitmark.org/tree/master/_releases
 
   - Release sticky on bitcointalk: https://bitcointalk.org/index.php?board=1.0
 

@@ -50,7 +50,7 @@ The following are developer notes on how to build Bitmark on your native platfor
 
 Development
 ---------------------
-The Bitmark repo's [root README](https://github.com/bitmark/bitmark/blob/master/README.md) contains relevant information on the development process and automated testing.
+The Bitmark repo's [root README](https://github.com/project-bitmark/bitmark/blob/master/README.md) contains relevant information on the development process and automated testing.
 
 - [Coding Guidelines](coding.md)
 - [Multiwallet Qt Development](multiwallet-qt.md)

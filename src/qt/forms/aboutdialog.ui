@@ -22,6 +22,9 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="alignment">
+       <set>Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
      <property name="pixmap">
       <pixmap resource="../bitmark.qrc">:/images/about</pixmap>
      </property>

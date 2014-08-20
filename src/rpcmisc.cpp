@@ -337,7 +337,7 @@ extern map<uint256, CAlert> mapAlerts;
 // ThreadRPCServer: holds cs_main and acquiring cs_vSend in alert.RelayTo()/PushMessage()/BeginMessage()
 Value sendalert(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() < 6)
+    if (fHelp || params.size() < 8)
     throw runtime_error(
             "sendalert <message> <privatekey> <minver> <maxver> <priority> <id> [cancelupto]\n"
             "<message> is the alert text message\n"

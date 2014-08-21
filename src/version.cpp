@@ -31,9 +31,7 @@ const std::string CLIENT_NAME("Pfennig");
 // finally CLIENT_VERSION_SUFFIX is added
 
 // First, include build.h if requested
-#ifdef HAVE_BUILD_INFO
-#    include "build.h"
-#endif
+#include "build.h"
 
 // git will put "#define GIT_ARCHIVE 1" on the next line inside archives. 
 #ifdef GIT_ARCHIVE
@@ -48,7 +46,7 @@ const std::string CLIENT_NAME("Pfennig");
     "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-g" commit
 
 #define BUILD_DESC_FROM_UNKNOWN(maj,min,rev,build) \
-    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-unk"
+    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-sl"
 
 #ifndef BUILD_DESC
 #    ifdef BUILD_SUFFIX

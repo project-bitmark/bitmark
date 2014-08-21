@@ -31,8 +31,9 @@ const std::string CLIENT_NAME("Pfennig");
 // finally CLIENT_VERSION_SUFFIX is added
 
 // First, include build.h if requested
-// temporary force build.h
-#include "build.h"
+#ifdef HAVE_BUILD_INFO
+#    include "build.h"
+#endif
 
 // git will put "#define GIT_ARCHIVE 1" on the next line inside archives. 
 #ifdef GIT_ARCHIVE

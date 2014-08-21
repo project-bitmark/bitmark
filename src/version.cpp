@@ -31,7 +31,9 @@ const std::string CLIENT_NAME("Pfennig");
 // finally CLIENT_VERSION_SUFFIX is added
 
 // First, include build.h if requested
-#include "build.h"
+#ifdef HAVE_BUILD_INFO
+#    include "build.h"
+#endif
 
 // git will put "#define GIT_ARCHIVE 1" on the next line inside archives. 
 #ifdef GIT_ARCHIVE
@@ -45,17 +47,22 @@ const std::string CLIENT_NAME("Pfennig");
 #define BUILD_DESC_FROM_COMMIT(maj,min,rev,build,commit) \
     "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-g" commit
 
+#define BUILD_DESC_FROM_TAG(maj,min,rev,build) \
+    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build)
+
 #define BUILD_DESC_FROM_UNKNOWN(maj,min,rev,build) \
-    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-sl"
+    "v" DO_STRINGIZE(maj) "." DO_STRINGIZE(min) "." DO_STRINGIZE(rev) "." DO_STRINGIZE(build) "-unk"
 
 #ifndef BUILD_DESC
 #    ifdef BUILD_SUFFIX
 #        define BUILD_DESC BUILD_DESC_WITH_SUFFIX(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD, BUILD_SUFFIX)
 #    elif defined(GIT_COMMIT_ID)
-#        define BUILD_DESC BUILD_DESC_FROM_COMMIT(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD, GIT_COMMIT_ID)
-#    else
+#        define BUILD_DESC BUILD_DESC_FROM_TAG(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD, GIT_COMMIT_ID)
+#    else // a clean tagged release
 #        define BUILD_DESC BUILD_DESC_FROM_UNKNOWN(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD)
 #    endif
+#else // a clean tagged release
+#  define BUILD_DESC BUILD_DESC_FROM_UNKNOWN(CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_REVISION, CLIENT_VERSION_BUILD)
 #endif
 
 #ifndef BUILD_DATE

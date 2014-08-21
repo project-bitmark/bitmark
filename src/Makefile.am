@@ -82,11 +82,11 @@ JSON_H = \
   json/json_spirit_writer.h \
   json/json_spirit_writer_template.h
 
-obj/build.h: FORCE
+build.h: FORCE
 	@$(MKDIR_P) $(abs_top_builddir)/src/obj
-	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
+	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/build.h \
 	  $(abs_top_srcdir)
-version.o: obj/build.h
+version.o: build.h
 
 libbitmark_server_a_SOURCES = \
   addrman.cpp \
@@ -147,7 +147,7 @@ libbitmark_cli_a_SOURCES = \
   rpcclient.cpp \
   $(BITMARK_CORE_H)
 
-nodist_libbitmark_common_a_SOURCES = $(top_srcdir)/src/obj/build.h
+nodist_libbitmark_common_a_SOURCES = $(top_srcdir)/src/build.h
 #
 
 # bitmarkd binary #
@@ -196,7 +196,7 @@ qt/bitmarkstrings.cpp: $(libbitmark_server_a_SOURCES) $(libbitmark_common_a_SOUR
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
-DISTCLEANFILES = obj/build.h
+DISTCLEANFILES = build.h
 
 EXTRA_DIST = leveldb Makefile.include
 

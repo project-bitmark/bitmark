@@ -1,3 +1,5 @@
+**Forking** Why fork this when you can fork [Pfennig](https://github.com/project-bitmark/pfennig) - it's made to be cloned.
+
 
 Project Bitmark is a multi faceted project which aims to provide:
 

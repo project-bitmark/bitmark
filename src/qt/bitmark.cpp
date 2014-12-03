@@ -476,6 +476,9 @@ int main(int argc, char *argv[])
 #endif
 
     Q_INIT_RESOURCE(bitmark);
+
+    GUIUtil::SubstituteFonts();
+
     BitmarkApplication app(argc, argv);
 #if QT_VERSION > 0x050100
     // Generate high-dpi pixmaps

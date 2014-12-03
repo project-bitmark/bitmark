@@ -192,7 +192,7 @@ bool PaymentServer::ipcParseCommandLine(int argc, char* argv[])
             savedPaymentRequests.append(arg);
 
             SendCoinsRecipient r;
-            if (GUIUtil::parseBitmarkURI(arg, &r))
+            if (GUIUtil::parseBitmarkURI(arg, &r) && !r.address.isEmpty())
             {
                 CBitmarkAddress address(r.address.toStdString());
 

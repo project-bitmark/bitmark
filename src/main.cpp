@@ -3797,7 +3797,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
         else if (fMissingInputs)
         {
-        	AddOrphanTx(tx, pfrom->GetId())
+        	AddOrphanTx(tx, pfrom->GetId());
 
             // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
             unsigned int nMaxOrphanTx = (unsigned int)std::max((int64_t)0, GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));

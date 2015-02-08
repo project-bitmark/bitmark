@@ -228,6 +228,8 @@ public:
     }
 
     bool Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) {
+    	if (vchSig.empty())
+            return false
         // New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
         unsigned char *norm_der = NULL;
         ECDSA_SIG *norm_sig = ECDSA_SIG_new();
@@ -236,7 +238,7 @@ public:
         int derlen = i2d_ECDSA_SIG(norm_sig, &norm_der);
         ECDSA_SIG_free(norm_sig);
         if (derlen <= 0)
-    	             return false;
+    	     return false;
         return true;
 
         // -1 = error, 0 = bad sig, 1 = good

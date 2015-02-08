@@ -1,7 +1,7 @@
-Bitmark 0.9.3 BETA
+Bitmark 0.9.4 BETA
 =====================
 
-Copyright (c) 2009-2014 Bitmark Developers
+Copyright (c) 2009-2015 Bitmark Developers
 
 
 Setup

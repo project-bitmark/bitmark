@@ -1,13 +1,13 @@
-**Forking** Why fork this when you can fork [Pfennig](https://github.com/project-bitmark/pfennig) - it's made to be cloned.
 
 
 Project Bitmark is a multi faceted project which aims to provide:
 
-1. A **relatively stable cryptographic currency network** which balances the requirements of all parties involved.
+1. A ** stable cryptographic currency network** which balances the requirements of all parties involved.
 2. A **far reaching adoption initiative** under the guise of novel reputation+currency system called [Marking](https://github.com/project-bitmark/marking/wiki)
 
 This repository contains the Bitmark cryptograpic currency software, and a wiki which provides all details pertaining to the software, it's configuration and the rationale of all design decisions.
 
+(Note: **Forking** Why fork this when you can fork [Pfennig](https://github.com/project-bitmark/pfennig) ? - Pfennig was made to be cloned ! )
 # Bitmark
 
 [![Join the chat at https://gitter.im/project-bitmark/bitmark](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/project-bitmark/bitmark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)

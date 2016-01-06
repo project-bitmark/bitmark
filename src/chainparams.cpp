@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
+// Modified Code: Copyright (c) 2014, 2015, 2016 - Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -19,9 +19,16 @@ using namespace boost::assign;
 // Main network
 //
 
+// Hard-Coded (Fixed) Network Nodes
+// Verified on January 6, 2016
 unsigned int pnSeed[] =
 {
-	0xac1f1f0a, 0xae240982, 0x253b1359
+//	0xac1f1f0a, 		// *** inoperative ***
+	0xAE240982,		// Bitmark.co 
+//	0x253b1359,		// *** inoperative *** 
+	0x2D2141A1,		// us.bitmark.io
+	0x8BA2805C,		// eu.bitmark.io
+	0xCC447A0B		// one.zmark.org
 };
 
 class CMainParams : public CChainParams {

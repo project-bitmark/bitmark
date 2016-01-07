@@ -12,16 +12,16 @@ This repository contains the Bitmark cryptograpic currency software, and a wiki 
 
 [![Join the chat at https://gitter.im/project-bitmark/bitmark](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/project-bitmark/bitmark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Bitmark aims to be a relatively stable, user focussed, crypto currency, which refines and implements maturing innovations from the crypto currency sector.
+Bitmark aims to be a relatively stable, user focused, crypto currency, which refines and implements maturing innovations from the crypto currency sector.
 
 ### Overview
 **Technically**: Light and stable with a modern codebase, [maturing features from the alternative currency sector](https://github.com/project-bitmark/bitmark/wiki#maturing-innovations) which *benefit* users added on a faster timeline than bitcoin. Think of it more as [standardization rather than innovation](https://github.com/project-bitmark/bitmark/wiki#relatively-stable).
 
-**User focussed**: Daily development effort and innovation goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focussed) as possible.
+**User focused**: Daily development effort and innovation goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focused) as possible.
 
-**Earned Value**: Every aspect of Project Bitmark is focussed on earned value. It's a project to make a viable every day currency, any value will be earned. 
+**Earned Value**: Every aspect of Project Bitmark is focused on earned value. It's a project to make a viable every day currency, any value will be earned. 
 
-**Longevity**: A well funded Bitmark Foundation is being created and funded by the community to support long term development. The foundation is to be specified and formed by the 13th July 2015.
+**Longevity**: The Bitmark network has been operational since mid July, 2014. A well funded Bitmark Foundation is being created and funded by the community to support long term development. 
 
 **Distribution**: A [configuration](https://github.com/project-bitmark/bitmark/wiki#block-chain-parameters) which aims to ensure [fair distribution](https://github.com/project-bitmark/bitmark/wiki/Currency#supply-and-distribution) whilst using [proven PoW](https://github.com/project-bitmark/bitmark/wiki#proof-of-work) which has had substantial investment in hardware. Extensive distribution of the currency is achieved through wide spread adoption under the banner of [Marking](https://github.com/project-bitmark/marking/wiki).
 

@@ -19,6 +19,7 @@
 #include "util.h"
 
 #include <sstream>
+#include <inttypes.h>
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -1763,6 +1764,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Special case for the genesis block, skipping connection of its transactions
     // (its coinbase is unspendable)
     if (block.GetHash() == Params().HashGenesisBlock()) {
+        pindex->nMoneySupply = block.vtx[0].GetValueOut();
         view.SetBestBlock(pindex->GetBlockHash());
         return true;
     }
@@ -1861,6 +1863,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     if (fJustCheck)
         return true;
+
+    // Increment the nMoneySupply to include this blocks subsidy
+    pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
+    LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
 
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS)

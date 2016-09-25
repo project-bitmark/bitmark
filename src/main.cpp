@@ -50,7 +50,7 @@ bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
-static const int64_t nForkHeight = 84248;
+static const int64_t nForkHeight = 138960;
 
 /** The term "satoshi" is kept in homage to entity who gave the block chain to the world */
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */

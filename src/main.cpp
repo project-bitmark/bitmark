@@ -1230,8 +1230,8 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
         minimumFullRewardHashrate = 50000;
     } else {
         forkHeight = nForkHeight;
-        // 12.8 GH/s
-        minimumFullRewardHashrate = 12800000;
+        // 35 GH/s
+        minimumFullRewardHashrate = 35000000000 / 100;
     }
     if (nHeight <= forkHeight) {
         int64_t nHalfReward = 10 * COIN;
@@ -1278,7 +1278,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
         if (scalingFactor > 1.0)
             scalingFactor = 1.0;
         if (scalingFactor < 0.05)
-            scalingFactor = 0.05;
+            scalingFactor = 0.15;
         LogPrintf("Hashrate of last 15 %s, scaling factor %s\n", hashes.getulong(), scalingFactor);
     }
 

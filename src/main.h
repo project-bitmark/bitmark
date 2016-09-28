@@ -169,7 +169,7 @@ std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
-int64_t GetBlockValue(int nHeight, int64_t nFees);
+int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale = true);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock);
 
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev);
@@ -698,6 +698,9 @@ public:
     // height of the entry in the chain. The genesis block has height 0
     int nHeight;
 
+    // track the amount of coins emitted since genesis block, allowing us to determine max block reward
+    int64_t nMoneySupply;
+
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
 
@@ -735,6 +738,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         nHeight = 0;
+        nMoneySupply = 0;
         nFile = 0;
         nDataPos = 0;
         nUndoPos = 0;
@@ -756,6 +760,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         nHeight = 0;
+        nMoneySupply = 0;
         nFile = 0;
         nDataPos = 0;
         nUndoPos = 0;
@@ -888,6 +893,7 @@ public:
             READWRITE(VARINT(nVersion));
 
         READWRITE(VARINT(nHeight));
+        READWRITE(VARINT(nMoneySupply));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
         if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))

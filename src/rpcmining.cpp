@@ -52,6 +52,8 @@ void ShutdownRPCMining()
 }
 #endif
 
+int miningAlgo = ALGO_SCRYPT;
+
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.
 // If 'height' is nonnegative, compute the estimate at the time when a given block was found.
@@ -138,7 +140,7 @@ Value getgenerate(const Array& params, bool fHelp)
 
 Value setgenerate(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
+    if (fHelp || params.size() < 1 || params.size() > 3)
         throw runtime_error(
             "setgenerate generate ( genproclimit )\n"
             "\nSet 'generate' true or false to turn generation on or off.\n"
@@ -174,6 +176,11 @@ Value setgenerate(const Array& params, bool fHelp)
             fGenerate = false;
     }
 
+    if (params.size() > 2) {
+      miningAlgo = params[2].get_int();
+      printf("set miningAlgo to %d\n",miningAlgo);
+    }
+    
     // -regtest mode: don't return until nGenProcLimit blocks are generated
     if (fGenerate && Params().NetworkID() == CChainParams::REGTEST)
     {

@@ -113,6 +113,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         return NULL;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
 
+    printf("setting algo\n");
+    pblock->SetAlgo(miningAlgo);
+    printf("algo is set for block\n");
+
     // Create coinbase tx
     CTransaction txNew;
     txNew.vin.resize(1);
@@ -140,6 +144,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     unsigned int nBlockMinSize = GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
     nBlockMinSize = std::min(nBlockMaxSize, nBlockMinSize);
 
+    printf("get fees\n");
+    
     // Collect memory pool transactions into the block
     int64_t nFees = 0;
     {
@@ -225,6 +231,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
                 vecPriority.push_back(TxPriority(dPriority, dFeePerKb, &mi->second.GetTx()));
         }
 
+	printf("get transactions\n");
+	
         // Collect transactions into block
         uint64_t nBlockSize = 1000;
         uint64_t nBlockTx = 0;
@@ -285,11 +293,14 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
             uint256 hash = tx.GetHash();
             UpdateCoins(tx, state, view, txundo, pindexPrev->nHeight+1, hash);
 
+	    printf("add tx\n");
+
             // Added
             pblock->vtx.push_back(tx);
             pblocktemplate->vTxFees.push_back(nTxFees);
             pblocktemplate->vTxSigOps.push_back(nTxSigOps);
             nBlockSize += nTxSize;
+	    printf("incremented block size\n");
             ++nBlockTx;
             nBlockSigOps += nTxSigOps;
             nFees += nTxFees;
@@ -320,6 +331,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
+	printf("total size = %u\n",nBlockSize);
         LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
         pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev, nFees);
@@ -327,8 +339,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
+	printf("got hasprevblock\n");
         UpdateTime(*pblock, pindexPrev);
-        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock);
+	printf("getnexworkrequired\n");
+        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
         pblock->nNonce         = 0;
         pblock->vtx[0].vin[0].scriptSig = CScript() << OP_0 << OP_0;
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
@@ -338,6 +352,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         indexDummy.nHeight = pindexPrev->nHeight + 1;
         CCoinsViewCache viewNew(*pcoinsTip, true);
         CValidationState state;
+	printf("connectblock\n");
         if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true))
             throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
     }
@@ -428,7 +443,7 @@ CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey)
 
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
-    uint256 hash = pblock->GetPoWHash();
+    uint256 hash = pblock->GetPoWHash(miningAlgo);
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     if (hash > hashTarget)
@@ -466,35 +481,45 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
 void static BitmarkMiner(CWallet *pwallet)
 {
+  printf("in bitmarkminer\n");
     LogPrintf("BitmarkMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    printf("priority has been set\n");
     RenameThread("bitmark-miner");
+    printf("thread renamed\n");
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
+    printf("try loop\n");
+
     try { while (true) {
         if (Params().NetworkID() != CChainParams::REGTEST) {
+	  printf("not regtest\n");
             // Busy-wait for the network to come online so we don't waste time mining
             // on an obsolete chain. In regtest mode we expect to fly solo.
             while (vNodes.empty())
                 MilliSleep(1000);
+	    printf("slept\n");
         }
 
         //
         // Create new block
         //
         unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
+	printf("got transactionsupdated\n");
         CBlockIndex* pindexPrev = chainActive.Tip();
+	printf("got pindexprev\n");
 
         auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey));
+	printf("check block template\n");
         if (!pblocktemplate.get())
             return;
         CBlock *pblock = &pblocktemplate->block;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-        LogPrintf("Running BitmarkMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
+        printf("Running BitmarkMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
         //
@@ -519,88 +544,101 @@ void static BitmarkMiner(CWallet *pwallet)
 
         while (true)
         {
-            unsigned int nHashesDone = 0;
+	  unsigned int nHashesDone = 0;
+	  uint256 thash;
+	  //char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+	  uint256 best_hash;
+	  LogPrintf("starting best hash: %s\n",best_hash.GetHex().c_str());
+	  LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
+	  bool first_hash = true;
 
-            uint256 thash;
-            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-
-            while(true)
+	  while (true) {
+	  
+	    uint256 thash = pblock->GetPoWHash(miningAlgo);
+	    if (thash < best_hash || first_hash) {
+	      first_hash = false;
+	      best_hash = thash;
+	      LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
+	    }
+	  
+	    if (thash <= hashTarget)
+	      {
+		SetThreadPriority(THREAD_PRIORITY_NORMAL);
+		CheckWork(pblock, *pwallet, reservekey);
+		SetThreadPriority(THREAD_PRIORITY_LOWEST);
+		break;
+	      }
+	    pblock->nNonce += 1;
+	    nHashesDone += 1;
+	    if ((pblock->nNonce & 0xFF) == 0) {
+	      LogPrintf("break 0xff\n");
+	      break;
+	    }
+	  }
+	  
+	  // Meter hashes/sec
+	  static int64_t nHashCounter;
+	  if (nHPSTimerStart == 0)
             {
-                scrypt_1024_1_1_256_sp(BEGIN(pblock->nVersion), BEGIN(thash), scratchpad);
-
-                if (thash <= hashTarget)
-                {
-                    SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                    CheckWork(pblock, *pwallet, reservekey);
-                    SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                    break;
-                }
-                pblock->nNonce += 1;
-                nHashesDone += 1;
-                if ((pblock->nNonce & 0xFF) == 0)
-                    break;
+	      nHPSTimerStart = GetTimeMillis();
+	      nHashCounter = 0;
+            }
+	  else
+	    nHashCounter += nHashesDone;
+	  if (GetTimeMillis() - nHPSTimerStart > 4000)
+            {
+	      static CCriticalSection cs;
+	      {
+		LOCK(cs);
+		if (GetTimeMillis() - nHPSTimerStart > 4000)
+		  {
+		    dHashesPerSec = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
+		    nHPSTimerStart = GetTimeMillis();
+		    nHashCounter = 0;
+		    static int64_t nLogTime;
+		    if (GetTime() - nLogTime > 30 * 60)
+		      {
+			nLogTime = GetTime();
+			printf("hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
+		      }
+		  }
+	      }
             }
 
-            // Meter hashes/sec
-            static int64_t nHashCounter;
-            if (nHPSTimerStart == 0)
-            {
-                nHPSTimerStart = GetTimeMillis();
-                nHashCounter = 0;
-            }
-            else
-                nHashCounter += nHashesDone;
-            if (GetTimeMillis() - nHPSTimerStart > 4000)
-            {
-                static CCriticalSection cs;
-                {
-                    LOCK(cs);
-                    if (GetTimeMillis() - nHPSTimerStart > 4000)
-                    {
-                        dHashesPerSec = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
-                        nHPSTimerStart = GetTimeMillis();
-                        nHashCounter = 0;
-                        static int64_t nLogTime;
-                        if (GetTime() - nLogTime > 30 * 60)
-                        {
-                            nLogTime = GetTime();
-                            LogPrintf("hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
-                        }
-                    }
-                }
-            }
+	  // Check for stop or if block needs to be rebuilt
+	  boost::this_thread::interruption_point();
+	  if (vNodes.empty() && Params().NetworkID() != CChainParams::REGTEST)
+	    break;
+	  if (nBlockNonce >= 0xffff0000)
+	    break;
+	  if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+	    break;
+	  if (pindexPrev != chainActive.Tip())
+	    break;
 
-            // Check for stop or if block needs to be rebuilt
-            boost::this_thread::interruption_point();
-            if (vNodes.empty() && Params().NetworkID() != CChainParams::REGTEST)
-                break;
-            if (nBlockNonce >= 0xffff0000)
-                break;
-            if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
-                break;
-            if (pindexPrev != chainActive.Tip())
-                break;
-
-            // Update nTime every few seconds
-            UpdateTime(*pblock, pindexPrev);
-            nBlockTime = ByteReverse(pblock->nTime);
-            if (TestNet())
+	  // Update nTime every few seconds
+	  UpdateTime(*pblock, pindexPrev);
+	  nBlockTime = ByteReverse(pblock->nTime);
+	  if (TestNet())
             {
-                // Changing pblock->nTime can change work required on testnet:
-                nBlockBits = ByteReverse(pblock->nBits);
-                hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+	      // Changing pblock->nTime can change work required on testnet:
+	      nBlockBits = ByteReverse(pblock->nBits);
+	      hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
             }
         }
-    } }
+      } }
     catch (boost::thread_interrupted)
-    {
-        LogPrintf("BitmarkMiner terminated\n");
+      {
+        printf("BitmarkMiner terminated\n");
         throw;
-    }
+      }
 }
 
 void GenerateBitmarks(bool fGenerate, CWallet* pwallet, int nThreads)
 {
+
+  printf("Generating Bitmarks with algo %d\n",miningAlgo);
+  
     static boost::thread_group* minerThreads = NULL;
 
     if (nThreads < 0) {
@@ -619,6 +657,8 @@ void GenerateBitmarks(bool fGenerate, CWallet* pwallet, int nThreads)
 
     if (nThreads == 0 || !fGenerate)
         return;
+
+    printf("generate true\n");
 
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++)

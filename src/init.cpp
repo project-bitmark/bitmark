@@ -341,6 +341,7 @@ struct CImportingNow
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 {
+  printf("threadimport\n");
     RenameThread("bitmark-loadblk");
 
     // -reindex
@@ -413,6 +414,7 @@ bool InitSanityCheck(void)
  */
 bool AppInit2(boost::thread_group& threadGroup)
 {
+  printf("appinit2\n");
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
@@ -857,7 +859,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 if (fReindex)
                     pblocktree->WriteReindexing(true);
-
+		printf("loadblockindex\n");
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
                     break;
@@ -869,6 +871,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
 
                 // Initialize the block index (no-op if non-empty database was already loaded)
+		printf("initblockindex\n");
                 if (!InitBlockIndex()) {
                     strLoadError = _("Error initializing block database");
                     break;

@@ -157,6 +157,7 @@ bitmarkd_LDADD = \
   libbitmark_common.a \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
+
 if ENABLE_WALLET
 bitmarkd_LDADD += libbitmark_wallet.a
 endif
@@ -203,3 +204,6 @@ EXTRA_DIST = leveldb Makefile.include
 clean-local:
 	-$(MAKE) -C leveldb clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
+
+LIBS+="-L/home/ak/usr/lib -largon2"
+INCLUDES+="-I/home/ak/usr/include"

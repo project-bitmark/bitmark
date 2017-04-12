@@ -16,6 +16,8 @@
 #include <openssl/ripemd.h>
 #include <openssl/sha.h>
 
+#include "util.h"
+
 template<typename T1>
 inline uint256 Hash(const T1 pbegin, const T1 pend)
 {
@@ -136,5 +138,10 @@ typedef struct
 int HMAC_SHA512_Init(HMAC_SHA512_CTX *pctx, const void *pkey, size_t len);
 int HMAC_SHA512_Update(HMAC_SHA512_CTX *pctx, const void *pdata, size_t len);
 int HMAC_SHA512_Final(unsigned char *pmd, HMAC_SHA512_CTX *pctx);
+
+void hash_scrypt(const char * input, char * output);
+void hash_argon2(const char * input, char * output);
+uint256 hash_x17(const char * begin, const char * end);
+uint256 hash_lyra2r2(const char * begin, const char * end);
 
 #endif

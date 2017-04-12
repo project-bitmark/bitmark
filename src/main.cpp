@@ -1145,28 +1145,36 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
 
     // Open history file to read
     CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
-    if (!filein)
+    if (!filein) {
+      printf("openblockfile failed\n");
         return error("ReadBlockFromDisk : OpenBlockFile failed");
+    }
 
     // Read block
     try {
         filein >> block;
     }
     catch (std::exception &e) {
+      printf("deserialize error\n");
         return error("%s : Deserialize or I/O error - %s", __func__, e.what());
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetPoWHash(), block.nBits))
+    printf("block.GetHash() = %s\n",block.GetHash().GetHex().c_str());
+    if (!CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
+      printf("errors in block header\n");
         return error("ReadBlockFromDisk : Errors in block header");
+    }
 
     return true;
 }
 
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex)
 {
-    if (!ReadBlockFromDisk(block, pindex->GetBlockPos()))
+  if (!ReadBlockFromDisk(block, pindex->GetBlockPos())) {
+    printf("return false for readblockfromdisk\n");
         return false;
+  }
     if (block.GetHash() != pindex->GetBlockHash())
         return error("ReadBlockFromDisk(CBlock&, CBlockIndex*) : GetHash() doesn't match index");
     return true;
@@ -1386,7 +1394,7 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
     return bnResult.GetCompact();
 }
 
-unsigned int static DarkGravityWave(const CBlockIndex* pindexLast) {
+unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     /* current difficulty formula, dash - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex *BlockLastSolved = pindexLast;
     const CBlockIndex *BlockReading = pindexLast;
@@ -1404,6 +1412,18 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast) {
 
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
         if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
+
+	int block_algo = GetAlgo(BlockReading->nVersion);
+	if (block_algo == 3) {
+	  LogPrintf("block_algo = %d\n",block_algo);
+	}
+	if (block_algo != algo) {
+	  BlockReading = BlockReading->pprev;
+	  continue;
+	}
+
+	LogPrintf("block_algo is algo = %d\n",block_algo);
+	
         CountBlocks++;
 
         if(CountBlocks <= PastBlocksMin) {
@@ -1424,24 +1444,31 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast) {
 
     CBigNum bnNew(PastDifficultyAverage);
 
-    int64_t _nTargetTimespan = CountBlocks * 120;
-
-    if (nActualTimespan < _nTargetTimespan/3)
+    if (CountBlocks > 0) {
+      LogPrintf("Countblocks>0\n");
+      int64_t _nTargetTimespan = CountBlocks * 120;
+    
+      if (nActualTimespan < _nTargetTimespan/3)
         nActualTimespan = _nTargetTimespan/3;
-    if (nActualTimespan > _nTargetTimespan*3)
+      if (nActualTimespan > _nTargetTimespan*3)
         nActualTimespan = _nTargetTimespan*3;
 
-    // Retarget
-    bnNew *= nActualTimespan;
-    bnNew /= _nTargetTimespan;
+      // Retarget
+      bnNew *= nActualTimespan;
+      bnNew /= _nTargetTimespan;
+    }
+    else {
+      bnNew = CBigNum().SetCompact(pindexLast->nBits);
+    }
 
     if (bnNew > Params().ProofOfWorkLimit()){
+      LogPrintf("bnNew>ProofOfWorkLimit\n");
         bnNew = Params().ProofOfWorkLimit();
     }
 
     /// debug print
     LogPrintf("DarkGravityWave RETARGET\n");
-    LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
+    //LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
     LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
     LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
 
@@ -1449,7 +1476,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast) {
 }
 
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int miningAlgo)
 {
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
@@ -1462,7 +1489,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         }
     // Testnet
     } else {
-        if (nHeight <= 2500) {
+        if (nHeight <= 500) {
             workAlgo = 0;
         } else {
             workAlgo = 1;
@@ -1529,8 +1556,13 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
         return bnNew.GetCompact();
     } else {
-        return DarkGravityWave(pindexLast);
+      return DarkGravityWave(pindexLast,miningAlgo);
     }
+}
+
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
+{
+  return GetNextWorkRequired(pindexLast, pblock, ALGO_SCRYPT);
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits)
@@ -1539,12 +1571,16 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     bnTarget.SetCompact(nBits);
 
     // Check range
-    if (bnTarget <= 0 || bnTarget > Params().ProofOfWorkLimit())
-        return error("CheckProofOfWork() : nBits below minimum work");
+    if (bnTarget <= 0 || bnTarget > Params().ProofOfWorkLimit()) {
+      printf("nbits below minimum work\n");
+      return error("CheckProofOfWork() : nBits below minimum work");
+    }
 
     // Check proof of work matches claimed amount
-    if (hash > bnTarget.getuint256())
-        return error("CheckProofOfWork() : hash doesn't match nBits");
+    if (hash > bnTarget.getuint256()) {
+      printf("hash doesn't match nbits: %s\n",hash.GetHex().c_str());
+      return error("CheckProofOfWork() : hash doesn't match nBits");
+    }
 
     return true;
 }
@@ -1709,8 +1745,10 @@ void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev)
     block.nTime = max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
 
     // Updating time can change work required on testnet:
-    if (TestNet())
-        block.nBits = GetNextWorkRequired(pindexPrev, &block);
+    if (TestNet()) {
+      int block_algo = GetAlgo(block.nVersion);
+      block.nBits = GetNextWorkRequired(pindexPrev, &block, block_algo);
+    }
 }
 
 
@@ -2183,7 +2221,7 @@ bool static DisconnectTip(CValidationState &state) {
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(block, pindexDelete))
-        return state.Abort(_("Failed to read block"));
+        return state.Abort(_("Failed to read block (disconnecttip)"));
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
@@ -2224,7 +2262,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(block, pindexNew))
-        return state.Abort(_("Failed to read block"));
+        return state.Abort(_("Failed to read block (connecttip)"));
+    printf("have read block from disk\n");
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
@@ -2268,10 +2307,12 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
 // Make chainMostWork correspond to the chain with the most work in it, that isn't
 // known to be invalid (it's however far from certain to be valid).
 void static FindMostWorkChain() {
+  printf("findmostworkchain\n");
     CBlockIndex *pindexNew = NULL;
 
     // In case the current best is invalid, do not consider it.
     while (chainMostWork.Tip() && (chainMostWork.Tip()->nStatus & BLOCK_FAILED_MASK)) {
+      printf("current is invalid\n");
         setBlockIndexValid.erase(chainMostWork.Tip());
         chainMostWork.SetTip(chainMostWork.Tip()->pprev);
     }
@@ -2315,15 +2356,18 @@ void static FindMostWorkChain() {
         return;
 
     // We have a new best.
+    printf("we have a new best\n");
     chainMostWork.SetTip(pindexNew);
 }
 
 // Try to activate to the most-work chain (thereby connecting it).
 bool ActivateBestChain(CValidationState &state) {
+  printf("activatebestchain\n");
     LOCK(cs_main);
     CBlockIndex *pindexOldTip = chainActive.Tip();
     bool fComplete = false;
     while (!fComplete) {
+      printf("!fcomplete\n");
         FindMostWorkChain();
         fComplete = true;
 
@@ -2332,14 +2376,18 @@ bool ActivateBestChain(CValidationState &state) {
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
+	  printf("disconnecttip\n");
             if (!DisconnectTip(state))
                 return false;
         }
 
         // Connect new blocks.
         while (!chainActive.Contains(chainMostWork.Tip())) {
+	  printf("connect new block\n");
             CBlockIndex *pindexConnect = chainMostWork[chainActive.Height() + 1];
+	    printf("do connectip\n");
             if (!ConnectTip(state, pindexConnect)) {
+	      printf("!connectip\n");
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
                     if (!state.CorruptionPossible())
@@ -2352,6 +2400,7 @@ bool ActivateBestChain(CValidationState &state) {
                     return false;
                 }
             }
+	    printf("finished connecttip\n");
         }
     }
 
@@ -2369,8 +2418,10 @@ bool ActivateBestChain(CValidationState &state) {
 
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos)
 {
+  printf("addtoblockindex\n");
     // Check for duplicate
     uint256 hash = block.GetHash();
+    printf("addtoblockindex the block with hash %s\n",hash.GetHex().c_str());
     if (mapBlockIndex.count(hash))
         return state.Invalid(error("AddToBlockIndex() : %s already exists", hash.ToString()), 0, "duplicate");
 
@@ -2400,10 +2451,13 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
 
     if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew)))
         return state.Abort(_("Failed to write block index"));
+    printf("have written to block index\n");
 
     // New best?
     if (!ActivateBestChain(state))
         return false;
+
+    printf("activated best chain\n");
 
     LOCK(cs_main);
     if (pindexNew == chainActive.Tip())
@@ -2588,6 +2642,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
+  printf("acceptblock\n");
     AssertLockHeld(cs_main);
     // Check for duplicate
     uint256 hash = block.GetHash();
@@ -2605,7 +2660,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         nHeight = pindexPrev->nHeight+1;
 
         // Check proof of work
-        if (block.nBits != GetNextWorkRequired(pindexPrev, &block))
+	int block_algo = GetAlgo(block.nVersion);
+        if (block.nBits != GetNextWorkRequired(pindexPrev, &block, block_algo))
             return state.DoS(100, error("AcceptBlock() : incorrect proof of work"),
                              REJECT_INVALID, "bad-diffbits");
 
@@ -2717,6 +2773,7 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 
 bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp)
 {
+  printf("processblock\n");
     AssertLockHeld(cs_main);
 
     // Check for duplicate
@@ -3043,6 +3100,7 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
 
 bool static LoadBlockIndexDB()
 {
+  printf("loadblockindexdb\n");
     if (!pblocktree->LoadBlockIndexGuts())
         return false;
 
@@ -3062,8 +3120,10 @@ bool static LoadBlockIndexDB()
         CBlockIndex* pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + pindex->GetBlockWork().getuint256();
         pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
-        if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pindex->nStatus & BLOCK_FAILED_MASK))
+        if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pindex->nStatus & BLOCK_FAILED_MASK)) {
+	  printf("setblockindexvalid in loadblockindexdb\n");
             setBlockIndexValid.insert(pindex);
+	}
         if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
             pindexBestInvalid = pindex;
     }
@@ -3187,6 +3247,7 @@ bool LoadBlockIndex()
 }
 
 bool InitBlockIndex() {
+  printf("initblockindex\n");
     LOCK(cs_main);
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL)
@@ -3199,18 +3260,42 @@ bool InitBlockIndex() {
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
     if (!fReindex) {
+      printf("!freindex\n");
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
+	    /*	    uint256 best_hash = block.GetPoWHash();
+	    CBigNum bnTarget;
+	    bnTarget.SetCompact(block.nBits);
+	    uint256 target = bnTarget.getuint256();
+	    printf("have to beat %s\n",target.GetHex().c_str());
+	    while (1) {
+	      uint256 hash = block.GetPoWHash();
+	      if (hash < best_hash) {
+		best_hash = hash;
+		printf("gph = %s with nNonce = %d\n",hash.GetHex().c_str(),block.nNonce);
+	      }
+	      if (hash <= target) {
+		break;
+	      }
+	      block.nNonce++;
+	    }
+	    exit(0);
+	    */
             // Start new block file
             unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+	    printf("blocksize = %d\n",nBlockSize);
             CDiskBlockPos blockPos;
             CValidationState state;
+	    printf("findblockpos\n");
             if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.nTime))
                 return error("LoadBlockIndex() : FindBlockPos failed");
+	    printf("writeblocktodisk\n");
             if (!WriteBlockToDisk(block, blockPos))
                 return error("LoadBlockIndex() : writing genesis block to disk failed");
+	    printf("addtoblockindex\n");
             if (!AddToBlockIndex(block, state, blockPos))
                 return error("LoadBlockIndex() : genesis block not accepted");
+	    printf("added to block index\n");
         } catch(std::runtime_error &e) {
             return error("LoadBlockIndex() : failed to initialize block database: %s", e.what());
         }
@@ -3292,6 +3377,7 @@ void PrintBlockTree()
 
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 {
+  printf("loadexternalblockfile\n");
     int64_t nStart = GetTimeMillis();
 
     int nLoaded = 0;
@@ -3593,6 +3679,7 @@ void static ProcessGetData(CNode* pfrom)
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
+  printf("processmessage\n");
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
@@ -4650,3 +4737,20 @@ public:
         mapOrphanTransactionsByPrev.clear();
     }
 } instance_of_cmaincleanup;
+
+int GetAlgo (int nVersion) {
+  switch (nVersion & BLOCK_VERSION_ALGO)
+    {
+    case BLOCK_VERSION_SHA256D:
+      return ALGO_SHA256D;
+    case BLOCK_VERSION_SCRYPT:
+      return ALGO_SCRYPT;
+    case BLOCK_VERSION_ARGON2:
+      return ALGO_ARGON2;
+    case BLOCK_VERSION_X17:
+      return ALGO_X17;
+    case BLOCK_VERSION_LYRA2R2:
+      return ALGO_LYRA2R2;
+    }
+  return 0;
+}

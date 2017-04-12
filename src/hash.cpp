@@ -1,4 +1,6 @@
 #include "hash.h"
+#include "scrypt.h"
+#include "argon2.h"
 
 inline uint32_t ROTL32 ( uint32_t x, int8_t r )
 {
@@ -96,4 +98,20 @@ int HMAC_SHA512_Final(unsigned char *pmd, HMAC_SHA512_CTX *pctx)
     SHA512_Final(buf, &pctx->ctxInner);
     SHA512_Update(&pctx->ctxOuter, buf, 64);
     return SHA512_Final(pmd, &pctx->ctxOuter);
+}
+
+void hash_scrypt(const char * input, char * output) {
+  scrypt_1024_1_1_256(input,output);
+}
+
+void hash_argon2(const char * input, char * output) {
+  int ret = argon2d_hash_raw(2,16,1,input,80,input,80,output,32);
+}
+
+uint256 hash_x17(const char * begin, const char * end) {
+  return 0;
+}
+
+uint256 hash_lyra2r2(const char * begin, const char * end) {
+  return 0;
 }

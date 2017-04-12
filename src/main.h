@@ -171,6 +171,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, b
 bool ActivateBestChain(CValidationState &state);
 int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale = true);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock);
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo);
 
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev);
 
@@ -1125,5 +1126,7 @@ protected:
     friend void ::UnregisterWallet(CWalletInterface*);
     friend void ::UnregisterAllWallets();
 };
+
+int GetAlgo (int nVersion);
 
 #endif

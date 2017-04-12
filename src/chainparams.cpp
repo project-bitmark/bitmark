@@ -57,7 +57,8 @@ public:
         genesis.nNonce   = 14385103;
 
         hashGenesisBlock = genesis.GetHash();
-
+	
+	
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
@@ -114,21 +115,36 @@ public:
         pchMessageStart[1] = 0x11;
         pchMessageStart[2] = 0x09;
         pchMessageStart[3] = 0x07;
+
         vAlertPubKey = ParseHex("0468770c9d451dd5d6d373ae6096d4ab0705c4ab66e55cc25c40788580039bd04b7672322b9bd26ce22a3ad95f490d7d188a905ce30246b2425eca8cc5102190d0");
         nDefaultPort = 19265;
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20);
-        strDataDir = "testnet3";
+        strDataDir = "testnet4";
 
-        genesis.nTime = 1405274408;
+	const char* pszTimestamp = "Testing Testnet";
+	CTransaction txNew;
+        txNew.vin.resize(1);
+        txNew.vout.resize(1);
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vout[0].nValue = 20 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04f88a76429dad346a10ecb5d36fcbf50bc2e009870e20c1a6df8db743e0b994afc1f91e079be8acc380b0ee7765519906e3d781519e9db48259f64160104939d8") << OP_CHECKSIG;
+        genesis.vtx[0] = txNew;
+	genesis.hashPrevBlock = 0;
+	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+
+        genesis.nTime = 1490305224;
         genesis.nBits = 0x1e0ffff0;
-        genesis.nNonce = 16687;
-        hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x1d6329aeff3ff6786635afd5d6715b24667329cfda199bd7a1d6626d81a4573c"));
+	genesis.nNonce = 678743;
+	hashGenesisBlock = genesis.GetHash();
+	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
+	//printf("Get hex\n");
+        assert(hashGenesisBlock == uint256("0x76fbbeb9e5122286611ed21567ced9299d650dec0bea96b9e18ab8cc349c628c"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("bitmark.co", "test.bitmark.co"));
+        vSeeds.push_back(CDNSSeedData("us.bitmark.io", "fby.akrmn.com"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(130); // u
         base58Prefixes[SCRIPT_ADDRESS] = list_of(196);

@@ -55,6 +55,7 @@ void DetectShutdownThread(boost::thread_group* threadGroup)
 //
 bool AppInit(int argc, char* argv[])
 {
+  printf("appinit\n");
     boost::thread_group threadGroup;
     boost::thread* detectShutdownThread = NULL;
 
@@ -173,6 +174,7 @@ bool AppInit(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+  printf("main");
     SetupEnvironment();
 
     bool fRet = false;

@@ -12,6 +12,27 @@
 #include "uint256.h"
 #include "scrypt.h"
 #include <stdint.h>
+#include "hash.h"
+
+const int NUM_ALGOS = 5;
+
+enum {
+  ALGO_SHA256D = 1,
+  ALGO_SCRYPT = 2,
+  ALGO_ARGON2 = 3,
+  ALGO_X17 = 4,
+  ALGO_LYRA2R2 = 5
+};
+
+enum
+  {
+    BLOCK_VERSION_ALGO = (7 << 9),
+    BLOCK_VERSION_SHA256D = (1 << 9),
+    BLOCK_VERSION_SCRYPT = (2 << 9),
+    BLOCK_VERSION_ARGON2 = (3 << 9),
+    BLOCK_VERSION_X17 = (4 << 9),
+    BLOCK_VERSION_LYRA2R2 = (5 << 9)
+  };
 
 class CTransaction;
 
@@ -347,7 +368,7 @@ class CBlockHeader
 {
 public:
     // header
-    static const int CURRENT_VERSION=2;
+    static const int CURRENT_VERSION=3;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -379,6 +400,48 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+    }
+
+    void SetAlgo(int algo)
+    {
+      switch(algo)
+	{
+	case ALGO_SHA256D:
+	  nVersion |= BLOCK_VERSION_SHA256D;
+	  break;
+	case ALGO_SCRYPT:
+	  nVersion |= BLOCK_VERSION_SCRYPT;
+	  break;
+	case ALGO_ARGON2:
+	  nVersion |= BLOCK_VERSION_ARGON2;
+	  break;
+	case ALGO_X17:
+	  nVersion |= BLOCK_VERSION_X17;
+	  break;
+	case ALGO_LYRA2R2:
+	  nVersion |= BLOCK_VERSION_LYRA2R2;
+	  break;
+	default:
+	  break;
+	}
+      
+    }
+
+    int GetAlgo () {
+      switch (nVersion & BLOCK_VERSION_ALGO)
+	{
+	case BLOCK_VERSION_SHA256D:
+	  return ALGO_SHA256D;
+	case BLOCK_VERSION_SCRYPT:
+	  return ALGO_SCRYPT;
+	case BLOCK_VERSION_ARGON2:
+	  return ALGO_ARGON2;
+	case BLOCK_VERSION_X17:
+	  return ALGO_X17;
+	case BLOCK_VERSION_LYRA2R2:
+	  return ALGO_LYRA2R2;
+	}
+      return 0;
     }
 
     bool IsNull() const
@@ -440,11 +503,36 @@ public:
         return block;
     }
 
+    uint256 GetPoWHash(int algo) const
+    {
+      switch(algo) {
+      case ALGO_SHA256D:
+	return GetHash();
+      case ALGO_SCRYPT:
+	{
+	  uint256 thash;
+	  hash_scrypt(BEGIN(nVersion),BEGIN(thash));
+	  return thash;
+	}
+      case ALGO_ARGON2:
+	{
+	  uint256 thash;
+	  hash_argon2(BEGIN(nVersion),BEGIN(thash));
+	  return thash;
+	}
+      case ALGO_X17:
+	return hash_x17(BEGIN(nVersion), END(nNonce));
+      case ALGO_LYRA2R2:
+	return hash_lyra2r2(BEGIN(nVersion), END(nNonce));
+      }
+      uint256 thash;
+      hash_scrypt(BEGIN(nVersion),BEGIN(thash));
+      return thash;
+    }
+	    
     uint256 GetPoWHash() const
     {
-        uint256 thash;
-        scrypt_1024_1_1_256(BEGIN(nVersion), BEGIN(thash));
-        return thash;
+      return GetPoWHash(((CBlockHeader*)this)->GetAlgo());
     }
 
     uint256 BuildMerkleTree() const;

@@ -523,7 +523,11 @@ public:
       case ALGO_X17:
 	return hash_x17(BEGIN(nVersion), END(nNonce));
       case ALGO_LYRA2R2:
-	return hash_lyra2r2(BEGIN(nVersion), END(nNonce));
+	{
+	  uint256 thash;
+	  hash_lyra2r2(BEGIN(nVersion),BEGIN(thash));
+	  return thash;
+	}
       }
       uint256 thash;
       hash_scrypt(BEGIN(nVersion),BEGIN(thash));

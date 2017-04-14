@@ -1,5 +1,8 @@
 include Makefile.include
 
+CXX = g++ -fPIC
+CC = gcc -fPIC
+
 AM_CPPFLAGS += -I$(builddir)
 
 noinst_LIBRARIES = \
@@ -136,6 +139,40 @@ libbitmark_common_a_SOURCES = \
   sync.cpp \
   util.cpp \
   version.cpp \
+  groestl.c \
+  blake.c \
+  blake2s-ref.c \
+  bmw.c \
+  cubehash.c \
+  echo.c \
+  jh.c \
+  keccak.c \
+  luffa.c \
+  shavite.c \
+  simd.c \
+  skein.c \
+  hamsi.c \
+  whirlpool.c \
+  shabal.c \
+  fugue.c \
+  sync.cpp \
+  sha2.c \
+  haval.c \
+  Lyra2.c \
+  Lyra2RE.c \
+  Sponge.c \
+  sph_sha2big.c \
+  ar2/argon2.c \
+  ar2/bench.c \
+  ar2/core.c \
+  ar2/encoding.c \
+  ar2/genkat.c \
+  ar2/opt.c \
+  ar2/ref.c \
+  ar2/run.c \
+  ar2/test.c \
+  ar2/thread.c \
+  ar2/blake2/blake2b.c \
   $(BITMARK_CORE_H)
 
 if GLIBC_BACK_COMPAT
@@ -204,6 +241,3 @@ EXTRA_DIST = leveldb Makefile.include
 clean-local:
 	-$(MAKE) -C leveldb clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
-
-LIBS+="-L/home/ak/usr/lib -largon2"
-INCLUDES+="-I/home/ak/usr/include"

@@ -1,6 +1,8 @@
 #include "hash.h"
 #include "scrypt.h"
 #include "argon2.h"
+#include "hashx17.h"
+#include "Lyra2RE.h"
 
 inline uint32_t ROTL32 ( uint32_t x, int8_t r )
 {
@@ -109,9 +111,9 @@ void hash_argon2(const char * input, char * output) {
 }
 
 uint256 hash_x17(const char * begin, const char * end) {
-  return 0;
+  return HashX17(begin,end);
 }
 
-uint256 hash_lyra2r2(const char * begin, const char * end) {
-  return 0;
+void hash_lyra2r2(const char * input, char * output) {
+  lyra2re2_hash(input,output);
 }

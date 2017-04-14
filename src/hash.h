@@ -142,6 +142,6 @@ int HMAC_SHA512_Final(unsigned char *pmd, HMAC_SHA512_CTX *pctx);
 void hash_scrypt(const char * input, char * output);
 void hash_argon2(const char * input, char * output);
 uint256 hash_x17(const char * begin, const char * end);
-uint256 hash_lyra2r2(const char * begin, const char * end);
+void hash_lyra2r2(const char * input, char * output);
 
 #endif

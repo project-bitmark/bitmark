@@ -113,9 +113,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         return NULL;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
 
-    printf("setting algo\n");
     pblock->SetAlgo(miningAlgo);
-    printf("algo is set for block\n");
 
     // Create coinbase tx
     CTransaction txNew;
@@ -144,8 +142,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     unsigned int nBlockMinSize = GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
     nBlockMinSize = std::min(nBlockMaxSize, nBlockMinSize);
 
-    printf("get fees\n");
-    
     // Collect memory pool transactions into the block
     int64_t nFees = 0;
     {
@@ -231,8 +227,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
                 vecPriority.push_back(TxPriority(dPriority, dFeePerKb, &mi->second.GetTx()));
         }
 
-	printf("get transactions\n");
-	
         // Collect transactions into block
         uint64_t nBlockSize = 1000;
         uint64_t nBlockTx = 0;
@@ -293,14 +287,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
             uint256 hash = tx.GetHash();
             UpdateCoins(tx, state, view, txundo, pindexPrev->nHeight+1, hash);
 
-	    printf("add tx\n");
-
             // Added
             pblock->vtx.push_back(tx);
             pblocktemplate->vTxFees.push_back(nTxFees);
             pblocktemplate->vTxSigOps.push_back(nTxSigOps);
             nBlockSize += nTxSize;
-	    printf("incremented block size\n");
             ++nBlockTx;
             nBlockSigOps += nTxSigOps;
             nFees += nTxFees;
@@ -331,28 +322,56 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
-	printf("total size = %u\n",nBlockSize);
         LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-        pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev, nFees);
-        pblocktemplate->vTxFees[0] = -nFees;
+	if (pblock->nVersion > 2) {
+	  LogPrintf("miner nVersion>2\n");
+	  int algo_prev = GetAlgo(pindexPrev->nVersion);
+	  CBlockIndex * pprev_algo = pindexPrev;
+	  if (algo_prev == 0) {
+	    pprev_algo = get_pprev_algo(pprev_algo);
+	  }
+	  if (!pprev_algo) {
+	    pblock->SetUpdateSSF();
+	    LogPrintf("miner set update ssf\n");
+	  }
+	  else {
+	    char update = 1;
+	    for (int i=0; i<143; i++) {
+	      LogPrintf("miner i=%d\n",i);
+	      if (update_ssf(pprev_algo->nVersion)) {
+		if (i!=142) {
+		  update = 0;
+		}
+		break;
+	      }
+	      pprev_algo = get_pprev_algo(pprev_algo);
+	      if (!pprev_algo) break;
+	    }
+	    if (update) pblock->SetUpdateSSF();
+	  }
+	}
 
-        // Fill in header
-        pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-	printf("got hasprevblock\n");
-        UpdateTime(*pblock, pindexPrev);
-	printf("getnexworkrequired\n");
-        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
-        pblock->nNonce         = 0;
-        pblock->vtx[0].vin[0].scriptSig = CScript() << OP_0 << OP_0;
-        pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
+	//pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev, nFees);
+	pblocktemplate->vTxFees[0] = -nFees;
 
+	// Fill in header
+	pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
+	UpdateTime(*pblock, pindexPrev);
+	pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
+	pblock->nNonce         = 0;
+	pblock->vtx[0].vin[0].scriptSig = CScript() << OP_0 << OP_0;
+	pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
+	
         CBlockIndex indexDummy(*pblock);
         indexDummy.pprev = pindexPrev;
         indexDummy.nHeight = pindexPrev->nHeight + 1;
+
+	pblock->vtx[0].vout[0].nValue = GetBlockValue(&indexDummy, nFees);
+	
         CCoinsViewCache viewNew(*pcoinsTip, true);
-        CValidationState state;
-	printf("connectblock\n");
+        CValidationState state;	
+	
         if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true))
             throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
     }
@@ -481,45 +500,34 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
 void static BitmarkMiner(CWallet *pwallet)
 {
-  printf("in bitmarkminer\n");
     LogPrintf("BitmarkMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    printf("priority has been set\n");
     RenameThread("bitmark-miner");
-    printf("thread renamed\n");
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    printf("try loop\n");
-
     try { while (true) {
         if (Params().NetworkID() != CChainParams::REGTEST) {
-	  printf("not regtest\n");
             // Busy-wait for the network to come online so we don't waste time mining
             // on an obsolete chain. In regtest mode we expect to fly solo.
             while (vNodes.empty())
                 MilliSleep(1000);
-	    printf("slept\n");
         }
 
         //
         // Create new block
         //
         unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-	printf("got transactionsupdated\n");
         CBlockIndex* pindexPrev = chainActive.Tip();
-	printf("got pindexprev\n");
 
         auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey));
-	printf("check block template\n");
         if (!pblocktemplate.get())
             return;
         CBlock *pblock = &pblocktemplate->block;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
-
-        printf("Running BitmarkMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
+	printf("Running BitmarkMiner with %lu transactions in block (%u bytes)\n", pblock->vtx.size(),
                ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
         //
@@ -629,7 +637,6 @@ void static BitmarkMiner(CWallet *pwallet)
       } }
     catch (boost::thread_interrupted)
       {
-        printf("BitmarkMiner terminated\n");
         throw;
       }
 }
@@ -637,8 +644,6 @@ void static BitmarkMiner(CWallet *pwallet)
 void GenerateBitmarks(bool fGenerate, CWallet* pwallet, int nThreads)
 {
 
-  printf("Generating Bitmarks with algo %d\n",miningAlgo);
-  
     static boost::thread_group* minerThreads = NULL;
 
     if (nThreads < 0) {
@@ -657,8 +662,6 @@ void GenerateBitmarks(bool fGenerate, CWallet* pwallet, int nThreads)
 
     if (nThreads == 0 || !fGenerate)
         return;
-
-    printf("generate true\n");
 
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++)

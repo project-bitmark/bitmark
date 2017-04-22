@@ -185,7 +185,6 @@ bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
 
 bool CBlockTreeDB::LoadBlockIndexGuts()
 {
-  printf("loadblockindexguts\n");
     leveldb::Iterator *pcursor = NewIterator();
 
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -221,7 +220,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 pindexNew->nNonce         = diskindex.nNonce;
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
-		printf("diskindex.nTx = %d\n",diskindex.nTx);
 
                 if (!pindexNew->CheckIndex())
                     return error("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString());

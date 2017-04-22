@@ -52,7 +52,7 @@ void ShutdownRPCMining()
 }
 #endif
 
-int miningAlgo = ALGO_SCRYPT;
+int miningAlgo = ALGO_X17;
 
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.
@@ -178,7 +178,6 @@ Value setgenerate(const Array& params, bool fHelp)
 
     if (params.size() > 2) {
       miningAlgo = params[2].get_int();
-      printf("set miningAlgo to %d\n",miningAlgo);
     }
     
     // -regtest mode: don't return until nGenProcLimit blocks are generated

@@ -139,7 +139,6 @@ public:
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-	//printf("Get hex\n");
         assert(hashGenesisBlock == uint256("0x76fbbeb9e5122286611ed21567ced9299d650dec0bea96b9e18ab8cc349c628c"));
 
         vFixedSeeds.clear();

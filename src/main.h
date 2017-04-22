@@ -702,6 +702,9 @@ public:
     // track the amount of coins emitted since genesis block, allowing us to determine max block reward
     int64_t nMoneySupply;
 
+    // the scaling factor for the block
+    double subsidyScalingFactor;
+    
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
 
@@ -740,6 +743,7 @@ public:
         pprev = NULL;
         nHeight = 0;
         nMoneySupply = 0;
+	subsidyScalingFactor = 0;
         nFile = 0;
         nDataPos = 0;
         nUndoPos = 0;
@@ -762,6 +766,7 @@ public:
         pprev = NULL;
         nHeight = 0;
         nMoneySupply = 0;
+	subsidyScalingFactor = 0;
         nFile = 0;
         nDataPos = 0;
         nUndoPos = 0;
@@ -1128,5 +1133,8 @@ protected:
 };
 
 int GetAlgo (int nVersion);
+CBlockIndex * get_pprev_algo (CBlockIndex * p);
+bool update_ssf (int nVersion);
+double get_ssf (CBlockIndex * pindex);
 
 #endif

@@ -31,7 +31,8 @@ enum
     BLOCK_VERSION_SCRYPT = (2 << 9),
     BLOCK_VERSION_ARGON2 = (3 << 9),
     BLOCK_VERSION_X17 = (4 << 9),
-    BLOCK_VERSION_LYRA2R2 = (5 << 9)
+    BLOCK_VERSION_LYRA2R2 = (5 << 9),
+    BLOCK_VERSION_UPDATE_SSF = (1 << 12)
   };
 
 class CTransaction;
@@ -424,7 +425,6 @@ public:
 	default:
 	  break;
 	}
-      
     }
 
     int GetAlgo () {
@@ -444,6 +444,11 @@ public:
       return 0;
     }
 
+    void SetUpdateSSF()
+    {
+      nVersion |= BLOCK_VERSION_UPDATE_SSF;
+    }
+    
     bool IsNull() const
     {
         return (nBits == 0);

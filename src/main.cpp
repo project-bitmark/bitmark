@@ -1146,7 +1146,6 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
     // Open history file to read
     CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
     if (!filein) {
-      printf("openblockfile failed\n");
         return error("ReadBlockFromDisk : OpenBlockFile failed");
     }
 
@@ -1155,14 +1154,11 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
         filein >> block;
     }
     catch (std::exception &e) {
-      printf("deserialize error\n");
         return error("%s : Deserialize or I/O error - %s", __func__, e.what());
     }
 
     // Check the header
-    printf("block.GetHash() = %s\n",block.GetHash().GetHex().c_str());
     if (!CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
-      printf("errors in block header\n");
         return error("ReadBlockFromDisk : Errors in block header");
     }
 
@@ -1172,7 +1168,6 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex)
 {
   if (!ReadBlockFromDisk(block, pindex->GetBlockPos())) {
-    printf("return false for readblockfromdisk\n");
         return false;
   }
     if (block.GetHash() != pindex->GetBlockHash())
@@ -1222,6 +1217,7 @@ void static PruneOrphanBlocks()
 
 int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
 {
+  LogPrintf("In GetBlockValue\n");
     // Before the fork we'll use the original quartering code. Set a low fork number
     // for testnet
     int64_t forkHeight;
@@ -1259,37 +1255,64 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     // And after the fork we will halve based on how many coins have been
     // emitted
 
-    uint256 emitted = pindexPrev->nMoneySupply;
+    int block_algo = GetAlgo(pindexPrev->nVersion);
 
-    double scalingFactor = 1.0;
-    if (scale) {
-        // Get average hashrate over last 15 blocks
-        CBlockIndex* curr = pindexPrev;
-        CBigNum hashes = 0;
-        int timePast = curr->GetBlockTime();
-        int stopHeight = curr->nHeight - 14;
-        for (; curr->nHeight > -1 && curr->nHeight > stopHeight; curr = curr->pprev) {
-            hashes += curr->GetBlockWork();
-        }
-        hashes += curr->GetBlockWork();
-        timePast = timePast - curr->GetBlockTime();
-        // Compute average of last 15 blocks hashrate
-        hashes = hashes / timePast;
-        // Hardcoded 35.0 GH/s threshold for full reward. It's actually 35.0 GH/s / 100
-        // since the result is an integer. We then convert the int to a float
-        // because these numbers will be really large.
-        CBigNum intScalingFactor = hashes / minimumFullRewardHashrate;
-        // Now determine reward scaling factor based on hashrate time weighted
-        // average
-        scalingFactor = (double)intScalingFactor.getulong() / 100.0;
-        // Max of 100% and minimum of 5%
-        if (scalingFactor > 1.0)
-            scalingFactor = 1.0;
-        if (scalingFactor < 0.15)
-            scalingFactor = 0.15;
-        LogPrintf("Hashrate of last 15 %s, scaling factor %s\n", hashes.getulong(), scalingFactor);
+    uint256 emitted;
+
+    if (block_algo>0) {
+      emitted = 5 * pindexPrev->nMoneySupply;
+    }
+    else {
+      emitted = pindexPrev->nMoneySupply;
     }
 
+    double scalingFactor = 1.;
+    if (block_algo>0) {
+      scalingFactor = pindexPrev->subsidyScalingFactor;
+      if (scalingFactor == 0.) {
+	LogPrintf("scaling factor is 0\n");
+	CBlockIndex * pprev_algo = pindexPrev;
+	do {
+	  if (update_ssf(pprev_algo->nVersion)) {
+	    scalingFactor = get_ssf(pprev_algo);
+	    pindexPrev->subsidyScalingFactor = scalingFactor;
+	    break;
+	  }
+	  LogPrintf("getblockvalue not update_ssf\n");
+	  pprev_algo = get_pprev_algo(pprev_algo);
+	} while (pprev_algo);
+      }
+    }
+    else if (scale) {
+      // Get average hashrate over last 15 blocks
+      CBlockIndex* curr = pindexPrev;
+      CBigNum hashes = 0;
+      int timePast = curr->GetBlockTime();
+      int stopHeight = curr->nHeight - 14;
+      for (; curr->nHeight > -1 && curr->nHeight > stopHeight; curr = curr->pprev) {
+	hashes += curr->GetBlockWork();
+      }
+      hashes += curr->GetBlockWork();
+      timePast = timePast - curr->GetBlockTime();
+      // Compute average of last 15 blocks hashrate
+      hashes = hashes / timePast;
+      // Hardcoded 35.0 GH/s threshold for full reward. It's actually 35.0 GH/s / 100
+      // since the result is an integer. We then convert the int to a float
+      // because these numbers will be really large.
+      CBigNum intScalingFactor = hashes / minimumFullRewardHashrate;
+      // Now determine reward scaling factor based on hashrate time weighted
+      // average
+      scalingFactor = (double)intScalingFactor.getulong() / 100.0;
+      // Max of 100% and minimum of 5%
+      if (scalingFactor > 1.0)
+	scalingFactor = 1.0;
+      if (scalingFactor < 0.15)
+	scalingFactor = 0.15;
+      LogPrintf("Hashrate of last 15 %s, scaling factor %s\n", hashes.getulong(), scalingFactor);
+    }
+
+    LogPrintf("getblockvalue use scalingFactor %f\n",scalingFactor);
+    
     // Generated by generate_emitted_points.py
     if (emitted < 788000000000000)  // Q 1 H 0 height 394000
         return nFees + (2000000000 * scalingFactor);
@@ -1411,18 +1434,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
 
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
-        if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
 
+      if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
+      
 	int block_algo = GetAlgo(BlockReading->nVersion);
-	if (block_algo == 3) {
-	  LogPrintf("block_algo = %d\n",block_algo);
-	}
 	if (block_algo != algo) {
 	  BlockReading = BlockReading->pprev;
 	  continue;
 	}
-
-	LogPrintf("block_algo is algo = %d\n",block_algo);
 	
         CountBlocks++;
 
@@ -1445,8 +1464,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     CBigNum bnNew(PastDifficultyAverage);
 
     if (CountBlocks > 0) {
-      LogPrintf("Countblocks>0\n");
-      int64_t _nTargetTimespan = CountBlocks * 120;
+      int64_t _nTargetTimespan = CountBlocks * 600;
     
       if (nActualTimespan < _nTargetTimespan/3)
         nActualTimespan = _nTargetTimespan/3;
@@ -1572,13 +1590,11 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
     // Check range
     if (bnTarget <= 0 || bnTarget > Params().ProofOfWorkLimit()) {
-      printf("nbits below minimum work\n");
       return error("CheckProofOfWork() : nBits below minimum work");
     }
 
     // Check proof of work matches claimed amount
     if (hash > bnTarget.getuint256()) {
-      printf("hash doesn't match nbits: %s\n",hash.GetHex().c_str());
       return error("CheckProofOfWork() : hash doesn't match nBits");
     }
 
@@ -2001,12 +2017,31 @@ void ThreadScriptCheck() {
     scriptcheckqueue.Thread();
 }
 
+const int64_t MPOW_MS_CORRECTION = 300000000000000; //tmp
+
 bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck)
 {
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
+
+    // Check SSF
+    if (pindex->nVersion > 2) {
+      LogPrintf("ConnectBlock nVersion > 2\n");
+      CBlockIndex * pprev_algo = pindex;
+      if (update_ssf(pindex->nVersion)) {
+	for (int i=0; i<143; i++) {
+	  LogPrintf("ConnectBlock i=%d\n",i);
+	  pprev_algo = get_pprev_algo(pprev_algo);
+	  if (!pprev_algo) break;
+	  if (update_ssf(pprev_algo->nVersion)) {
+	    LogPrintf("ConnectBlock return false\n");
+	    if (i != 142) return false;
+	  }
+	}
+      }
+    }
 
     // verify that the view's current state corresponds to the previous block
     uint256 hashPrevBlock = pindex->pprev == NULL ? uint256(0) : pindex->pprev->GetBlockHash();
@@ -2100,7 +2135,19 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (fBenchmark)
         LogPrintf("- Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin)\n", (unsigned)block.vtx.size(), 0.001 * nTime, 0.001 * nTime / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * nTime / (nInputs-1));
 
-    if (block.vtx[0].GetValueOut() > GetBlockValue(pindex->pprev, nFees))
+    CBlockIndex * pprev_algo = 0;
+    if (!fJustCheck && pindex->nVersion > 2) {
+      pprev_algo = get_pprev_algo(pindex);
+      if (update_ssf(pindex->nVersion)) {
+	pindex->subsidyScalingFactor = get_ssf(pindex);
+      }
+      else if (pprev_algo) {
+	LogPrintf("set scaling factor from pprev_algo\n");
+	pindex->subsidyScalingFactor = pprev_algo->subsidyScalingFactor;
+      }
+    }
+    
+    if (block.vtx[0].GetValueOut() > GetBlockValue(pindex, nFees))
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0].GetValueOut(), GetBlockValue(pindex->pprev, nFees)),
@@ -2115,8 +2162,22 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (fJustCheck)
         return true;
 
+    LogPrintf("Not just check\n");
+
     // Increment the nMoneySupply to include this blocks subsidy
-    pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
+
+    if (pindex->nVersion > 2) {
+      LogPrintf("Update moneysupply\n");
+      if (pprev_algo) {
+	pindex->nMoneySupply = pprev_algo->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
+      }
+      else {
+	pindex->nMoneySupply = MPOW_MS_CORRECTION+block.vtx[0].GetValueOut() - nFees;
+      }
+    }
+    else {
+      pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
+    }
     LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
 
     // Write undo information to disk
@@ -2263,7 +2324,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     CBlock block;
     if (!ReadBlockFromDisk(block, pindexNew))
         return state.Abort(_("Failed to read block (connecttip)"));
-    printf("have read block from disk\n");
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
@@ -2307,12 +2367,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
 // Make chainMostWork correspond to the chain with the most work in it, that isn't
 // known to be invalid (it's however far from certain to be valid).
 void static FindMostWorkChain() {
-  printf("findmostworkchain\n");
     CBlockIndex *pindexNew = NULL;
 
     // In case the current best is invalid, do not consider it.
     while (chainMostWork.Tip() && (chainMostWork.Tip()->nStatus & BLOCK_FAILED_MASK)) {
-      printf("current is invalid\n");
         setBlockIndexValid.erase(chainMostWork.Tip());
         chainMostWork.SetTip(chainMostWork.Tip()->pprev);
     }
@@ -2356,18 +2414,15 @@ void static FindMostWorkChain() {
         return;
 
     // We have a new best.
-    printf("we have a new best\n");
     chainMostWork.SetTip(pindexNew);
 }
 
 // Try to activate to the most-work chain (thereby connecting it).
 bool ActivateBestChain(CValidationState &state) {
-  printf("activatebestchain\n");
     LOCK(cs_main);
     CBlockIndex *pindexOldTip = chainActive.Tip();
     bool fComplete = false;
     while (!fComplete) {
-      printf("!fcomplete\n");
         FindMostWorkChain();
         fComplete = true;
 
@@ -2376,18 +2431,14 @@ bool ActivateBestChain(CValidationState &state) {
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
-	  printf("disconnecttip\n");
             if (!DisconnectTip(state))
                 return false;
         }
 
         // Connect new blocks.
         while (!chainActive.Contains(chainMostWork.Tip())) {
-	  printf("connect new block\n");
             CBlockIndex *pindexConnect = chainMostWork[chainActive.Height() + 1];
-	    printf("do connectip\n");
             if (!ConnectTip(state, pindexConnect)) {
-	      printf("!connectip\n");
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
                     if (!state.CorruptionPossible())
@@ -2400,7 +2451,6 @@ bool ActivateBestChain(CValidationState &state) {
                     return false;
                 }
             }
-	    printf("finished connecttip\n");
         }
     }
 
@@ -2418,10 +2468,8 @@ bool ActivateBestChain(CValidationState &state) {
 
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos)
 {
-  printf("addtoblockindex\n");
     // Check for duplicate
     uint256 hash = block.GetHash();
-    printf("addtoblockindex the block with hash %s\n",hash.GetHex().c_str());
     if (mapBlockIndex.count(hash))
         return state.Invalid(error("AddToBlockIndex() : %s already exists", hash.ToString()), 0, "duplicate");
 
@@ -2451,13 +2499,10 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
 
     if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew)))
         return state.Abort(_("Failed to write block index"));
-    printf("have written to block index\n");
 
     // New best?
     if (!ActivateBestChain(state))
         return false;
-
-    printf("activated best chain\n");
 
     LOCK(cs_main);
     if (pindexNew == chainActive.Tip())
@@ -2642,7 +2687,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
-  printf("acceptblock\n");
     AssertLockHeld(cs_main);
     // Check for duplicate
     uint256 hash = block.GetHash();
@@ -2773,7 +2817,6 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 
 bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp)
 {
-  printf("processblock\n");
     AssertLockHeld(cs_main);
 
     // Check for duplicate
@@ -3100,7 +3143,6 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
 
 bool static LoadBlockIndexDB()
 {
-  printf("loadblockindexdb\n");
     if (!pblocktree->LoadBlockIndexGuts())
         return false;
 
@@ -3121,7 +3163,6 @@ bool static LoadBlockIndexDB()
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + pindex->GetBlockWork().getuint256();
         pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pindex->nStatus & BLOCK_FAILED_MASK)) {
-	  printf("setblockindexvalid in loadblockindexdb\n");
             setBlockIndexValid.insert(pindex);
 	}
         if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
@@ -3247,7 +3288,6 @@ bool LoadBlockIndex()
 }
 
 bool InitBlockIndex() {
-  printf("initblockindex\n");
     LOCK(cs_main);
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL)
@@ -3260,7 +3300,6 @@ bool InitBlockIndex() {
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
     if (!fReindex) {
-      printf("!freindex\n");
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
 	    /*	    uint256 best_hash = block.GetPoWHash();
@@ -3283,19 +3322,14 @@ bool InitBlockIndex() {
 	    */
             // Start new block file
             unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
-	    printf("blocksize = %d\n",nBlockSize);
             CDiskBlockPos blockPos;
             CValidationState state;
-	    printf("findblockpos\n");
             if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.nTime))
                 return error("LoadBlockIndex() : FindBlockPos failed");
-	    printf("writeblocktodisk\n");
             if (!WriteBlockToDisk(block, blockPos))
                 return error("LoadBlockIndex() : writing genesis block to disk failed");
-	    printf("addtoblockindex\n");
             if (!AddToBlockIndex(block, state, blockPos))
                 return error("LoadBlockIndex() : genesis block not accepted");
-	    printf("added to block index\n");
         } catch(std::runtime_error &e) {
             return error("LoadBlockIndex() : failed to initialize block database: %s", e.what());
         }
@@ -3377,7 +3411,6 @@ void PrintBlockTree()
 
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 {
-  printf("loadexternalblockfile\n");
     int64_t nStart = GetTimeMillis();
 
     int nLoaded = 0;
@@ -3679,7 +3712,6 @@ void static ProcessGetData(CNode* pfrom)
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
-  printf("processmessage\n");
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
@@ -4753,4 +4785,68 @@ int GetAlgo (int nVersion) {
       return ALGO_LYRA2R2;
     }
   return 0;
+}
+
+CBlockIndex * get_pprev_algo (CBlockIndex * p) {
+  int algo = GetAlgo(p->nVersion);
+  CBlockIndex * pprev = p->pprev;
+  while (pprev) {
+    int cur_algo = GetAlgo(p->nVersion);
+    if (cur_algo == algo) {
+      return pprev;
+    }
+    pprev = pprev->pprev;
+  }
+  return 0;
+}
+
+/*
+CBigNum GetPeakHashrate (int nVersion) {
+  CBigNum peak_hashrate_base = CBigNum((nVersion & BLOCK_VERSION_PEAK_HASHRATE_BASE) >> 20);
+  if (peak_hashrate_base == 0) return 0;
+  CBigNum peak_hashrate_exp = CBigNum((nVersion & BLOCK_VERSION_PEAK_HASHRATE_EXP) >> 12);
+  CBigNum peak_hashrate = 1;
+  for (CBigNum i=0; i<peak_hashrate_exp; i++) {
+    peak_hashrate *= peak_hashrate_base;
+  }
+  return peak_hashrate;  
+}
+*/
+
+bool update_ssf (int nVersion) {
+  return nVersion & BLOCK_VERSION_UPDATE_SSF;
+}
+
+double get_ssf (CBlockIndex * pindex) {
+  double scalingFactor = 1.;
+  CBlockIndex * pprev_algo = pindex;
+  double hashes_peak = 0.;
+  double hashes_cur = 0.;
+  for (int i=0; i<365; i++) {
+    CBigNum hashes_bn = pprev_algo->GetBlockWork();
+    int timePast = pprev_algo->GetBlockTime();
+    int time_fin = 0;
+    for (int j=0; j<143; j++) {
+      pprev_algo = get_pprev_algo(pprev_algo);
+      if (!pprev_algo) {
+	break;
+      }
+      hashes_bn += pprev_algo->GetBlockWork();
+      time_fin = pprev_algo->GetBlockTime();
+    }
+    timePast -= time_fin;
+    
+    double hashes = ((double)hashes_bn.getulong())/((double)timePast);
+    if (hashes>hashes_peak) hashes_peak = hashes;
+    if (i==0) hashes_cur = hashes;
+    if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo);
+    if (!pprev_algo) break;
+  }
+  scalingFactor = std::floor(hashes_cur/hashes_peak*100.+0.5)/100.;
+  LogPrintf("calculated factor to %f\n",scalingFactor);
+  if (scalingFactor > 1.0)
+    scalingFactor = 1.0;
+  if (scalingFactor < 0.15)
+    scalingFactor = 0.15;
+  return scalingFactor;
 }

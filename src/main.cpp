@@ -51,6 +51,7 @@ bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 static const int64_t nForkHeight = 84248;
+static const int64_t v2checkpoint = 230000;
 
 /** The term "satoshi" is kept in homage to entity who gave the block chain to the world */
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
@@ -1254,12 +1255,12 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     }
     // And after the fork we will halve based on how many coins have been
     // emitted
-
-    int block_algo = GetAlgo(pindexPrev->nVersion);
-
     uint256 emitted;
 
-    if (block_algo>0) {
+    CBlockIndex * pprev_algo = get_pprev_algo(pindexPrev);
+
+    if (pprev_algo) { //make emitted 5 times bigger so that the target points are divided in 5 for each algo
+      LogPrintf("emmited * 5\n");
       emitted = 5 * pindexPrev->nMoneySupply;
     }
     else {
@@ -1267,9 +1268,9 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     }
 
     double scalingFactor = 1.;
-    if (block_algo>0) {
+    if (pprev_algo) {
       scalingFactor = pindexPrev->subsidyScalingFactor;
-      if (scalingFactor == 0.) {
+      if (scalingFactor == 0.) { // find the key block and recalculate
 	LogPrintf("scaling factor is 0\n");
 	CBlockIndex * pprev_algo = pindexPrev;
 	do {
@@ -1278,7 +1279,6 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
 	    pindexPrev->subsidyScalingFactor = scalingFactor;
 	    break;
 	  }
-	  LogPrintf("getblockvalue not update_ssf\n");
 	  pprev_algo = get_pprev_algo(pprev_algo);
 	} while (pprev_algo);
       }
@@ -1423,7 +1423,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     const CBlockIndex *BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = 24;
+    int64_t PastBlocksMin = 24; // todo: maybe make this bigger since it can lead to inaccuracies with unsynced clocks
     int64_t PastBlocksMax = 24;
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
@@ -1438,7 +1438,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
       
 	int block_algo = GetAlgo(BlockReading->nVersion);
-	if (block_algo != algo) {
+	if (block_algo != algo) { /* Only consider blocks from same algo */
 	  BlockReading = BlockReading->pprev;
 	  continue;
 	}
@@ -2017,8 +2017,6 @@ void ThreadScriptCheck() {
     scriptcheckqueue.Thread();
 }
 
-const int64_t MPOW_MS_CORRECTION = 300000000000000; //tmp
-
 bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck)
 {
     AssertLockHeld(cs_main);
@@ -2027,17 +2025,24 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         return false;
 
     // Check SSF
-    if (pindex->nVersion > 2) {
+    if (pindex->nVersion>2 || get_pprev_algo(pindex)) { //new multi algo blocks are identified like this
       LogPrintf("ConnectBlock nVersion > 2\n");
       CBlockIndex * pprev_algo = pindex;
       if (update_ssf(pindex->nVersion)) {
 	for (int i=0; i<143; i++) {
-	  LogPrintf("ConnectBlock i=%d\n",i);
 	  pprev_algo = get_pprev_algo(pprev_algo);
 	  if (!pprev_algo) break;
 	  if (update_ssf(pprev_algo->nVersion)) {
-	    LogPrintf("ConnectBlock return false\n");
-	    if (i != 142) return false;
+	    if (i != 142) return false; //make sure the SSF update block happens every 144 blocks
+	  }
+	}
+      }
+      else {
+	for (int i=0; i<143; i++) {
+	  pprev_algo = get_pprev_algo(pprev_algo);
+	  if (!pprev_algo) break;
+	  if (update_ssf(pprev_algo->nVersion)) {
+	    if (i == 142) return false; //make sure the SSF update block happens every 144 blocks
 	  }
 	}
       }
@@ -2136,8 +2141,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         LogPrintf("- Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin)\n", (unsigned)block.vtx.size(), 0.001 * nTime, 0.001 * nTime / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * nTime / (nInputs-1));
 
     CBlockIndex * pprev_algo = 0;
-    if (!fJustCheck && pindex->nVersion > 2) {
-      pprev_algo = get_pprev_algo(pindex);
+    if (!fJustCheck) pprev_algo = get_pprev_algo(pindex);
+    if (!fJustCheck && (pindex->nVersion > 2 || pprev_algo)) { // set scaling factor
       if (update_ssf(pindex->nVersion)) {
 	pindex->subsidyScalingFactor = get_ssf(pindex);
       }
@@ -2150,7 +2155,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (block.vtx[0].GetValueOut() > GetBlockValue(pindex, nFees))
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0].GetValueOut(), GetBlockValue(pindex->pprev, nFees)),
+                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees)),
                                REJECT_INVALID, "bad-cb-amount");
 
     if (!control.Wait())
@@ -2162,21 +2167,24 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (fJustCheck)
         return true;
 
-    LogPrintf("Not just check\n");
-
     // Increment the nMoneySupply to include this blocks subsidy
 
-    if (pindex->nVersion > 2) {
-      LogPrintf("Update moneysupply\n");
+    if (pindex->nVersion > 2 || pprev_algo) {
       if (pprev_algo) {
 	pindex->nMoneySupply = pprev_algo->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }
       else {
-	pindex->nMoneySupply = MPOW_MS_CORRECTION+block.vtx[0].GetValueOut() - nFees;
+	int64_t ms_correction = get_mpow_ms_correction(pindex);
+	pindex->nMoneySupply = ms_correction+block.vtx[0].GetValueOut() - nFees;
       }
     }
-    else {
-      pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
+    else if (pindex->nVersion <= 2) {
+      if (pindex->pprev) {
+	pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
+      }
+      else {
+	pindex->nMoneySupply = block.vtx[0].GetValueOut() - nFees;
+      }
     }
     LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
 
@@ -4784,16 +4792,43 @@ int GetAlgo (int nVersion) {
     case BLOCK_VERSION_LYRA2R2:
       return ALGO_LYRA2R2;
     }
+  return ALGO_SCRYPT;
+}
+
+/* Get previous CBlockIndex pointer with the given algo. If nVersion<=2, return null if no nVersion>2 come before it. This is a way to check for the mPOW fork without hardcoding a height for the fork. */
+CBlockIndex * get_pprev_algo (CBlockIndex * p) {
+  if (!TestNet() && p->nHeight < v2checkpoint) return 0; //for speeding up initialization
+  int nVersion = p->nVersion;
+  int algo = GetAlgo(nVersion);
+  CBlockIndex * pprev = p->pprev;
+  CBlockIndex * pprev_prelim = 0;
+  while (pprev) {
+    //LogPrintf("get_pprev_algo height = %d\n",pprev->nHeight);
+    int cur_nVersion = pprev->nVersion;
+    int cur_algo = GetAlgo(cur_nVersion);
+    if (cur_algo == algo) {
+      if (cur_nVersion <= 2) {
+	LogPrintf("get_pprev_algo cur_nVersion<=2\n");
+	pprev_prelim = pprev;
+      }
+      else {
+	if (pprev_prelim) {
+	  return pprev_prelim;
+	}
+	return pprev;
+      }
+    }
+    pprev = pprev->pprev;
+  }
+  LogPrintf("return 0 for pprev_algo (%d)\n",algo);
   return 0;
 }
 
-CBlockIndex * get_pprev_algo (CBlockIndex * p) {
-  int algo = GetAlgo(p->nVersion);
+int64_t get_mpow_ms_correction (CBlockIndex * p) {
   CBlockIndex * pprev = p->pprev;
   while (pprev) {
-    int cur_algo = GetAlgo(p->nVersion);
-    if (cur_algo == algo) {
-      return pprev;
+    if (pprev->nVersion <= 2 && !get_pprev_algo(pprev)) {
+      return pprev->nMoneySupply/5;
     }
     pprev = pprev->pprev;
   }
@@ -4822,11 +4857,13 @@ double get_ssf (CBlockIndex * pindex) {
   CBlockIndex * pprev_algo = pindex;
   double hashes_peak = 0.;
   double hashes_cur = 0.;
-  for (int i=0; i<365; i++) {
+  for (int i=0; i<365; i++) { // use at most a year's worth of history
+    LogPrintf("i=%d\n",i);
     CBigNum hashes_bn = pprev_algo->GetBlockWork();
     int timePast = pprev_algo->GetBlockTime();
     int time_fin = 0;
-    for (int j=0; j<143; j++) {
+    for (int j=0; j<143; j++) {  // 144 blocks = 24 hours, using only blocks from the same algo as the target block
+      //LogPrintf("j=%d\n",j);
       pprev_algo = get_pprev_algo(pprev_algo);
       if (!pprev_algo) {
 	break;
@@ -4842,7 +4879,7 @@ double get_ssf (CBlockIndex * pindex) {
     if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo);
     if (!pprev_algo) break;
   }
-  scalingFactor = std::floor(hashes_cur/hashes_peak*100.+0.5)/100.;
+  scalingFactor = std::floor(hashes_cur/hashes_peak*100.+0.5)/100.; //round to 2 decimal places
   LogPrintf("calculated factor to %f\n",scalingFactor);
   if (scalingFactor > 1.0)
     scalingFactor = 1.0;

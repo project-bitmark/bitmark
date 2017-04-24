@@ -326,19 +326,14 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
 	if (pblock->nVersion > 2) {
 	  LogPrintf("miner nVersion>2\n");
-	  int algo_prev = GetAlgo(pindexPrev->nVersion);
 	  CBlockIndex * pprev_algo = pindexPrev;
-	  if (algo_prev == 0) {
-	    pprev_algo = get_pprev_algo(pprev_algo);
-	  }
-	  if (!pprev_algo) {
+	  if (pindexPrev->nVersion <=2 && !get_pprev_algo(pindexPrev)) {
 	    pblock->SetUpdateSSF();
 	    LogPrintf("miner set update ssf\n");
 	  }
 	  else {
 	    char update = 1;
 	    for (int i=0; i<143; i++) {
-	      LogPrintf("miner i=%d\n",i);
 	      if (update_ssf(pprev_algo->nVersion)) {
 		if (i!=142) {
 		  update = 0;

@@ -52,6 +52,7 @@ void ShutdownRPCMining()
 }
 #endif
 
+/* Set mining algo here for rpc mining */
 int miningAlgo = ALGO_X17;
 
 // Return average network hashes per second based on the last 'lookup' blocks,
@@ -149,6 +150,7 @@ Value setgenerate(const Array& params, bool fHelp)
             "\nArguments:\n"
             "1. generate         (boolean, required) Set to true to turn on generation, off to turn off.\n"
             "2. genproclimit     (numeric, optional) Set the processor limit for when generation is on. Can be -1 for unlimited.\n"
+	    "3. mining algo (numeric, optional) Set the mining algo (see core.h for number correspondence)"
             "                    Note: in -regtest mode, genproclimit controls how many blocks are generated immediately.\n"
             "\nExamples:\n"
             "\nSet the generation on with a limit of one processor\n"

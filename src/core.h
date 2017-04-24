@@ -24,6 +24,7 @@ enum {
   ALGO_LYRA2R2 = 5
 };
 
+/* Use the rightmost 8 bits for standard version number, 9th bit for merge mining (todo), 10-12 th bits for POW algo, 13 th bit for update scaling factor flag */
 enum
   {
     BLOCK_VERSION_ALGO = (7 << 9),
@@ -441,7 +442,7 @@ public:
 	case BLOCK_VERSION_LYRA2R2:
 	  return ALGO_LYRA2R2;
 	}
-      return 0;
+      return ALGO_SCRYPT;
     }
 
     void SetUpdateSSF()

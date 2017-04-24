@@ -50,12 +50,12 @@ listen=1
 
 You can mine all algorithms but Argon2 using cpuminer-multi (https://github.com/tpruvot/cpuminer-multi), with the following command:
 
-cpuminer -a <algo> -o http://localhost:8335 -u bitmarkrpc -p YoUrPaSsWoRd
+`cpuminer -a <algo> -o http://localhost:8335 -u bitmarkrpc -p YoUrPaSsWoRd`
 
-<algo> is sha256d, scrypt, x17, or lyra2REv2
+`<algo>` is `sha256d`, `scrypt`, `x17`, or `lyra2REv2`
 
-Note: you have to change the miningAlgo variable in src/rpcmining.cpp
+Note: you have to change the `miningAlgo` variable in src/rpcmining.cpp
 
 You can also use the bitmark-cli command to mine. For example, to mine argon2,
 
-bitmark-cli setgenerate true <ncores> 3
+`bitmark-cli setgenerate true <ncores> 3`

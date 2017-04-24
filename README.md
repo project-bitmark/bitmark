@@ -19,7 +19,7 @@ Bitmark aims to be a relatively stable, user focussed, crypto currency, which re
 
 **User focussed**: Daily development effort and innovation goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focussed) as possible.
 
-**Earned Value**: Every aspect of Project Bitmark is focussed on earned value. It's a project to make a viable every day currency, any value will be earned. 
+**Earned Value**: Every aspect of Project Bitmark is focused on earned value. It's a project to make a viable every day currency, any value will be earned. 
 
 **Longevity**: A well funded Bitmark Foundation is being created and funded by the community to support long term development. The foundation is to be specified and formed by the 13th July 2015.
 
@@ -33,3 +33,29 @@ Bitmark aims to be a relatively stable, user focussed, crypto currency, which re
 ## Getting Bitmark
 
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
+
+## mPOW Hard Fork
+
+We are now in the testing phase of the hard fork that allows for multiple proof-of-work algorithms (SHA256D, SCRYPT, ARGON2, LYRA2R2, X17). Each algorithm has its difficulty adjusted independently, with a target spacing of 10 min (so 2 min as before if we consider blocks mined by any algorithm). The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/5 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 144 blocks).
+
+To test, you can download the current version from this branch, and put the following settings in your bitmark.conf
+
+rpcuser=bitmarkrpc
+rpcpassword=YoUrPaSsWoRd
+rpcport=8335
+port=8336
+testnet=1
+debug=1
+listen=1
+
+You can mine all algorithms but Argon2 using cpuminer-multi (https://github.com/tpruvot/cpuminer-multi), with the following command:
+
+cpuminer -a <algo> -o http://localhost:8335 -u bitmarkrpc -p YoUrPaSsWoRd
+
+<algo> is sha256d, scrypt, x17, or lyra2REv2
+
+Note: you have to change the miningAlgo variable in src/rpcmining.cpp
+
+You can also use the bitmark-cli command to mine. For example, to mine argon2,
+
+bitmark-cli setgenerate true <ncores> 3

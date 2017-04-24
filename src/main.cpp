@@ -2158,6 +2158,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees)),
                                REJECT_INVALID, "bad-cb-amount");
 
+    if (block.vtx[0].GetValueOut() < GetBlockValue(pindex, nFees)) {
+      LogPrintf("coinbase pays less than block value\n");
+    }
+
     if (!control.Wait())
         return state.DoS(100, false);
     int64_t nTime2 = GetTimeMicros() - nStart;

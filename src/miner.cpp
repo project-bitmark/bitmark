@@ -574,7 +574,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	    pblock->nNonce += 1;
 	    nHashesDone += 1;
 	    if ((pblock->nNonce & 0xFF) == 0) {
-	      LogPrintf("break 0xff\n");
+	      //LogPrintf("break 0xff\n");
 	      break;
 	    }
 	  }

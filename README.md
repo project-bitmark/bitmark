@@ -42,15 +42,13 @@ To test, you can download the current version from this branch, and put the foll
 
 rpcuser=bitmarkrpc
 rpcpassword=YoUrPaSsWoRd
-rpcport=8335
-port=8336
 testnet=1
 debug=1
 listen=1
 
 You can mine all algorithms but Argon2 using cpuminer-multi (https://github.com/tpruvot/cpuminer-multi), with the following command:
 
-`cpuminer -a <algo> -o http://localhost:8335 -u bitmarkrpc -p YoUrPaSsWoRd`
+`cpuminer -a <algo> -o http://localhost:19266 -u bitmarkrpc -p YoUrPaSsWoRd`
 
 `<algo>` is `sha256d`, `scrypt`, `x17`, or `lyra2REv2`
 

@@ -4875,7 +4875,13 @@ double get_ssf (CBlockIndex * pindex) {
       hashes_bn += pprev_algo->GetBlockWork();
       time_fin = pprev_algo->GetBlockTime();
     }
-    timePast -= time_fin;
+    if (timePast>time_fin) {
+      timePast -= time_fin;
+    }
+    else {
+      LogPrintf("timePast = %d while time_fin = %d\n",timePast,time_fin);
+      return 1.;
+    }
     
     double hashes = ((double)hashes_bn.getulong())/((double)timePast);
     if (hashes>hashes_peak) hashes_peak = hashes;

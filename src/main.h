@@ -1135,8 +1135,11 @@ protected:
 /* Get Proof of Work Algo for the block from the block's nVersion */
 int GetAlgo (int nVersion);
 
+/* Get base version number */
+int GetVersion (int nVersion);
+
 /* Get previous CBlockIndex pointer that has the same POW algo as p */
-CBlockIndex * get_pprev_algo (CBlockIndex * p);
+CBlockIndex * get_pprev_algo (CBlockIndex * p, int use_algo = 0);
 
 /* Get correction to money supply for multi POW blocks (1/5 of money supply before fork) */
 int64_t get_mpow_ms_correction (CBlockIndex * p);

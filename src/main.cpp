@@ -2033,7 +2033,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	  pprev_algo = get_pprev_algo(pprev_algo);
 	  if (!pprev_algo) break;
 	  if (update_ssf(pprev_algo->nVersion)) {
-	    if (i != 142) return false; //make sure the SSF update block happens every 144 blocks
+	    if (i != 142) {
+	      LogPrintf("marked with update ssf flag, but not at right time: i=%d\n",i);
+	      return false; //make sure the SSF update block happens every 144 blocks
+	    }
 	  }
 	}
       }
@@ -2042,7 +2045,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	  pprev_algo = get_pprev_algo(pprev_algo);
 	  if (!pprev_algo) break;
 	  if (update_ssf(pprev_algo->nVersion)) {
-	    if (i == 142) return false; //make sure the SSF update block happens every 144 blocks
+	    if (i == 142) {
+	      LogPrintf("Should be marked with update ssf flag\n");
+	      return false; //make sure the SSF update block happens every 144 blocks
+	    }
 	  }
 	}
       }
@@ -2274,7 +2280,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
         const CBlockIndex* pindex = chainActive.Tip();
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            if (pindex->nVersion > CBlock::CURRENT_VERSION)
+	  if (GetVersion(pindex->nVersion) > CBlock::CURRENT_VERSION)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
@@ -4799,11 +4805,20 @@ int GetAlgo (int nVersion) {
   return ALGO_SCRYPT;
 }
 
+int GetVersion (int nVersion) {
+  return nVersion & 255;
+}
+
 /* Get previous CBlockIndex pointer with the given algo. If nVersion<=2, return null if no nVersion>2 come before it. This is a way to check for the mPOW fork without hardcoding a height for the fork. */
-CBlockIndex * get_pprev_algo (CBlockIndex * p) {
+CBlockIndex * get_pprev_algo (CBlockIndex * p, int use_algo) {
   if (!TestNet() && p->nHeight < v2checkpoint) return 0; //for speeding up initialization
-  int nVersion = p->nVersion;
-  int algo = GetAlgo(nVersion);
+  int algo = 0;
+  if (use_algo) {
+    algo = use_algo;
+  }
+  else {
+    algo = GetAlgo(p->nVersion);
+  }
   CBlockIndex * pprev = p->pprev;
   CBlockIndex * pprev_prelim = 0;
   while (pprev) {

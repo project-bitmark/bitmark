@@ -326,7 +326,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
 	if (pblock->nVersion > 2) {
 	  LogPrintf("miner nVersion>2\n");
-	  CBlockIndex * pprev_algo = get_pprev_algo(pindexPrev,miningAlgo);
+	  CBlockIndex * pprev_algo = pindexPrev;
+	  if (GetAlgo(pprev_algo->nVersion)!=miningAlgo) {
+	    pprev_algo = get_pprev_algo(pindexPrev,miningAlgo);
+	  }
 	  if (!pprev_algo || (pprev_algo && pprev_algo->nVersion <=2 && !get_pprev_algo(pprev_algo))) {
 	    LogPrintf("miner set update ssf\n");
 	    pblock->SetUpdateSSF();
@@ -524,8 +527,8 @@ void static BitmarkMiner(CWallet *pwallet)
             return;
         CBlock *pblock = &pblocktemplate->block;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
-	printf("Running BitmarkMiner with %lu transactions in block (%u bytes)\n", pblock->vtx.size(),
-               ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
+	//printf("Running BitmarkMiner with %lu transactions in block (%u bytes)\n", pblock->vtx.size(),
+	//::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
         //
         // Pre-build hash buffers

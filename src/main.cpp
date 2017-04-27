@@ -1476,7 +1476,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       bnNew /= _nTargetTimespan;
     }
     else {
-      bnNew = CBigNum().SetCompact(pindexLast->nBits);
+      //bnNew = CBigNum().SetCompact(pindexLast->nBits);
+      bnNew = Params().ProofOfWorkLimit();
     }
 
     if (bnNew > Params().ProofOfWorkLimit()){

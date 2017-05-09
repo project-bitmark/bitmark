@@ -53,7 +53,7 @@ void ShutdownRPCMining()
 #endif
 
 /* Set mining algo here for rpc mining */
-int miningAlgo = ALGO_X17;
+int miningAlgo = ALGO_ARGON2;
 
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.

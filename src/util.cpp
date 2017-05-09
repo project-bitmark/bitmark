@@ -266,9 +266,13 @@ bool LogAcceptCategory(const char* category)
     return true;
 }
 
-int LogPrintStr(const std::string &str)
+int LogPrintStr(const std::string &str, const char * filename)
 {
     int ret = 0; // Returns total number of characters written
+    if (!filename) {
+      filename = "debug.log";
+    }
+
     if (fPrintToConsole)
     {
         // print to console
@@ -285,23 +289,36 @@ int LogPrintStr(const std::string &str)
         boost::mutex::scoped_lock scoped_lock(*mutexDebugLog);
 
         // reopen the log file, if requested
-        if (fReopenDebugLog) {
+        if (fReopenDebugLog && !filename) {
             fReopenDebugLog = false;
             boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
             if (freopen(pathDebug.string().c_str(),"a",fileout) != NULL)
                 setbuf(fileout, NULL); // unbuffered
         }
+	else if (filename) {
+	  boost::filesystem::path pathDebug = GetDataDir() / filename;
+	  fileout = fopen(pathDebug.string().c_str(),"a");
+	  if (fileout) setbuf(fileout, NULL);
+	}
 
         // Debug print useful for profiling
-        if (fLogTimestamps && fStartedNewLine)
+	if (fileout) {
+	  if (fLogTimestamps && fStartedNewLine)
             ret += fprintf(fileout, "%s ", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
-        if (!str.empty() && str[str.size()-1] == '\n')
+	  if (!str.empty() && str[str.size()-1] == '\n')
             fStartedNewLine = true;
-        else
+	  else
             fStartedNewLine = false;
 
-        ret = fwrite(str.data(), 1, str.size(), fileout);
-    }
+	  ret = fwrite(str.data(), 1, str.size(), fileout);
+	}
+
+	if (filename) {
+	  boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+	  fileout = fopen(pathDebug.string().c_str(),"a");
+	  if (fileout) setbuf(fileout, NULL);
+	}
+}
 
     return ret;
 }

@@ -1116,14 +1116,22 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 {
+  printf("writing block to disk\n");
     // Open history file to append
     CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
-    if (!fileout)
-        return error("WriteBlockToDisk : OpenBlockFile failed");
+    printf("check if !fileout\n");
+    if (!fileout) {
+      printf("!fileout, so return error\n");
+      return error("WriteBlockToDisk : OpenBlockFile failed");
+    }
 
+    printf("fileout good\n");
+    
     // Write index header
     unsigned int nSize = fileout.GetSerializeSize(block);
     fileout << FLATDATA(Params().MessageStart()) << nSize;
+
+    printf("wrote index header\n");
 
     // Write block
     long fileOutPos = ftell(fileout);
@@ -1131,12 +1139,16 @@ bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
         return error("WriteBlockToDisk : ftell failed");
     pos.nPos = (unsigned int)fileOutPos;
     fileout << block;
+    
+    printf("wrote block\n");
 
     // Flush stdio buffers and commit to disk before returning
     fflush(fileout);
     if (!IsInitialBlockDownload())
         FileCommit(fileout);
 
+    printf("flushed\n");
+    
     return true;
 }
 
@@ -1454,17 +1466,19 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
         if(LastBlockTime > 0){
             int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
             nActualTimespan += Diff;
+	    LogPrintf("Diff %d ",Diff);
         }
         LastBlockTime = BlockReading->GetBlockTime();
+	LogPrintf("LastBlockTime = %d\n",LastBlockTime);
 
         if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
         BlockReading = BlockReading->pprev;
     }
 
     CBigNum bnNew(PastDifficultyAverage);
+    int64_t _nTargetTimespan = CountBlocks * 600;
 
     if (CountBlocks > 0) {
-      int64_t _nTargetTimespan = CountBlocks * 600;
     
       if (nActualTimespan < _nTargetTimespan/3)
         nActualTimespan = _nTargetTimespan/3;
@@ -1486,10 +1500,11 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
 
     /// debug print
-    //LogPrintf("DarkGravityWave RETARGET\n");
-    //LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
-    //LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
-    //LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+    LogPrintf("DarkGravityWave RETARGET\n");
+    LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
+    LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
+    LogPrintf("Avg from past %d: %08x  %s\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
+    LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
 
     return bnNew.GetCompact();
 }
@@ -1761,11 +1776,11 @@ void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev)
 {
     block.nTime = max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
 
-    // Updating time can change work required on testnet:
-    if (TestNet()) {
+    // Updating time can change work required on testnet: // Why?
+    /*if (TestNet()) {
       int block_algo = GetAlgo(block.nVersion);
       block.nBits = GetNextWorkRequired(pindexPrev, &block, block_algo);
-    }
+      }*/
 }
 
 
@@ -2202,7 +2217,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS)
     {
+      LogPrintf("Write undo info\n");
         if (pindex->GetUndoPos().IsNull()) {
+	  LogPrintf("undo pos is null\n");
             CDiskBlockPos pos;
             if (!FindUndoPos(state, pindex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
                 return error("ConnectBlock() : FindUndoPos failed");
@@ -2269,10 +2286,13 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     // New best block
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
-    LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%s progress=%f\n",
-      chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
-      DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-      Checkpoints::GuessVerificationProgress(chainActive.Tip()));
+    LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",
+      chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),
+	      Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
+    char * blocktime = (char *)malloc(50);
+    sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
+    LogPrintStr(blocktime,"timingtest.log");
+    free(blocktime);
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload)
@@ -2794,6 +2814,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
 
+    printf("done acceptblock\n");
+    
     return true;
 }
 
@@ -2925,7 +2947,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         }
         mapOrphanBlocksByPrev.erase(hashPrev);
     }
-
+    printf("done processblock\n");
     LogPrintf("ProcessBlock: ACCEPTED\n");
     return true;
 }
@@ -3118,13 +3140,23 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
     FILE* file = fopen(path.string().c_str(), "rb+");
     if (!file && !fReadOnly)
         file = fopen(path.string().c_str(), "wb+");
-    if (!file) {
+    while (!file) {
+      printf("Unable to open file %s\n", path.string().c_str());
         LogPrintf("Unable to open file %s\n", path.string());
-        return NULL;
+	sleep(1);
+	if (fReadOnly) {
+	  file = fopen(path.string().c_str(), "rb+");
+	}
+	else {
+	  printf("open with wb+\n");
+	  file = fopen(path.string().c_str(), "wb+");
+	}
+        //return NULL;
     }
     if (pos.nPos) {
         if (fseek(file, pos.nPos, SEEK_SET)) {
-            LogPrintf("Unable to seek to position %u of %s\n", pos.nPos, path.string());
+	  printf("Unable to seek to position %u of %s\n", pos.nPos, path.string().c_str());
+	  LogPrintf("Unable to seek to position %u of %s\n", pos.nPos, path.string());
             fclose(file);
             return NULL;
         }
@@ -3497,6 +3529,8 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
     }
     if (nLoaded > 0)
         LogPrintf("Loaded %i blocks from external file in %dms\n", nLoaded, GetTimeMillis() - nStart);
+
+    printf("done loadexternalblockfile\n");
     return nLoaded > 0;
 }
 
@@ -4419,6 +4453,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             AddressCurrentlyConnected(pfrom->addr);
 
 
+    printf("done processmessage\n");
+    
     return true;
 }
 

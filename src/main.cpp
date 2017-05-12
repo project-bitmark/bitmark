@@ -1116,7 +1116,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 {
-  printf("writing block to disk\n");
+  printf("writing block to disk (pos %d)\n",pos.nFile);
     // Open history file to append
     CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
     printf("check if !fileout\n");
@@ -1147,6 +1147,8 @@ bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
     if (!IsInitialBlockDownload())
         FileCommit(fileout);
 
+    fileout.fclose();
+    
     printf("flushed\n");
     
     return true;
@@ -2291,7 +2293,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
 	      Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
     char * blocktime = (char *)malloc(50);
     sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
-    LogPrintStr(blocktime,"timingtest.log");
+    //LogPrintTest(blocktime,"timingtest.log");
     free(blocktime);
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
@@ -3140,7 +3142,8 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
     FILE* file = fopen(path.string().c_str(), "rb+");
     if (!file && !fReadOnly)
         file = fopen(path.string().c_str(), "wb+");
-    while (!file) {
+    int counter = 0;
+    while (!file && counter < 10) {
       printf("Unable to open file %s\n", path.string().c_str());
         LogPrintf("Unable to open file %s\n", path.string());
 	sleep(1);
@@ -3152,6 +3155,10 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 	  file = fopen(path.string().c_str(), "wb+");
 	}
         //return NULL;
+	counter ++;
+    }
+    if (!file) {
+      return NULL;
     }
     if (pos.nPos) {
         if (fseek(file, pos.nPos, SEEK_SET)) {

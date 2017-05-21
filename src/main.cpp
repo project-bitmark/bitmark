@@ -4845,8 +4845,8 @@ int GetAlgo (int nVersion) {
       return ALGO_ARGON2;
     case BLOCK_VERSION_X17:
       return ALGO_X17;
-    case BLOCK_VERSION_LYRA2R2:
-      return ALGO_LYRA2R2;
+    case BLOCK_VERSION_LYRA2REv2:
+      return ALGO_LYRA2REv2;
     }
   return ALGO_SCRYPT;
 }

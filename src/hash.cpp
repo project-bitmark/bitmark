@@ -114,6 +114,6 @@ uint256 hash_x17(const char * begin, const char * end) {
   return HashX17(begin,end);
 }
 
-void hash_lyra2r2(const char * input, char * output) {
+void hash_lyra2rev2(const char * input, char * output) {
   lyra2re2_hash(input,output);
 }

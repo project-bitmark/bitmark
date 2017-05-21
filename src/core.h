@@ -21,7 +21,7 @@ enum {
   ALGO_SCRYPT = 2,
   ALGO_ARGON2 = 3,
   ALGO_X17 = 4,
-  ALGO_LYRA2R2 = 5
+  ALGO_LYRA2REv2 = 5
 };
 
 /* Use the rightmost 8 bits for standard version number, 9th bit for merge mining (todo), 10-12 th bits for POW algo, 13 th bit for update scaling factor flag */
@@ -32,7 +32,7 @@ enum
     BLOCK_VERSION_SCRYPT = (2 << 9),
     BLOCK_VERSION_ARGON2 = (3 << 9),
     BLOCK_VERSION_X17 = (4 << 9),
-    BLOCK_VERSION_LYRA2R2 = (5 << 9),
+    BLOCK_VERSION_LYRA2REv2 = (5 << 9),
     BLOCK_VERSION_UPDATE_SSF = (1 << 12)
   };
 
@@ -420,8 +420,8 @@ public:
 	case ALGO_X17:
 	  nVersion |= BLOCK_VERSION_X17;
 	  break;
-	case ALGO_LYRA2R2:
-	  nVersion |= BLOCK_VERSION_LYRA2R2;
+	case ALGO_LYRA2REv2:
+	  nVersion |= BLOCK_VERSION_LYRA2REv2;
 	  break;
 	default:
 	  break;
@@ -439,8 +439,8 @@ public:
 	  return ALGO_ARGON2;
 	case BLOCK_VERSION_X17:
 	  return ALGO_X17;
-	case BLOCK_VERSION_LYRA2R2:
-	  return ALGO_LYRA2R2;
+	case BLOCK_VERSION_LYRA2REv2:
+	  return ALGO_LYRA2REv2;
 	}
       return ALGO_SCRYPT;
     }
@@ -528,10 +528,10 @@ public:
 	}
       case ALGO_X17:
 	return hash_x17(BEGIN(nVersion), END(nNonce));
-      case ALGO_LYRA2R2:
+      case ALGO_LYRA2REv2:
 	{
 	  uint256 thash;
-	  hash_lyra2r2(BEGIN(nVersion),BEGIN(thash));
+	  hash_lyra2rev2(BEGIN(nVersion),BEGIN(thash));
 	  return thash;
 	}
       }

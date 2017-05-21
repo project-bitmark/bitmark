@@ -34,7 +34,7 @@ Bitmark aims to be a relatively stable, user focussed, crypto currency, which re
 
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
 
-## mPOW Hard Fork
+## mPOW Hard Fork (branch 0.9.7)
 
 We are now in the testing phase of the hard fork that allows for multiple proof-of-work algorithms (SHA256D, SCRYPT, ARGON2, LYRA2R2, X17). Each algorithm has its difficulty adjusted independently, with a target spacing of 10 min (so 2 min as before if we consider blocks mined by any algorithm). The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/5 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 144 blocks).
 

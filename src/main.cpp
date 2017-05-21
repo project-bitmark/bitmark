@@ -2175,14 +2175,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	pindex->subsidyScalingFactor = pprev_algo->subsidyScalingFactor;
       }
     }
+
+    int64_t block_value_needed = GetBlockValue(pindex, nFees);
     
-    if (block.vtx[0].GetValueOut() > GetBlockValue(pindex, nFees))
+    if (block.vtx[0].GetValueOut() > block_value_needed)
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees)),
                                REJECT_INVALID, "bad-cb-amount");
 
-    if (block.vtx[0].GetValueOut() < GetBlockValue(pindex, nFees)) {
+    if (block.vtx[0].GetValueOut() < block_value_needed) {
       LogPrintf("coinbase pays less than block value\n");
     }
 
@@ -4854,7 +4856,7 @@ int GetVersion (int nVersion) {
 }
 
 /* Get previous CBlockIndex pointer with the given algo. If nVersion<=2, return null if no nVersion>2 come before it. This is a way to check for the mPOW fork without hardcoding a height for the fork. */
-CBlockIndex * get_pprev_algo (CBlockIndex * p, int use_algo) {
+CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
   if (!TestNet() && p->nHeight < v2checkpoint) return 0; //for speeding up initialization
   int algo = 0;
   if (use_algo) {

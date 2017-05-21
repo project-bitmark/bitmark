@@ -18,7 +18,7 @@ using namespace std;
 
 void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex* blockindex)
+double GetDifficulty(const CBlockIndex* blockindex, int algo)
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
@@ -30,10 +30,21 @@ double GetDifficulty(const CBlockIndex* blockindex)
             blockindex = chainActive.Tip();
     }
 
-    int nShift = (blockindex->nBits >> 24) & 0xff;
-
+    int algo_tip = GetAlgo(blockindex->nVersion);
+    if (algo_tip != algo) {
+      blockindex = get_pprev_algo(blockindex,algo);
+    }
+    unsigned int nBits = 0;
+    if (blockindex) {
+      nBits = blockindex->nBits;
+    }
+    else {
+      nBits = Params().ProofOfWorkLimit().GetCompact();
+    }
+    
+    int nShift = (nBits >> 24) & 0xff;
     double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
 
     while (nShift < 29)
     {

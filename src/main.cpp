@@ -4460,9 +4460,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     if (pfrom->fNetworkNode)
         if (strCommand == "version" || strCommand == "addr" || strCommand == "inv" || strCommand == "getdata" || strCommand == "ping")
             AddressCurrentlyConnected(pfrom->addr);
-
-
-    printf("done processmessage\n");
     
     return true;
 }
@@ -4849,6 +4846,25 @@ int GetAlgo (int nVersion) {
       return ALGO_LYRA2REv2;
     }
   return ALGO_SCRYPT;
+}
+
+const char * GetAlgoName (int algo) {
+  if (algo == 1) {
+    return "SHA256D";
+  }
+  else if (algo == 2) {
+    return "SCRYPT";
+  }
+  else if (algo == 3) {
+    return "ARGON2";
+  }
+  else if (algo == 4) {
+    return "X17";
+  }
+  else if (algo == 5) {
+    return "LYRA2REv2";
+  }
+  return "SCRYPT";
 }
 
 int GetVersion (int nVersion) {

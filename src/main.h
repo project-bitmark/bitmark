@@ -1135,6 +1135,9 @@ protected:
 /* Get Proof of Work Algo for the block from the block's nVersion */
 int GetAlgo (int nVersion);
 
+/* Get name of algo from its number */
+const char * GetAlgoName (int algo);
+
 /* Get base version number */
 int GetVersion (int nVersion);
 

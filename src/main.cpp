@@ -4944,9 +4944,9 @@ double get_ssf (CBlockIndex * pindex) {
     int timePast = pprev_algo->GetBlockTime();
     int time_fin = 0;
     for (int j=0; j<143; j++) {  // 144 blocks = 24 hours, using only blocks from the same algo as the target block
-      //LogPrintf("j=%d\n",j);
       pprev_algo = get_pprev_algo(pprev_algo);
       if (!pprev_algo) {
+	hashes_bn = CBigNum(0);
 	break;
       }
       hashes_bn += pprev_algo->GetBlockWork();
@@ -4958,8 +4958,7 @@ double get_ssf (CBlockIndex * pindex) {
     else {
       LogPrintf("timePast = %d while time_fin = %d\n",timePast,time_fin);
       return 1.;
-    }
-    
+    }    
     double hashes = ((double)hashes_bn.getulong())/((double)timePast);
     if (hashes>hashes_peak) hashes_peak = hashes;
     if (i==0) hashes_cur = hashes;

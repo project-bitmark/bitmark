@@ -60,6 +60,97 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
     return dDiff;
 }
 
+double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
+  if (blockindex == NULL)
+    {
+      if (chainActive.Tip() == NULL)
+	return 0.;
+      else
+	blockindex = chainActive.Tip();
+    }
+  
+  int algo_tip = GetAlgo(blockindex->nVersion);
+  if (algo_tip != algo) {
+    blockindex = get_pprev_algo(blockindex,algo);
+  }
+  if (!blockindex) return 0.;
+  do {
+    if (update_ssf(blockindex->nVersion)) {
+      const CBlockIndex * pprev_algo = blockindex;
+      double hashes_peak = 0.;
+      for (int i=0; i<365; i++) {
+	CBigNum hashes_bn = pprev_algo->GetBlockWork();
+	int timePast = pprev_algo->GetBlockTime();
+	int time_fin = 0;
+	for (int j=0; j<143; j++) {
+	  pprev_algo = get_pprev_algo(pprev_algo);
+	  if (!pprev_algo) {
+	    hashes_bn = CBigNum(0);
+	    break;
+	  }
+	  hashes_bn += pprev_algo->GetBlockWork();
+	  time_fin = pprev_algo->GetBlockTime();
+	}
+	if (timePast>time_fin) {
+	  timePast -= time_fin;
+	}
+	else {
+	  return 1./0.;
+	}
+	double hashes = ((double)hashes_bn.getulong())/((double)timePast);
+	if (hashes>hashes_peak) hashes_peak = hashes;
+	if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo);
+	if (!pprev_algo) break;
+      }
+      return hashes_peak;
+      break;
+    }
+    blockindex = get_pprev_algo(blockindex);
+  } while (blockindex);
+  return 0.;
+}
+
+double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used for the scaling factor calc
+  if (blockindex == NULL)
+    {
+      if (chainActive.Tip() == NULL)
+	return 0.;
+      else
+	blockindex = chainActive.Tip();
+    }
+  int algo_tip = GetAlgo(blockindex->nVersion);
+  if (algo_tip != algo) {
+    blockindex = get_pprev_algo(blockindex,algo);
+  }
+  if (!blockindex) return 0.;
+  do {
+    if (update_ssf(blockindex->nVersion)) {
+      const CBlockIndex * pprev_algo = blockindex;
+      CBigNum hashes_bn = pprev_algo->GetBlockWork();
+      int timePast = pprev_algo->GetBlockTime();
+      int time_fin = 0;
+      for (int j=0; j<143; j++) {
+	pprev_algo = get_pprev_algo(pprev_algo);
+	if (!pprev_algo) {
+	  hashes_bn = CBigNum(0);
+	  break;
+	}
+	hashes_bn += pprev_algo->GetBlockWork();
+	time_fin = pprev_algo->GetBlockTime();
+      }
+      if (timePast>time_fin) {
+	timePast -= time_fin;
+      }
+      else {
+	return 1./0.;
+      }
+      return ((double)hashes_bn.getulong())/((double)timePast);
+    }
+    blockindex = get_pprev_algo(blockindex);
+  } while (blockindex);
+  return 0.;
+}  
+  
 
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 {

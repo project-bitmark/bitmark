@@ -4973,3 +4973,49 @@ double get_ssf (CBlockIndex * pindex) {
     scalingFactor = 0.15;
   return scalingFactor;
 }
+
+int get_ssf_height (const CBlockIndex * pindex) {
+  const CBlockIndex * pprev_algo = pindex;
+  for (int i=0; i<143; i++) {
+    if (update_ssf(pprev_algo->nVersion)) {
+      return i;
+    }
+    pprev_algo = get_pprev_algo(pprev_algo);
+    if (!pprev_algo) return -1;
+  }
+  return -1;
+}
+
+unsigned long get_ssf_work (const CBlockIndex * pindex) {
+  const CBlockIndex * pprev_algo = pindex;
+  CBigNum hashes_bn = pprev_algo->GetBlockWork();
+  for (int i=0; i<143; i++) {
+    if (update_ssf(pprev_algo->nVersion)) {
+      return hashes_bn.getulong();
+    }
+    pprev_algo = get_pprev_algo(pprev_algo);
+    if (!pprev_algo) return 0;
+    hashes_bn += pprev_algo->GetBlockWork();
+  }
+  return 0;
+}
+
+double get_ssf_time (const CBlockIndex * pindex) {
+  const CBlockIndex * pprev_algo = pindex;
+  int timePast = pprev_algo->GetBlockTime();
+  int time_fin = 0;
+  for (int i=0; i<143; i++) {
+    if (update_ssf(pprev_algo->nVersion)) {
+      if (timePast>time_fin) {
+	return timePast-time_fin;
+      }
+      else {
+	return 0.;
+      }
+    }
+    pprev_algo = get_pprev_algo(pprev_algo);
+    if (!pprev_algo) return 0.;
+    time_fin = pprev_algo->GetBlockTime();
+  }
+  return 0.;
+}

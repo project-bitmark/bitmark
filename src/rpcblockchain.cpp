@@ -163,6 +163,9 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("algo",GetAlgoName(GetAlgo(block.nVersion))));
+    result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
+    result.push_back(Pair("SSF work",get_ssf_work(blockindex)));
+    result.push_back(Pair("SSF time",get_ssf_time(blockindex)));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
     Array txs;
     BOOST_FOREACH(const CTransaction&tx, block.vtx)

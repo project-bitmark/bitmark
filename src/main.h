@@ -1153,4 +1153,13 @@ bool update_ssf (int nVersion);
 /* Calculate the subsidy scaling factor for the CBlockIndex pointer */
 double get_ssf (CBlockIndex * pindex);
 
+/* Get the number of blocks since the last update of the subsidy scaling factor */
+int get_ssf_height (const CBlockIndex * pindex);
+
+/* Get the accumulated work since the last update of the subsidy scaling factor */
+unsigned long get_ssf_work (const CBlockIndex * pindex);
+
+/* Get the accumulated time since the last update of the subsidy scaling factor */
+double get_ssf_time (const CBlockIndex * pindex);
+
 #endif

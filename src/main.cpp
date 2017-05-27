@@ -1275,7 +1275,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
 
     if (pprev_algo) { //make emitted 5 times bigger so that the target points are divided in 5 for each algo
       LogPrintf("emmited * 5\n");
-      emitted = 5 * pindexPrev->nMoneySupply;
+      emitted = 5 * pprev_algo->nMoneySupply;
     }
     else {
       emitted = pindexPrev->nMoneySupply;

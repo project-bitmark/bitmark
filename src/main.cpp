@@ -2936,6 +2936,22 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         return true;
     }
 
+    // check for 3 in a row
+
+    CBlockIndex * prev_index = mapBlockIndex[pblock->hashPrevBlock];
+    int algo = GetAlgo(pblock->nVersion);
+    if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
+      prev_index = prev_index->pprev;
+      if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
+	prev_index = prev_index->pprev;
+	if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
+	  LogPrintf("Max 3 in a row from a particular algo\n");
+	  return state.Invalid(error("Max 3 in a row from a particular algo"));
+	}
+      }
+    }
+    
+
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp))
         return error("ProcessBlock() : AcceptBlock FAILED");

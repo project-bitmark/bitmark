@@ -2071,7 +2071,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	}
       }
     }
-    
+
+    /*
     // Max 3 in a row from a particular algo
     int algo = GetAlgo(pindex->nVersion);
     CBlockIndex * prev_index = pindex->pprev;
@@ -2085,6 +2086,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	}
       }
     }
+    */
 
     // verify that the view's current state corresponds to the previous block
     uint256 hashPrevBlock = pindex->pprev == NULL ? uint256(0) : pindex->pprev->GetBlockHash();

@@ -2071,7 +2071,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	}
       }
     }
-
+    
     /*
     // Max 3 in a row from a particular algo
     int algo = GetAlgo(pindex->nVersion);
@@ -4998,7 +4998,9 @@ double get_ssf (CBlockIndex * pindex) {
     if (hashes>hashes_peak) hashes_peak = hashes;
     if (i==0) hashes_cur = hashes;
   }
-  scalingFactor = std::floor(hashes_cur/hashes_peak*100.+0.5)/100.; //round to 2 decimal places
+  if (hashes_peak > 0.) {
+    scalingFactor = std::floor(hashes_cur/hashes_peak*100.+0.5)/100.; //round to 2 decimal places
+  }
   LogPrintf("calculated factor to %f\n",scalingFactor);
   if (scalingFactor > 1.0)
     scalingFactor = 1.0;

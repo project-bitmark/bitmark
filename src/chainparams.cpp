@@ -101,7 +101,7 @@ static CMainParams mainParams;
 
 
 //
-// Testnet (v3)
+// Testnet (v4)
 //
 class CTestNetParams : public CMainParams {
 public:
@@ -133,13 +133,13 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1490305224;
+        genesis.nTime = 1495842489;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 678743;
+	genesis.nNonce = 713058;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0x76fbbeb9e5122286611ed21567ced9299d650dec0bea96b9e18ab8cc349c628c"));
+        assert(hashGenesisBlock == uint256("0x8aae7cf58b3a1bc8dee30c950105e94f2dbb20f3dab2fc54cf883afa8c1e0ba5"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

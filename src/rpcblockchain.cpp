@@ -82,7 +82,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int timePast = pprev_algo->GetBlockTime();
 	int time_fin = 0;
-	for (int j=0; j<143; j++) {
+	for (int j=0; j<144; j++) {
 	  pprev_algo = get_pprev_algo(pprev_algo);
 	  if (!pprev_algo) {
 	    hashes_bn = CBigNum(0);
@@ -129,7 +129,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       CBigNum hashes_bn = pprev_algo->GetBlockWork();
       int timePast = pprev_algo->GetBlockTime();
       int time_fin = 0;
-      for (int j=0; j<143; j++) {
+      for (int j=0; j<144; j++) {
 	pprev_algo = get_pprev_algo(pprev_algo);
 	if (!pprev_algo) {
 	  hashes_bn = CBigNum(0);

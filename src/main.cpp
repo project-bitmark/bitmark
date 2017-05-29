@@ -1433,10 +1433,6 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 
 unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
-  if (GetAlgo(pindexLast->nVersion)!=algo) {
-    pindexLast = get_pprev_algo(pindexLast,algo);
-  }
-  
     /* current difficulty formula, dash - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex *BlockLastSolved = pindexLast;
     const CBlockIndex *BlockReading = pindexLast;

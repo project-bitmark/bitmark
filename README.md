@@ -1,3 +1,7 @@
+## Introduction
+
+The code on this branch includes several features (mPOW, DGWv3 and CEMv0.1) and is specifically designed to address the mining attack on the Bitmark Blockchain.
+
 **Forking** Why fork this when you can fork [Pfennig](https://github.com/project-bitmark/pfennig) - it's made to be cloned.
 
 
@@ -57,3 +61,7 @@ Note: you have to change the `miningAlgo` variable in src/rpcmining.cpp
 You can also use the bitmark-cli command to mine. For example, to mine argon2,
 
 `bitmark-cli setgenerate true <ncores> 3`
+
+Update: You can mine Argon2 using a fork of cpuminer-multi: https://github.com/piratelinux/cpuminer-multi
+
+Use 'ar2' as the <algo> argument for cpuminer.

@@ -2765,9 +2765,12 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 
         // Check proof of work
 	int block_algo = GetAlgo(block.nVersion);
-        if (block.nBits != GetNextWorkRequired(pindexPrev, &block, block_algo))
-            return state.DoS(100, error("AcceptBlock() : incorrect proof of work"),
-                             REJECT_INVALID, "bad-diffbits");
+	unsigned int next_work_required = GetNextWorkRequired(pindexPrev, &block, block_algo);
+        if (block.nBits != next_work_required) {
+	  LogPrintf("nbits = %d, required = %d\n",block.nBits,next_work_required);
+	  return state.DoS(100, error("AcceptBlock() : incorrect proof of work"),
+			   REJECT_INVALID, "bad-diffbits");
+	}
 
         // Check timestamp against prev
         if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())

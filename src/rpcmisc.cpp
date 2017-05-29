@@ -90,7 +90,12 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("current hashrate ARGON2",    (double)GetCurrentHashrate(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("current hashrate X17",    (double)GetCurrentHashrate(NULL,ALGO_X17)));
     obj.push_back(Pair("current hashrate LYRA2REv2",    (double)GetCurrentHashrate(NULL,ALGO_LYRA2REv2)));
-    obj.push_back(Pair("moneysupply",   ValueFromAmount(chainActive.Tip()->nMoneySupply)));
+    obj.push_back(Pair("moneysupply SHA256D", (double)GetMoneySupply(NULL,ALGO_SHA256D)));
+    obj.push_back(Pair("moneysupply SCRYPT", (double)GetMoneySupply(NULL,ALGO_SCRYPT)));
+    obj.push_back(Pair("moneysupply ARGON2", (double)GetMoneySupply(NULL,ALGO_ARGON2)));
+    obj.push_back(Pair("moneysupply X17", (double)GetMoneySupply(NULL,ALGO_X17)));
+    obj.push_back(Pair("moneysupply LYRA2REv2", (double)GetMoneySupply(NULL,ALGO_LYRA2REv2)));
+
     obj.push_back(Pair("testnet",       TestNet()));
 #ifdef ENABLE_WALLET
     if (pwalletMain) {

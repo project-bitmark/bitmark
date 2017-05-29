@@ -150,6 +150,23 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
   } while (blockindex);
   return 0.;
 }  
+
+double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
+  if (blockindex == NULL)
+    {
+      if (chainActive.Tip() == NULL)
+	return 0.;
+      else
+	blockindex = chainActive.Tip();
+    }
+  int algo_tip = GetAlgo(blockindex->nVersion);
+  if (algo_tip != algo) {
+    blockindex = get_pprev_algo(blockindex,algo);
+  }
+  if (!blockindex) return 4.;
+  return ((double)blockindex->nMoneySupply)/100000000.;
+}
+  
   
 
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)

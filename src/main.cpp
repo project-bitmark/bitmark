@@ -1543,7 +1543,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         // Only change once per interval
         if ((pindexLast->nHeight+1) % nInterval != 0)
         {
-            if (TestNet())
+	  /*            if (TestNet())
             {
                 // Special difficulty rule for testnet:
                 // If the new block's timestamp is more than 2* 2 minutes
@@ -1558,7 +1558,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
                         pindex = pindex->pprev;
                     return pindex->nBits;
                 }
-            }
+		}*/
             return pindexLast->nBits;
         }
 

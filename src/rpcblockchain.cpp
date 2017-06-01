@@ -76,31 +76,38 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
   if (!blockindex) return 0.;
   do {
     if (update_ssf(blockindex->nVersion)) {
-      const CBlockIndex * pprev_algo = blockindex;
       double hashes_peak = 0.;
       for (int i=0; i<365; i++) {
-	CBigNum hashes_bn = pprev_algo->GetBlockWork();
-	int timePast = pprev_algo->GetBlockTime();
-	int time_fin = 0;
-	for (int j=0; j<144; j++) {
-	  pprev_algo = get_pprev_algo(pprev_algo);
-	  if (!pprev_algo) {
+
+	const CBlockIndex * pcur_algo = get_pprev_algo(blockindex);
+	if (!pcur_algo) return 0.;
+	int time_f = pcur_algo->GetBlockTime();
+	CBigNum hashes_bn = pcur_algo->GetBlockWork();
+	int time_i = 0;
+	const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo);
+	
+	for (int j=0; j<143; j++) {
+
+	  if (pprev_algo) {
+	    time_i = pprev_algo->GetBlockTime();
+	  }
+	  else {
 	    hashes_bn = CBigNum(0);
 	    break;
 	  }
+
 	  hashes_bn += pprev_algo->GetBlockWork();
-	  time_fin = pprev_algo->GetBlockTime();
+	  pprev_algo = get_pprev_algo(pprev_algo);
+	  
 	}
-	if (timePast>time_fin) {
-	  timePast -= time_fin;
+	if (time_f>time_i) {
+	  time_f -= time_i;
 	}
 	else {
 	  return 1./0.;
 	}
-	double hashes = ((double)hashes_bn.getulong())/((double)timePast);
+	double hashes = ((double)hashes_bn.getulong())/((double)time_f);
 	if (hashes>hashes_peak) hashes_peak = hashes;
-	if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo);
-	if (!pprev_algo) break;
       }
       return hashes_peak;
       break;
@@ -125,26 +132,29 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
   if (!blockindex) return 0.;
   do {
     if (update_ssf(blockindex->nVersion)) {
-      const CBlockIndex * pprev_algo = blockindex;
-      CBigNum hashes_bn = pprev_algo->GetBlockWork();
-      int timePast = pprev_algo->GetBlockTime();
-      int time_fin = 0;
-      for (int j=0; j<144; j++) {
-	pprev_algo = get_pprev_algo(pprev_algo);
-	if (!pprev_algo) {
-	  hashes_bn = CBigNum(0);
-	  break;
+      const CBlockIndex * pcur_algo = get_pprev_algo(blockindex);
+      if (!pcur_algo) return 0.;
+      int time_f = pcur_algo->GetBlockTime();
+      CBigNum hashes_bn = pcur_algo->GetBlockWork();
+      int time_i = 0;
+      const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo);
+      for (int j=0; j<143; j++) {
+	if (pprev_algo) {
+	  time_i = pprev_algo->GetBlockTime();
+	}
+	else {
+	  return 0.;
 	}
 	hashes_bn += pprev_algo->GetBlockWork();
-	time_fin = pprev_algo->GetBlockTime();
+	pprev_algo = get_pprev_algo(pprev_algo);
       }
-      if (timePast>time_fin) {
-	timePast -= time_fin;
+      if (time_f>time_i) {
+	time_f -= time_i;
       }
       else {
 	return 1./0.;
       }
-      return ((double)hashes_bn.getulong())/((double)timePast);
+      return ((double)hashes_bn.getulong())/((double)time_f);
     }
     blockindex = get_pprev_algo(blockindex);
   } while (blockindex);
@@ -163,7 +173,7 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   if (algo_tip != algo) {
     blockindex = get_pprev_algo(blockindex,algo);
   }
-  if (!blockindex) return 4.;
+  if (!blockindex) return 0.;
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
   

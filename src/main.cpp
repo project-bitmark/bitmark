@@ -4980,8 +4980,8 @@ double get_ssf (CBlockIndex * pindex) {
     pprev_algo = get_pprev_algo(pprev_algo);
     if (!pprev_algo) break;
     CBigNum hashes_bn = pprev_algo->GetBlockWork();
-    int timePast = pprev_algo->GetBlockTime();
-    int time_fin = 0;
+    int time_f = pprev_algo->GetBlockTime();
+    int time_i = 0;
     for (int j=0; j<143; j++) {  // 144 blocks = 24 hours, using only blocks from the same algo as the target block
       pprev_algo = get_pprev_algo(pprev_algo);
       if (!pprev_algo) {
@@ -4989,16 +4989,16 @@ double get_ssf (CBlockIndex * pindex) {
 	break;
       }
       hashes_bn += pprev_algo->GetBlockWork();
-      time_fin = pprev_algo->GetBlockTime();
+      time_i = pprev_algo->GetBlockTime();
     }
-    if (timePast>time_fin) {
-      timePast -= time_fin;
+    if (time_f>time_i) {
+      time_f -= time_i;
     }
     else {
-      LogPrintf("timePast = %d while time_fin = %d\n",timePast,time_fin);
+      LogPrintf("time_f = %d while time_i = %d\n",time_f,time_i);
       return 1.;
     }    
-    double hashes = ((double)hashes_bn.getulong())/((double)timePast);
+    double hashes = ((double)hashes_bn.getulong())/((double)time_f);
     if (hashes>hashes_peak) hashes_peak = hashes;
     if (i==0) hashes_cur = hashes;
   }
@@ -5027,35 +5027,41 @@ int get_ssf_height (const CBlockIndex * pindex) {
 
 unsigned long get_ssf_work (const CBlockIndex * pindex) {
   const CBlockIndex * pprev_algo = pindex;
-  CBigNum hashes_bn = CBigNum(0);
-  for (int i=0; i<144; i++) {
-    pprev_algo = get_pprev_algo(pprev_algo);
-    if (!pprev_algo) return 0;
+  CBigNum hashes_bn = pprev_algo->GetBlockWork();
+  for (int i=0; i<143; i++) {
     if (update_ssf(pprev_algo->nVersion)) {
       return hashes_bn.getulong();
     }
+    pprev_algo = get_pprev_algo(pprev_algo);
+    if (!pprev_algo) return 0;
     hashes_bn += pprev_algo->GetBlockWork();
   }
   return 0;
 }
 
 double get_ssf_time (const CBlockIndex * pindex) {
+  int time_f= pindex->GetBlockTime();
+  const CBlockIndex * pcur_algo = pindex;
   const CBlockIndex * pprev_algo = get_pprev_algo(pindex);
-  if (!pprev_algo) return 0.;
-  int timePast = pprev_algo->GetBlockTime();
-  int time_fin = 0;
+  int time_i = 0;
   for (int i=0; i<143; i++) {
-    if (update_ssf(pprev_algo->nVersion)) {
-      if (timePast>time_fin) {
-	return timePast-time_fin;
+    if (pprev_algo) {
+      time_i = pprev_algo->GetBlockTime();
+    }
+    else {
+      time_i = Params().GenesisBlock().nTime;
+    }    
+    if (update_ssf(pcur_algo->nVersion)) {
+      if (time_f>time_i) {
+	return time_f-time_i;
       }
       else {
-	return 0.;
+	return 0;
       }
     }
-    pprev_algo = get_pprev_algo(pprev_algo);
-    if (!pprev_algo) return 0.;
-    time_fin = pprev_algo->GetBlockTime();
+    pcur_algo = pprev_algo;
+    if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo);
+    if (!pprev_algo) return 0;
   }
   return 0.;
 }

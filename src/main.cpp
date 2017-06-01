@@ -5040,7 +5040,8 @@ unsigned long get_ssf_work (const CBlockIndex * pindex) {
 }
 
 double get_ssf_time (const CBlockIndex * pindex) {
-  int time_f= pindex->GetBlockTime();
+  int time_f = pindex->GetBlockTime();
+  LogPrintf("time_f = %d\n",time_f);
   const CBlockIndex * pcur_algo = pindex;
   const CBlockIndex * pprev_algo = get_pprev_algo(pindex);
   int time_i = 0;
@@ -5050,18 +5051,19 @@ double get_ssf_time (const CBlockIndex * pindex) {
     }
     else {
       time_i = Params().GenesisBlock().nTime;
-    }    
+    }
+    LogPrintf("time_i = %d\n",time_i);
     if (update_ssf(pcur_algo->nVersion)) {
       if (time_f>time_i) {
 	return time_f-time_i;
       }
       else {
-	return 0;
+	return 0.;
       }
     }
     pcur_algo = pprev_algo;
     if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo);
-    if (!pprev_algo) return 0;
+    if (!pcur_algo) return 0.;
   }
   return 0.;
 }

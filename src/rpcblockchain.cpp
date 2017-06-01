@@ -100,6 +100,13 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	  pprev_algo = get_pprev_algo(pprev_algo);
 	  
 	}
+	if (pprev_algo) {
+	  time_i = pprev_algo->GetBlockTime();
+	}
+	else {
+	  time_i = Params().GenesisBlock().nTime;
+	}
+	
 	if (time_f>time_i) {
 	  time_f -= time_i;
 	}
@@ -148,12 +155,19 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
 	hashes_bn += pprev_algo->GetBlockWork();
 	pprev_algo = get_pprev_algo(pprev_algo);
       }
+      if (pprev_algo) {
+	time_i = pprev_algo->GetBlockTime();
+      }
+      else {
+	time_i = Params().GenesisBlock().nTime;
+      }
       if (time_f>time_i) {
 	time_f -= time_i;
       }
       else {
 	return 1./0.;
       }
+      LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
       return ((double)hashes_bn.getulong())/((double)time_f);
     }
     blockindex = get_pprev_algo(blockindex);

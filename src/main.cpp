@@ -4991,6 +4991,13 @@ double get_ssf (CBlockIndex * pindex) {
       hashes_bn += pprev_algo->GetBlockWork();
       time_i = pprev_algo->GetBlockTime();
     }
+    pprev_algo = get_pprev_algo(pprev_algo);
+    if (pprev_algo) {
+      time_i = pprev_algo->GetBlockTime();
+    }
+    else {
+      time_i = Params().GenesisBlock().nTime;
+    }
     if (time_f>time_i) {
       time_f -= time_i;
     }
@@ -5028,7 +5035,7 @@ int get_ssf_height (const CBlockIndex * pindex) {
 unsigned long get_ssf_work (const CBlockIndex * pindex) {
   const CBlockIndex * pprev_algo = pindex;
   CBigNum hashes_bn = pprev_algo->GetBlockWork();
-  for (int i=0; i<143; i++) {
+  for (int i=0; i<144; i++) {
     if (update_ssf(pprev_algo->nVersion)) {
       return hashes_bn.getulong();
     }
@@ -5045,7 +5052,7 @@ double get_ssf_time (const CBlockIndex * pindex) {
   const CBlockIndex * pcur_algo = pindex;
   const CBlockIndex * pprev_algo = get_pprev_algo(pindex);
   int time_i = 0;
-  for (int i=0; i<143; i++) {
+  for (int i=0; i<144; i++) {
     if (pprev_algo) {
       time_i = pprev_algo->GetBlockTime();
     }

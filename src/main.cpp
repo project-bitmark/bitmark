@@ -4910,6 +4910,7 @@ int GetVersion (int nVersion) {
 
 /* Get previous CBlockIndex pointer with the given algo. If nVersion<=2, return null if no nVersion>2 come before it. This is a way to check for the mPOW fork without hardcoding a height for the fork. */
 CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
+  if (!p) return 0;
   if (!TestNet() && p->nHeight < v2checkpoint) return 0; //for speeding up initialization
   int algo = 0;
   if (use_algo) {
@@ -4978,7 +4979,9 @@ double get_ssf (CBlockIndex * pindex) {
   for (int i=0; i<365; i++) { // use at most a year's worth of history
     LogPrintf("i=%d\n",i);
     pprev_algo = get_pprev_algo(pprev_algo);
-    if (!pprev_algo) break;
+    if (!pprev_algo) {
+      break;
+    }
     CBigNum hashes_bn = pprev_algo->GetBlockWork();
     int time_f = pprev_algo->GetBlockTime();
     int time_i = 0;
@@ -4991,9 +4994,9 @@ double get_ssf (CBlockIndex * pindex) {
       hashes_bn += pprev_algo->GetBlockWork();
       time_i = pprev_algo->GetBlockTime();
     }
-    pprev_algo = get_pprev_algo(pprev_algo);
-    if (pprev_algo) {
-      time_i = pprev_algo->GetBlockTime();
+    CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo);
+    if (pprev_algo_time) {
+      time_i = pprev_algo_time->GetBlockTime();
     }
     else {
       time_i = Params().GenesisBlock().nTime;
@@ -5006,6 +5009,7 @@ double get_ssf (CBlockIndex * pindex) {
       return 1.;
     }    
     double hashes = ((double)hashes_bn.getulong())/((double)time_f);
+    LogPrintf("hashes = %f\n",hashes);
     if (hashes>hashes_peak) hashes_peak = hashes;
     if (i==0) hashes_cur = hashes;
   }

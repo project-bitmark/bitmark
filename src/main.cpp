@@ -1282,7 +1282,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     }
 
     double scalingFactor = 1.;
-    if (pprev_algo) {
+    if (pindexPrev->nVersion>2||pprev_algo) {
       scalingFactor = pindexPrev->subsidyScalingFactor;
       if (scalingFactor == 0.) { // find the key block and recalculate
 	LogPrintf("scaling factor is 0\n");

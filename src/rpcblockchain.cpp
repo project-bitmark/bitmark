@@ -192,7 +192,25 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   if (!blockindex) return 0.;
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
+
+double GetBlockReward (CBlockIndex * blockindex, int algo) {
+  if (blockindex == NULL) {
+    if (chainActive.Tip() == NULL)
+      return 0.;
+    else
+      blockindex = chainActive.Tip();
+  }
+  auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+  if(!pblocktemplate.get())
+    return 0.;
+  CBlock *pblock = &pblocktemplate->block;
+  pblock->SetAlgo(algo);
+  CBlockIndex indexDummy(*pblock);
+  indexDummy.pprev = blockindex;
+  indexDummy.nHeight = blockindex->nHeight + 1;
+  return ((double)GetBlockValue(&indexDummy,0))/100000000.;
   
+}
   
 
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)

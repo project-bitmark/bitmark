@@ -95,6 +95,11 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("moneysupply ARGON2", (double)GetMoneySupply(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("moneysupply X17", (double)GetMoneySupply(NULL,ALGO_X17)));
     obj.push_back(Pair("moneysupply LYRA2REv2", (double)GetMoneySupply(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("blockreward SHA256D", (double)GetBlockReward(NULL,ALGO_SHA256D)));
+    obj.push_back(Pair("blockreward SCRYPT", (double)GetBlockReward(NULL,ALGO_SCRYPT)));
+    obj.push_back(Pair("blockreward ARGON2", (double)GetBlockReward(NULL,ALGO_ARGON2)));
+    obj.push_back(Pair("blockreward X17", (double)GetBlockReward(NULL,ALGO_X17)));
+    obj.push_back(Pair("blockreward LYRA2REv2", (double)GetBlockReward(NULL,ALGO_LYRA2REv2)));
 
     obj.push_back(Pair("testnet",       TestNet()));
 #ifdef ENABLE_WALLET

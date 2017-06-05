@@ -4947,10 +4947,15 @@ int64_t get_mpow_ms_correction (CBlockIndex * p) {
   CBlockIndex * pprev = p->pprev;
   while (pprev) {
     if (pprev->nVersion <= 2 && !get_pprev_algo(pprev)) {
+      if (pprev->nHeight == 0) {
+	return 4;
+      }
+      LogPrintf("return %l for correction\n",pprev->nMoneySupply/5);
       return pprev->nMoneySupply/5;
     }
     pprev = pprev->pprev;
   }
+  LogPrintf("just return 0 for correction\n");
   return 0;
 }
 
@@ -5007,9 +5012,10 @@ double get_ssf (CBlockIndex * pindex) {
     else {
       LogPrintf("time_f = %d while time_i = %d\n",time_f,time_i);
       return 1.;
-    }    
+    }
+    LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
     double hashes = ((double)hashes_bn.getulong())/((double)time_f);
-    LogPrintf("hashes = %f\n",hashes);
+    LogPrintf("hashes per sec = %f\n",hashes);
     if (hashes>hashes_peak) hashes_peak = hashes;
     if (i==0) hashes_cur = hashes;
   }

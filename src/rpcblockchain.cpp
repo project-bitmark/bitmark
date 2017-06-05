@@ -77,14 +77,14 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
   do {
     if (update_ssf(blockindex->nVersion)) {
       double hashes_peak = 0.;
+      const CBlockIndex * pprev_algo = get_pprev_algo(blockindex);
       for (int i=0; i<365; i++) {
-
-	const CBlockIndex * pcur_algo = get_pprev_algo(blockindex);
-	if (!pcur_algo) return 0.;
-	int time_f = pcur_algo->GetBlockTime();
-	CBigNum hashes_bn = pcur_algo->GetBlockWork();
+	LogPrintf("getpeak i=%d\n",i);
+	if (!pprev_algo) break;
+	int time_f = pprev_algo->GetBlockTime();
+	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int time_i = 0;
-	const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo);
+	pprev_algo = get_pprev_algo(pprev_algo);
 	
 	for (int j=0; j<143; j++) {
 
@@ -113,7 +113,9 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	else {
 	  return 1./0.;
 	}
+	LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
 	double hashes = ((double)hashes_bn.getulong())/((double)time_f);
+	LogPrintf("hashes per sec = %f\n",hashes);
 	if (hashes>hashes_peak) hashes_peak = hashes;
       }
       return hashes_peak;

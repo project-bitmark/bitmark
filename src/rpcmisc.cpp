@@ -100,6 +100,11 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blockreward ARGON2", (double)GetBlockReward(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("blockreward X17", (double)GetBlockReward(NULL,ALGO_X17)));
     obj.push_back(Pair("blockreward LYRA2REv2", (double)GetBlockReward(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("nblocks update SSF SHA256D",    (int)GetNBlocksUpdateSSF(NULL,ALGO_SHA256D)));
+    obj.push_back(Pair("nblocks update SSF SCRYPT",    (int)GetNBlocksUpdateSSF(NULL,ALGO_SCRYPT)));
+    obj.push_back(Pair("nblocks update SSF ARGON2",    (int)GetNBlocksUpdateSSF(NULL,ALGO_ARGON2)));
+    obj.push_back(Pair("nblocks update SSF X17",    (int)GetNBlocksUpdateSSF(NULL,ALGO_X17)));
+    obj.push_back(Pair("nblocks update SSF LYRA2REv2",    (int)GetNBlocksUpdateSSF(NULL,ALGO_LYRA2REv2)));
 
     obj.push_back(Pair("testnet",       TestNet()));
 #ifdef ENABLE_WALLET

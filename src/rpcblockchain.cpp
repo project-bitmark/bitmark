@@ -212,6 +212,28 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
   
 }
   
+int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
+  if (blockindex == NULL) {
+    if (chainActive.Tip() == NULL)
+      return 0.;
+    else
+      blockindex = chainActive.Tip();
+  }
+  int algo_tip = GetAlgo(blockindex->nVersion);
+  if (algo_tip != algo) {
+    blockindex = get_pprev_algo(blockindex,algo);
+  }
+  if (!blockindex) return 0.;
+  int n = 144;
+  do {
+    if (update_ssf(blockindex->nVersion)) {
+      break;
+    }
+    blockindex = get_pprev_algo(blockindex);
+    n--;
+  } while (blockindex);
+  return n;
+}
 
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 {

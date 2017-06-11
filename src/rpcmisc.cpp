@@ -105,6 +105,11 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("nblocks update SSF ARGON2",    (int)GetNBlocksUpdateSSF(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("nblocks update SSF X17",    (int)GetNBlocksUpdateSSF(NULL,ALGO_X17)));
     obj.push_back(Pair("nblocks update SSF LYRA2REv2",    (int)GetNBlocksUpdateSSF(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("average block spacing SHA256D",    (double)GetAverageBlockSpacing(NULL,ALGO_SHA256D)));
+    obj.push_back(Pair("average block spacing SCRYPT",    (double)GetAverageBlockSpacing(NULL,ALGO_SCRYPT)));
+    obj.push_back(Pair("average block spacing ARGON2",    (double)GetAverageBlockSpacing(NULL,ALGO_ARGON2)));
+    obj.push_back(Pair("average block spacing X17",    (double)GetAverageBlockSpacing(NULL,ALGO_X17)));
+    obj.push_back(Pair("average block spacing LYRA2REv2",    (double)GetAverageBlockSpacing(NULL,ALGO_LYRA2REv2)));
 
     obj.push_back(Pair("testnet",       TestNet()));
 #ifdef ENABLE_WALLET

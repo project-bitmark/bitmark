@@ -235,6 +235,45 @@ int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
   return n;
 }
 
+double GetAverageBlockSpacing (const CBlockIndex * blockindex, const int algo, const int averagingInterval) {
+
+  LogPrintf("In GetAverageBlockSpacing with algo %d and averagingInterval %d\n",algo,averagingInterval);
+  
+  if (averagingInterval <= 1) return 0.;
+
+  if (blockindex == NULL) {
+    if (chainActive.Tip() == NULL)
+      return 0.;
+    else
+      blockindex = chainActive.Tip();
+  }
+  
+  const CBlockIndex *BlockReading = blockindex;
+  int64_t CountBlocks = 0;
+  int64_t nActualTimespan = 0;
+  int64_t LastBlockTime = 0;
+  
+  for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
+    if (CountBlocks >= averagingInterval) { break; }
+    int block_algo = GetAlgo(BlockReading->nVersion);
+    if (block_algo != algo) {
+      BlockReading = BlockReading->pprev;
+      continue;
+    }
+    CountBlocks++;
+    LogPrintf("GetAverageBlockSpacing: CountBlocks++\n");
+    if(LastBlockTime > 0){
+      int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+      nActualTimespan += Diff;
+    }
+    LastBlockTime = BlockReading->GetBlockTime();
+
+    BlockReading = BlockReading->pprev;
+    
+  }
+  return ((double)nActualTimespan)/((double)averagingInterval)/60.;
+}
+
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 {
     Object result;

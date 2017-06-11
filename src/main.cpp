@@ -1503,7 +1503,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
 
     /// debug print
-    LogPrintf("DarkGravityWave RETARGET\n");
+    LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
     LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
     LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
     LogPrintf("Avg from past %d: %08x  %s\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());

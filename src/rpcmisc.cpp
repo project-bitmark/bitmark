@@ -434,3 +434,37 @@ Value sendalert(const Array& params, bool fHelp)
         result.push_back(Pair("nCancel", alert.nCancel));
     return result;
 }
+
+Value getblockspacing(const Array& params, bool fHelp)
+{
+    if (fHelp)
+        throw runtime_error(
+            "getblockspacing\n"
+            "Returns an object containing blockspacing info.\n"
+			    );
+
+    int algo = ALGO_SCRYPT;
+    int interval = 24;
+    CBlockIndex * blockindex = NULL;
+    
+    if (params.size()>0) {
+      algo = params[0].get_int();
+      if (params.size()>1) {
+	interval = params[1].get_int();
+	if (params.size()>2) {
+	  int height = params[2].get_int();
+	  blockindex = chainActive.Tip();
+	  while (blockindex && blockindex->nHeight > height) {
+	    blockindex = blockindex->pprev;
+	  }
+	}
+      }
+    }
+    
+    Object obj;
+    obj.push_back(Pair("average block spacing",    (double)GetAverageBlockSpacing(blockindex,algo,interval)));
+
+    return obj;
+}
+
+			

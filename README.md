@@ -50,18 +50,14 @@ testnet=1
 debug=1
 listen=1
 
-You can mine all algorithms but Argon2 using cpuminer-multi (https://github.com/tpruvot/cpuminer-multi), with the following command:
+You can mine all algorithms using our fork of cpuminer-multi (https://github.com/piratelinux/cpuminer-multi), with the following command:
 
 `cpuminer -a <algo> -o http://localhost:19266 -u bitmarkrpc -p YoUrPaSsWoRd`
 
-`<algo>` is `sha256d`, `scrypt`, `x17`, or `lyra2REv2`
+`<algo>` is `sha256d`, `scrypt`, `ar2`, `x17`, or `lyra2REv2`
 
-Note: you have to change the `miningAlgo` variable in src/rpcmining.cpp
+Note: you have to change the `miningAlgo` variable in src/rpcmining.cpp (choose one from `ALGO_SHA256D`, `ALGO_SCRYPT`, `ALGO_ARGON2`, `ALGO_X17`, `ALGO_LYRA2REv2`.
 
-You can also use the bitmark-cli command to mine. For example, to mine argon2,
+You can also use the bitmark-cli command to mine. The last parameter is the algorithm number as defined in core.h. For example, to mine argon2,
 
 `bitmark-cli setgenerate true <ncores> 3`
-
-Update: You can mine Argon2 using a fork of cpuminer-multi: https://github.com/piratelinux/cpuminer-multi
-
-Use 'ar2' as the <algo> argument for cpuminer.

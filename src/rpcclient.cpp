@@ -185,6 +185,9 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "sendalert"              && n > 6) ConvertTo<boost::int64_t>(params[6]);
     if (strMethod == "sendalert"              && n > 7) ConvertTo<boost::int64_t>(params[7]);
     if (strMethod == "sendalert"              && n > 8) ConvertTo<boost::int64_t>(params[8]);
+    if (strMethod == "getblockspacing"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getblockspacing"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getblockspacing"            && n > 2) ConvertTo<int64_t>(params[2]);
     return params;
 }
 

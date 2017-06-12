@@ -269,6 +269,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gtxosi",                 &gettxoutsetinfo,        true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
     { "vc",                     &verifychain,            true,      false,      false },
+    { "getblockspacing",        &getblockspacing,        true,      false,      false },
 
     /* Mining */
     { "getblocktemplate",       &getblocktemplate,       true,      false,      false },

@@ -50,7 +50,7 @@ testnet=1
 debug=1
 listen=1
 
-You can mine all algorithms using our fork of cpuminer-multi (https://github.com/piratelinux/cpuminer-multi), with the following command:
+You can mine all algorithms using our fork of cpuminer-multi (https://github.com/piratelinux/cpuminer-multi default linux branch), with the following command:
 
 `cpuminer -a <algo> -o http://localhost:19266 -u bitmarkrpc -p YoUrPaSsWoRd`
 

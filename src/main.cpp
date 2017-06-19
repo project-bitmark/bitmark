@@ -1116,22 +1116,15 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 {
-  printf("writing block to disk (pos %d)\n",pos.nFile);
     // Open history file to append
     CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
-    printf("check if !fileout\n");
     if (!fileout) {
-      printf("!fileout, so return error\n");
       return error("WriteBlockToDisk : OpenBlockFile failed");
     }
 
-    printf("fileout good\n");
-    
     // Write index header
     unsigned int nSize = fileout.GetSerializeSize(block);
     fileout << FLATDATA(Params().MessageStart()) << nSize;
-
-    printf("wrote index header\n");
 
     // Write block
     long fileOutPos = ftell(fileout);
@@ -1140,16 +1133,12 @@ bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
     pos.nPos = (unsigned int)fileOutPos;
     fileout << block;
     
-    printf("wrote block\n");
-
     // Flush stdio buffers and commit to disk before returning
     fflush(fileout);
     if (!IsInitialBlockDownload())
         FileCommit(fileout);
 
     fileout.fclose();
-    
-    printf("flushed\n");
     
     return true;
 }
@@ -2837,8 +2826,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
             if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
-
-    printf("done acceptblock\n");
     
     return true;
 }
@@ -2987,7 +2974,6 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         }
         mapOrphanBlocksByPrev.erase(hashPrev);
     }
-    printf("done processblock\n");
     LogPrintf("ProcessBlock: ACCEPTED\n");
     return true;
 }
@@ -3182,14 +3168,12 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
         file = fopen(path.string().c_str(), "wb+");
     int counter = 0;
     while (!file && counter < 10) {
-      printf("Unable to open file %s\n", path.string().c_str());
         LogPrintf("Unable to open file %s\n", path.string());
 	sleep(1);
 	if (fReadOnly) {
 	  file = fopen(path.string().c_str(), "rb+");
 	}
 	else {
-	  printf("open with wb+\n");
 	  file = fopen(path.string().c_str(), "wb+");
 	}
         //return NULL;
@@ -3200,7 +3184,6 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
     }
     if (pos.nPos) {
         if (fseek(file, pos.nPos, SEEK_SET)) {
-	  printf("Unable to seek to position %u of %s\n", pos.nPos, path.string().c_str());
 	  LogPrintf("Unable to seek to position %u of %s\n", pos.nPos, path.string());
             fclose(file);
             return NULL;
@@ -3576,7 +3559,6 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
     if (nLoaded > 0)
         LogPrintf("Loaded %i blocks from external file in %dms\n", nLoaded, GetTimeMillis() - nStart);
 
-    printf("done loadexternalblockfile\n");
     return nLoaded > 0;
 }
 

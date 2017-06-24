@@ -58,7 +58,7 @@ int miningAlgo = ALGO_SHA256D;
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.
 // If 'height' is nonnegative, compute the estimate at the time when a given block was found.
-Value GetNetworkHashPS(int lookup, int height) {
+Value GetNetworkHashPS(int lookup, int height, int algo) {
     CBlockIndex *pb = chainActive.Tip();
 
     if (height >= 0 && height < chainActive.Height())
@@ -76,28 +76,40 @@ Value GetNetworkHashPS(int lookup, int height) {
         lookup = pb->nHeight;
 
     CBlockIndex *pb0 = pb;
+    int algo_tip = GetAlgo(pb0->nVersion);
+    if (algo_tip != algo) {
+      pb0 = get_pprev_algo(pb0,algo);
+    }
+    if (!pb0) return 0.;
     int64_t minTime = pb0->GetBlockTime();
     int64_t maxTime = minTime;
+    CBigNum hashes_bn = pb0->GetBlockWork();
     for (int i = 0; i < lookup; i++) {
         pb0 = pb0->pprev;
+	if (!pb0) break;
+	if (GetAlgo(pb0->nVersion)!=algo) {
+	  lookup++;
+	  continue;
+	}
         int64_t time = pb0->GetBlockTime();
         minTime = std::min(time, minTime);
         maxTime = std::max(time, maxTime);
+	hashes_bn += pb0->GetBlockWork();
     }
 
     // In case there's a situation where minTime == maxTime, we don't want a divide by zero exception.
     if (minTime == maxTime)
         return 0;
 
-    uint256 workDiff = pb->nChainWork - pb0->nChainWork;
+    //uint256 workDiff = pb->nChainWork - pb0->nChainWork;
     int64_t timeDiff = maxTime - minTime;
 
-    return (int64_t)(workDiff.getdouble() / timeDiff);
+    return (((double)hashes_bn.getulong()) / (double)timeDiff);
 }
 
 Value getnetworkhashps(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
+    if (fHelp || params.size() > 3)
         throw runtime_error(
             "getnetworkhashps ( blocks height )\n"
             "\nReturns the estimated network hashes per second based on the last n blocks.\n"
@@ -113,7 +125,7 @@ Value getnetworkhashps(const Array& params, bool fHelp)
             + HelpExampleRpc("getnetworkhashps", "")
        );
 
-    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1);
+    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1, params.size() > 2 ? params[2].get_int() : ALGO_SCRYPT);
 }
 
 #ifdef ENABLE_WALLET

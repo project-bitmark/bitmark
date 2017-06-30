@@ -1508,6 +1508,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int workAlgo = pindexLast->nHeight;
     // Mainnet
     if (Params().NetworkID() != CChainParams::TESTNET) {
+      printf("getnextworkrequired not testnet\n");
         if (nHeight <= nForkHeight) {
             workAlgo = 0;
         } else {
@@ -1515,6 +1516,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         }
     // Testnet
     } else {
+      printf("getnextworkrequired testnet\n");
         if (nHeight <= 500) {
             workAlgo = 0;
         } else {
@@ -1526,8 +1528,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         unsigned int nProofOfWorkLimit = Params().ProofOfWorkLimit().GetCompact();
 
         // Genesis block
-        if (pindexLast == NULL)
-            return nProofOfWorkLimit;
+        if (pindexLast == NULL) {
+	  printf("return nProofOfWorkLimit\n");
+	  return nProofOfWorkLimit;
+	}
 
         // Only change once per interval
         if ((pindexLast->nHeight+1) % nInterval != 0)
@@ -1548,7 +1552,14 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
                     return pindex->nBits;
                 }
 		}*/
-            return pindexLast->nBits;
+	  if (pindexLast->nHeight == 0 && Params().NetworkID() == CChainParams::REGTEST) {
+	    return nProofOfWorkLimit;
+	  }
+	  CBigNum bnTarget;
+	  bnTarget.SetCompact(pindexLast->nBits);
+	  uint256 target = bnTarget.getuint256();
+	  printf("return pindexLast->nBits %s (height %d)\n",target.GetHex().c_str(),pindexLast->nHeight);
+	  return pindexLast->nBits;
         }
 
         // Go back by what we want to be a days worth of blocks
@@ -1579,6 +1590,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         LogPrintf("nTargetTimespan = %d    nActualTimespan = %d\n", nTargetTimespan, nActualTimespan);
         LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
         LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+	printf("GetNextWorkRequired RETARGET\n");
+	printf("nTargetTimespan = %d    nActualTimespan = %d\n", nTargetTimespan, nActualTimespan);
+	printf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString().c_str());
+	printf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
 
         return bnNew.GetCompact();
     } else {
@@ -1598,11 +1613,13 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
     // Check range
     if (bnTarget <= 0 || bnTarget > Params().ProofOfWorkLimit()) {
+      printf("nbits below min work\n");
       return error("CheckProofOfWork() : nBits below minimum work");
     }
 
     // Check proof of work matches claimed amount
     if (hash > bnTarget.getuint256()) {
+      printf("hash doesn't match nbits\n");
       return error("CheckProofOfWork() : hash doesn't match nBits");
     }
 
@@ -1806,8 +1823,10 @@ void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 
 bool CScriptCheck::operator()() const {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
-    if (!VerifyScript(scriptSig, scriptPubKey, *ptxTo, nIn, nFlags, nHashType))
-        return error("CScriptCheck() : %s VerifySignature failed", ptxTo->GetHash().ToString());
+    if (!VerifyScript(scriptSig, scriptPubKey, *ptxTo, nIn, nFlags, nHashType)) {
+      printf("verifyscript fails!!\n");
+      return error("CScriptCheck() : %s VerifySignature failed", ptxTo->GetHash().ToString());
+    }
     return true;
 }
 
@@ -2678,15 +2697,21 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
 
+    printf("size limit good\n");
+
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits))
         return state.DoS(50, error("CheckBlock() : proof of work failed"),
                          REJECT_INVALID, "high-hash");
 
+    printf("pow good\n");
+
     // Check timestamp
     if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
                              REJECT_INVALID, "time-too-new");
+
+    printf("timestamp good\n");
 
     // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
@@ -2701,6 +2726,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
         if (!CheckTransaction(tx, state))
             return error("CheckBlock() : CheckTransaction failed");
+
+    printf("transactions good\n");
 
     // Build the merkle tree already. We need it anyway later, and it makes the
     // block cache the transaction hashes, which means they don't need to be
@@ -2717,6 +2744,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
         return state.DoS(100, error("CheckBlock() : duplicate transaction"),
                          REJECT_INVALID, "bad-txns-duplicate", true);
 
+    printf("duplicate good\n");
+
     unsigned int nSigOps = 0;
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
     {
@@ -2725,6 +2754,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     if (nSigOps > MAX_BLOCK_SIGOPS)
         return state.DoS(100, error("CheckBlock() : out-of-bounds SigOpCount"),
                          REJECT_INVALID, "bad-blk-sigops", true);
+
+    printf("outofbounds good\n");
 
     // Check merkle root
     if (fCheckMerkleRoot && block.hashMerkleRoot != block.vMerkleTree.back())
@@ -2878,9 +2909,13 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     if (mapOrphanBlocks.count(hash))
         return state.Invalid(error("ProcessBlock() : already have block (orphan) %s", hash.ToString()), 0, "duplicate");
 
+    printf("do checkblock\n");
+    
     // Preliminary checks
     if (!CheckBlock(*pblock, state))
         return error("ProcessBlock() : CheckBlock FAILED");
+
+    printf("passed checkblock\n");
 
     CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
     if (pcheckpoint && pblock->hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)))
@@ -2929,6 +2964,8 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         return true;
     }
 
+    printf("check 3 in a row\n");
+    
     // check for 3 in a row
 
     CBlockIndex * prev_index = mapBlockIndex[pblock->hashPrevBlock];
@@ -2943,6 +2980,8 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 	}
       }
     }
+
+    printf("passed 3 in a row\n");
     
 
     // Store to disk
@@ -5051,7 +5090,6 @@ double get_ssf_time (const CBlockIndex * pindex) {
     else {
       time_i = Params().GenesisBlock().nTime;
     }
-    LogPrintf("time_i = %d\n",time_i);
     if (update_ssf(pcur_algo->nVersion)) {
       if (time_f>time_i) {
 	return time_f-time_i;

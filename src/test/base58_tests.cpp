@@ -148,6 +148,7 @@ BOOST_AUTO_TEST_CASE(base58_keys_valid_parse)
             SelectParams(CChainParams::MAIN);
         if(isPrivkey)
         {
+	  printf("isPrivkey\n");
             bool isCompressed = find_value(metadata, "isCompressed").get_bool();
             // Must be valid private key
             // Note: CBitmarkSecret::SetString tests isValid, whereas CBitmarkAddress does not!

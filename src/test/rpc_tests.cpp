@@ -82,11 +82,15 @@ BOOST_AUTO_TEST_CASE(rpc_rawparams)
     BOOST_CHECK_NO_THROW(CallRPC(string("signrawtransaction ")+rawtx+" [] [] NONE|ANYONECANPAY"));
     BOOST_CHECK_THROW(CallRPC(string("signrawtransaction ")+rawtx+" null null badenum"), runtime_error);
 
+    printf("signed raw transactions\n");
+
     // Only check failure cases for sendrawtransaction, there's no network to send to...
     BOOST_CHECK_THROW(CallRPC("sendrawtransaction"), runtime_error);
     BOOST_CHECK_THROW(CallRPC("sendrawtransaction null"), runtime_error);
     BOOST_CHECK_THROW(CallRPC("sendrawtransaction DEADBEEF"), runtime_error);
+    printf("send raw transaction rawtx extra\n");
     BOOST_CHECK_THROW(CallRPC(string("sendrawtransaction ")+rawtx+" extra"), runtime_error);
+    printf("sent raw transaction\n");
 }
 
 BOOST_AUTO_TEST_CASE(rpc_rawsign)
@@ -100,8 +104,8 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign)
     r = CallRPC(string("createrawtransaction ")+prevout+" "+
       "{\"3HqAe9LtNBjnsfM4CyYaWTnvCaUYT7v4oZ\":11}");
     string notsigned = r.get_str();
-    string privkey1 = "\"BpKPp8bC2KAgjs9Nd3VgNh213hVLwnnKUbRj5Ja62bSoyEuTVvsN\"";
-    string privkey2 = "\"Bvb5kSCJeSgRtdFd84QNDwL7nH1EWdaePWcNfDNXTAhP8z8SLQYr\"";
+    string privkey1 = "\"YXVfrj38XqRwAJzv3ekhq4GBtXcfpNk6GSdyQu5LmaxTPanvvcJj\"";
+    string privkey2 = "\"YdmMo2eF9xwgK57AYffPgJaJd78ZPDYRBMpczosnCAD2ZL2aBnbA\"";
     r = CallRPC(string("signrawtransaction ")+notsigned+" "+prevout+" "+"[]");
     // todo update
     //BOOST_CHECK(find_value(r.get_obj(), "complete").get_bool() == false);

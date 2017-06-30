@@ -250,12 +250,15 @@ public:
         ECDSA_SIG_free(norm_sig);
         if (derlen <= 0)
     	     return false;
-        return true;
+        //return true;
 
         // -1 = error, 0 = bad sig, 1 = good
-        bool ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
+	printf("verify sig\n");
+        int ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
         OPENSSL_free(norm_der);
-        return ret;
+	printf("verify ret = %d\n",ret);
+	if (ret == 1) return true;
+        return false;
     }
 
     bool SignCompact(const uint256 &hash, unsigned char *p64, int &rec) {

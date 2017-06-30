@@ -357,6 +357,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
 	// Fill in header
 	pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
+	printf("create new block with hash prev = %s (height %d)\n",pblock->hashPrevBlock.GetHex().c_str(),pindexPrev->nHeight);
+
 	UpdateTime(*pblock, pindexPrev);
 	pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
 	pblock->nNonce         = 0;

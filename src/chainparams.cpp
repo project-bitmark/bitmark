@@ -174,7 +174,8 @@ public:
         hashGenesisBlock = genesis.GetHash();
         nDefaultPort = 18444;
         strDataDir = "regtest";
-        //assert(hashGenesisBlock == uint256("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
+	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+        assert(hashGenesisBlock == uint256("0xc817d1431900f9d0b3a4a9b22caf67414e15e2abe15a6ddd218d9322a4a49db7"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }
@@ -207,7 +208,14 @@ void SelectParams(CChainParams::Network network) {
     }
 }
 
+/*
+void SelectDifficulty (int difficulty) {
+  
+}
+*/
+
 bool SelectParamsFromCommandLine() {
+  printf("selectparamsfromcommandline\n");
     bool fRegTest = GetBoolArg("-regtest", false);
     bool fTestNet = GetBoolArg("-testnet", false);
 
@@ -216,10 +224,12 @@ bool SelectParamsFromCommandLine() {
     }
 
     if (fRegTest) {
+      printf("selected regtest\n");
         SelectParams(CChainParams::REGTEST);
     } else if (fTestNet) {
         SelectParams(CChainParams::TESTNET);
     } else {
+      printf("selected mainnet\n");
         SelectParams(CChainParams::MAIN);
     }
     return true;

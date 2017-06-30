@@ -20,6 +20,7 @@
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 bool DecodeBase58(const char *psz, std::vector<unsigned char>& vch) {
+  printf("DecodeBase58 %s\n",psz);
     // Skip leading spaces.
     while (*psz && isspace(*psz))
         psz++;
@@ -32,11 +33,13 @@ bool DecodeBase58(const char *psz, std::vector<unsigned char>& vch) {
     // Allocate enough space in big-endian base256 representation.
     std::vector<unsigned char> b256(strlen(psz) * 733 / 1000 + 1); // log(58) / log(256), rounded up.
     // Process the characters.
+    printf("Now it's %s\n",psz);
     while (*psz && !isspace(*psz)) {
         // Decode base58 character
         const char *ch = strchr(pszBase58, *psz);
-        if (ch == NULL)
-            return false;
+        if (ch == NULL) {
+	  return false;
+	}
         // Apply "b256 = b256 * 58 + ch".
         int carry = ch - pszBase58;
         for (std::vector<unsigned char>::reverse_iterator it = b256.rbegin(); it != b256.rend(); it++) {
@@ -50,8 +53,9 @@ bool DecodeBase58(const char *psz, std::vector<unsigned char>& vch) {
     // Skip trailing spaces.
     while (isspace(*psz))
         psz++;
-    if (*psz != 0)
-        return false;
+    if (*psz != 0) {
+      return false;
+    }
     // Skip leading zeroes in b256.
     std::vector<unsigned char>::iterator it = b256.begin();
     while (it != b256.end() && *it == 0)
@@ -125,6 +129,7 @@ bool DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRet) {
     if (memcmp(&hash, &vchRet.end()[-4], 4) != 0)
     {
         vchRet.clear();
+	printf("bad checksum\n");
         return false;
     }
     vchRet.resize(vchRet.size()-4);
@@ -155,6 +160,8 @@ bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes) {
     std::vector<unsigned char> vchTemp;
     bool rc58 = DecodeBase58Check(psz, vchTemp);
     if ((!rc58) || (vchTemp.size() < nVersionBytes)) {
+      printf("failed setstring: %s\n",psz);
+      //printf("vchtemp.size = %d\n",vchTemp.size());
         vchData.clear();
         vchVersion.clear();
         return false;
@@ -216,6 +223,8 @@ bool CBitmarkAddress::IsValid() const {
     bool fCorrectSize = vchData.size() == 20;
     bool fKnownVersion = vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
                          vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
+    if (!fCorrectSize) printf("not correct size: %lu\n",vchData.size());
+    if (!fKnownVersion) printf("not known version\n");
     return fCorrectSize && fKnownVersion;
 }
 
@@ -261,6 +270,8 @@ CKey CBitmarkSecret::GetKey() {
 bool CBitmarkSecret::IsValid() const {
     bool fExpectedFormat = vchData.size() == 32 || (vchData.size() == 33 && vchData[32] == 1);
     bool fCorrectVersion = vchVersion == Params().Base58Prefix(CChainParams::SECRET_KEY);
+    if (!fExpectedFormat) printf("not expected format priv: %lu\n",vchData.size());
+    if (!fCorrectVersion) printf("not correct version priv\n");
     return fExpectedFormat && fCorrectVersion;
 }
 

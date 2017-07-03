@@ -357,7 +357,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
 	// Fill in header
 	pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-	printf("create new block with hash prev = %s (height %d)\n",pblock->hashPrevBlock.GetHex().c_str(),pindexPrev->nHeight);
+	//printf("create new block with hash prev = %s (height %d)\n",pblock->hashPrevBlock.GetHex().c_str(),pindexPrev->nHeight);
 
 	UpdateTime(*pblock, pindexPrev);
 	pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
@@ -510,6 +510,8 @@ void static BitmarkMiner(CWallet *pwallet)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
+    int n_blocks_created = 0;
+
     try { while (true) {
         if (Params().NetworkID() != CChainParams::REGTEST) {
             // Busy-wait for the network to come online so we don't waste time mining
@@ -518,6 +520,10 @@ void static BitmarkMiner(CWallet *pwallet)
                 MilliSleep(1000);
         }
 
+	if (Params().NetworkID() == CChainParams::REGTEST) {
+	  if (n_blocks_created>0) return;
+	}
+
         //
         // Create new block
         //
@@ -525,6 +531,7 @@ void static BitmarkMiner(CWallet *pwallet)
         CBlockIndex* pindexPrev = chainActive.Tip();
 
         auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey));
+	n_blocks_created++;
         if (!pblocktemplate.get())
             return;
         CBlock *pblock = &pblocktemplate->block;
@@ -609,7 +616,7 @@ void static BitmarkMiner(CWallet *pwallet)
 		    if (GetTime() - nLogTime > 30 * 60)
 		      {
 			nLogTime = GetTime();
-			printf("hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
+			if (!RegTest()) printf("hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
 		      }
 		  }
 	      }

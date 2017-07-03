@@ -170,12 +170,27 @@ public:
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;
-        genesis.nNonce = 0;
+	/*
+	CBigNum bnTarget;
+	bnTarget.SetCompact(genesis.nBits);
+	uint256 target = bnTarget.getuint256();
+	printf("have to beat %s\n",target.GetHex().c_str());
+	unsigned int curNonce = 0;
+	while (1) {
+	  genesis.nNonce = curNonce;
+	  uint256 hash = genesis.GetPoWHash();
+	  if (hash<=target) break;
+	  curNonce++;
+	}
+	printf("nonce is %d\n",curNonce);
+	*/
         hashGenesisBlock = genesis.GetHash();
+	genesis.nNonce = 3;
         nDefaultPort = 18444;
         strDataDir = "regtest";
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0xc817d1431900f9d0b3a4a9b22caf67414e15e2abe15a6ddd218d9322a4a49db7"));
+	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
+        assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }
@@ -215,7 +230,6 @@ void SelectDifficulty (int difficulty) {
 */
 
 bool SelectParamsFromCommandLine() {
-  printf("selectparamsfromcommandline\n");
     bool fRegTest = GetBoolArg("-regtest", false);
     bool fTestNet = GetBoolArg("-testnet", false);
 
@@ -224,12 +238,10 @@ bool SelectParamsFromCommandLine() {
     }
 
     if (fRegTest) {
-      printf("selected regtest\n");
         SelectParams(CChainParams::REGTEST);
     } else if (fTestNet) {
         SelectParams(CChainParams::TESTNET);
     } else {
-      printf("selected mainnet\n");
         SelectParams(CChainParams::MAIN);
     }
     return true;

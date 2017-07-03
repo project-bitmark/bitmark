@@ -189,7 +189,8 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   if (algo_tip != algo) {
     blockindex = get_pprev_algo(blockindex,algo);
   }
-  if (!blockindex) return 0.;
+  if (!blockindex) return 4.;
+  if (blockindex->nMoneySupply == 0) return 4.;
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
 
@@ -224,6 +225,7 @@ int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
     blockindex = get_pprev_algo(blockindex,algo);
   }
   if (!blockindex) return 0.;
+  if (blockindex->nHeight == 0) return 0.;
   int n = 144;
   do {
     if (update_ssf(blockindex->nVersion)) {

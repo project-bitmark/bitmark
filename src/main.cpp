@@ -1521,7 +1521,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
       }
     // Testnet
     } else {
-        if (nHeight <= 500) {
+        if (nHeight <= nForkHeight) {
             workAlgo = 0;
         } else {
             workAlgo = 1;
@@ -3371,8 +3371,8 @@ bool InitBlockIndex() {
     if (!fReindex) {
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
-	    
-	    /*	    uint256 best_hash = block.GetPoWHash();
+	        
+	    /*uint256 best_hash = block.GetPoWHash();
 	    CBigNum bnTarget;
 	    bnTarget.SetCompact(block.nBits);
 	    uint256 target = bnTarget.getuint256();

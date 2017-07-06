@@ -119,7 +119,7 @@ public:
         vAlertPubKey = ParseHex("0468770c9d451dd5d6d373ae6096d4ab0705c4ab66e55cc25c40788580039bd04b7672322b9bd26ce22a3ad95f490d7d188a905ce30246b2425eca8cc5102190d0");
         nDefaultPort = 19265;
         nRPCPort = 19266;
-        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
         strDataDir = "testnet4";
 
 	const char* pszTimestamp = "Testing Testnet";
@@ -133,13 +133,13 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1495842489;
+        genesis.nTime = 1499330540;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 713058;
+	genesis.nNonce = 1167879;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0x8aae7cf58b3a1bc8dee30c950105e94f2dbb20f3dab2fc54cf883afa8c1e0ba5"));
+        assert(hashGenesisBlock == uint256("0xa00d9aa4c323dd20f705c698d054ee0d191d90ee68ad1463893fe9846895aea5"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -170,6 +170,7 @@ public:
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;
+	genesis.nNonce = 713058;
 	/*
 	CBigNum bnTarget;
 	bnTarget.SetCompact(genesis.nBits);

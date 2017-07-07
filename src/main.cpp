@@ -1409,8 +1409,8 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
     const CBigNum &bnLimit = Params().ProofOfWorkLimit();
     // Testnet has min-difficulty blocks
     // after nTargetSpacing*2 time between blocks:
-    if (TestNet() && nTime > nTargetSpacing*2)
-        return bnLimit.GetCompact();
+    //if (TestNet() && nTime > nTargetSpacing*2)
+    //return bnLimit.GetCompact();
 
     CBigNum bnResult;
     bnResult.SetCompact(nBase);
@@ -2096,7 +2096,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Special case for the genesis block, skipping connection of its transactions
     // (its coinbase is unspendable)
     if (block.GetHash() == Params().HashGenesisBlock()) {
-        pindex->nMoneySupply = block.vtx[0].GetValueOut();
+      //pindex->nMoneySupply = block.vtx[0].GetValueOut();
+      pindex->nMoneySupply = 0;
         view.SetBestBlock(pindex->GetBlockHash());
         return true;
     }
@@ -3388,6 +3389,7 @@ bool InitBlockIndex() {
 	      }
 	      block.nNonce++;
 	    }
+	    printf("hash is %s\n",block.GetHash().GetHex().c_str());
 	    exit(0);*/
 
             // Start new block file

@@ -191,6 +191,7 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   }
   if (!blockindex) return 4.;
   if (blockindex->nMoneySupply == 0) return 4.;
+  //if (blockindex->nHeight == 0) return 4.;
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
 

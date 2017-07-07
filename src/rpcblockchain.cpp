@@ -35,7 +35,7 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
       blockindex = get_pprev_algo(blockindex,algo);
     }
     unsigned int nBits = 0;
-    if (blockindex) {
+    if (blockindex && blockindex->nHeight>0) {
       nBits = blockindex->nBits;
     }
     else {

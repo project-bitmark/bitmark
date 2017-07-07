@@ -35,7 +35,7 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
       blockindex = get_pprev_algo(blockindex,algo);
     }
     unsigned int nBits = 0;
-    if (blockindex) {
+    if (blockindex && blockindex->nHeight>0) {
       nBits = blockindex->nBits;
     }
     else {
@@ -191,6 +191,7 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   }
   if (!blockindex) return 4.;
   if (blockindex->nMoneySupply == 0) return 4.;
+  //if (blockindex->nHeight == 0) return 4.;
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
 

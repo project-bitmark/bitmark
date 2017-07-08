@@ -90,16 +90,6 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("current hashrate ARGON2",    (double)GetCurrentHashrate(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("current hashrate X17",    (double)GetCurrentHashrate(NULL,ALGO_X17)));
     obj.push_back(Pair("current hashrate LYRA2REv2",    (double)GetCurrentHashrate(NULL,ALGO_LYRA2REv2)));
-    obj.push_back(Pair("moneysupply SHA256D", (double)GetMoneySupply(NULL,ALGO_SHA256D)));
-    obj.push_back(Pair("moneysupply SCRYPT", (double)GetMoneySupply(NULL,ALGO_SCRYPT)));
-    obj.push_back(Pair("moneysupply ARGON2", (double)GetMoneySupply(NULL,ALGO_ARGON2)));
-    obj.push_back(Pair("moneysupply X17", (double)GetMoneySupply(NULL,ALGO_X17)));
-    obj.push_back(Pair("moneysupply LYRA2REv2", (double)GetMoneySupply(NULL,ALGO_LYRA2REv2)));
-    obj.push_back(Pair("blockreward SHA256D", (double)GetBlockReward(NULL,ALGO_SHA256D)));
-    obj.push_back(Pair("blockreward SCRYPT", (double)GetBlockReward(NULL,ALGO_SCRYPT)));
-    obj.push_back(Pair("blockreward ARGON2", (double)GetBlockReward(NULL,ALGO_ARGON2)));
-    obj.push_back(Pair("blockreward X17", (double)GetBlockReward(NULL,ALGO_X17)));
-    obj.push_back(Pair("blockreward LYRA2REv2", (double)GetBlockReward(NULL,ALGO_LYRA2REv2)));
     obj.push_back(Pair("nblocks update SSF SHA256D",    (int)GetNBlocksUpdateSSF(NULL,ALGO_SHA256D)));
     obj.push_back(Pair("nblocks update SSF SCRYPT",    (int)GetNBlocksUpdateSSF(NULL,ALGO_SCRYPT)));
     obj.push_back(Pair("nblocks update SSF ARGON2",    (int)GetNBlocksUpdateSSF(NULL,ALGO_ARGON2)));
@@ -467,4 +457,54 @@ Value getblockspacing(const Array& params, bool fHelp)
     return obj;
 }
 
-			
+Value getblockreward(const Array& params, bool fHelp) {
+  if (fHelp)
+    throw runtime_error(
+			"getblockreward\n"
+			"Returns an object containing blockreward info.\n"
+			);
+  
+  int algo = ALGO_SCRYPT;
+  CBlockIndex * blockindex = NULL;
+	   
+  if (params.size()>0) {
+    algo = params[0].get_int();
+    if (params.size()>1) {
+	int height = params[1].get_int();
+	blockindex = chainActive.Tip();
+	while (blockindex && blockindex->nHeight > height) {
+	  blockindex = blockindex->pprev;
+	}
+    }
+  }
+
+  Object obj;
+  obj.push_back(Pair("block reward",(double)GetBlockReward(blockindex,algo)));
+  return obj;
+}
+
+Value getmoneysupply(const Array& params, bool fHelp) {
+  if (fHelp)
+    throw runtime_error(
+			                        "getmoneysupply\n"
+						                        "Returns an object containing moneysupply info.\n"
+			);
+
+  int algo = ALGO_SCRYPT;
+  CBlockIndex * blockindex = NULL;
+
+  if (params.size()>0) {
+    algo = params[0].get_int();
+    if (params.size()>1) {
+      int height = params[1].get_int();
+      blockindex = chainActive.Tip();
+      while (blockindex && blockindex->nHeight > height) {
+	blockindex = blockindex->pprev;
+      }
+    }
+  }
+
+  Object obj;
+  obj.push_back(Pair("money supply",(double)GetMoneySupply(blockindex,algo)));
+  return obj;
+}

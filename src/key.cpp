@@ -253,10 +253,8 @@ public:
         //return true;
 
         // -1 = error, 0 = bad sig, 1 = good
-	printf("verify sig\n");
         int ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
         OPENSSL_free(norm_der);
-	printf("verify ret = %d\n",ret);
 	if (ret == 1) return true;
         return false;
     }

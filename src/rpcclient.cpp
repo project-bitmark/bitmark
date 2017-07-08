@@ -189,6 +189,10 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "getblockspacing"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getblockspacing"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblockspacing"            && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "getblockreward"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getblockreward"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getmoneysupply"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getmoneysupply"            && n > 1) ConvertTo<int64_t>(params[1]);
     return params;
 }
 

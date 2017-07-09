@@ -185,9 +185,14 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
       else
 	blockindex = chainActive.Tip();
     }
-  int algo_tip = GetAlgo(blockindex->nVersion);
-  if (algo_tip != algo) {
-    blockindex = get_pprev_algo(blockindex,algo);
+  if (algo) {
+    int algo_tip = GetAlgo(blockindex->nVersion);
+    if (algo_tip != algo) {
+      blockindex = get_pprev_algo(blockindex,algo);
+    }
+  }
+  else {
+    return GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5);
   }
   if (!blockindex) return 4.;
   if (blockindex->nMoneySupply == 0) return 4.;

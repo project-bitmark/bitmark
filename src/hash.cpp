@@ -107,7 +107,7 @@ void hash_scrypt(const char * input, char * output) {
 }
 
 void hash_argon2(const char * input, char * output) {
-  int ret = argon2d_hash_raw(2,16,1,input,80,input,80,output,32);
+  argon2d_hash_raw(2,16,1,input,80,input,80,output,32);
 }
 
 uint256 hash_x17(const char * begin, const char * end) {

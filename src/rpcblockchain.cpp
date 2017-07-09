@@ -244,8 +244,6 @@ int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
 }
 
 double GetAverageBlockSpacing (const CBlockIndex * blockindex, const int algo, const int averagingInterval) {
-
-  LogPrintf("In GetAverageBlockSpacing with algo %d and averagingInterval %d\n",algo,averagingInterval);
   
   if (averagingInterval <= 1) return 0.;
 
@@ -264,7 +262,7 @@ double GetAverageBlockSpacing (const CBlockIndex * blockindex, const int algo, c
   for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
     if (CountBlocks >= averagingInterval) { break; }
     int block_algo = GetAlgo(BlockReading->nVersion);
-    if (block_algo != algo) {
+    if (algo && block_algo != algo) {
       BlockReading = BlockReading->pprev;
       continue;
     }

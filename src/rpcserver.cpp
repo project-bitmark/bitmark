@@ -260,8 +260,6 @@ static const CRPCCommand vRPCCommands[] =
     { "gb",                     &getblock,               true,     false,      false },
     { "getblockhash",           &getblockhash,           true,     false,      false },
     { "gbh",                    &getblockhash,           true,     false,      false },
-    { "getdifficulty",          &getdifficulty,          true,      false,      false },
-    { "gd",                     &getdifficulty,          true,      false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "grmp",                   &getrawmempool,          true,      false,      false },
     { "gettxout",               &gettxout,               true,      false,      false },
@@ -273,6 +271,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockspacing",        &getblockspacing,        true,      false,      false },
     { "getblockreward",        &getblockreward,        true,      false,      false },
     { "getmoneysupply",        &getmoneysupply,        true,      false,      false },
+    { "getdifficulty",        &getdifficulty,        true,      false,      false },
+    { "gd",                     &getdifficulty,          true,      false,      false },
 
     /* Mining */
     { "getblocktemplate",       &getblocktemplate,       true,      false,      false },
@@ -392,6 +392,7 @@ static const CRPCCommand vRPCCommands[] =
     { "ghps",                   &gethashespersec,        true,      false,      false },
     { "getwork",                &getwork,                true,      false,      true  },
     { "gw",                     &getwork,                true,      false,      true  },
+    { "setminingalgo",            &setminingalgo,            true,      true,       false },
     { "setgenerate",            &setgenerate,            true,      true,       false },
     { "sg",                     &setgenerate,            true,      true,       false },
 #endif // ENABLE_WALLET

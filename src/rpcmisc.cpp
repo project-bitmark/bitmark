@@ -490,6 +490,32 @@ Value getmoneysupply(const Array& params, bool fHelp) {
   return obj;
 }
 
+Value getdifficulty (const Array& params, bool fHelp) {
+  if (fHelp)
+    throw runtime_error(
+			                        "getdifficulty\n"
+						                        "Returns an object containing difficulty info.\n"
+			);
+
+  int algo = ALGO_SCRYPT;
+  CBlockIndex * blockindex = NULL;
+
+  if (params.size()>0) {
+    algo = params[0].get_int();
+    if (params.size()>1) {
+      int height = params[1].get_int();
+      blockindex = chainActive.Tip();
+      while (blockindex && blockindex->nHeight > height) {
+	blockindex = blockindex->pprev;
+      }
+    }
+  }
+
+  Object obj;
+  obj.push_back(Pair("difficulty",(double)GetDifficulty(blockindex,algo)));
+  return obj;
+}
+
 Value chaindynamics(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)

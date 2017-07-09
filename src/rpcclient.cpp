@@ -128,6 +128,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     //
     if (strMethod == "stop"                   && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getaddednodeinfo"       && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "setminingalgo"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[2]);
@@ -193,6 +194,8 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "getblockreward"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getmoneysupply"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getmoneysupply"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getdifficulty"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getdifficulty"            && n > 1) ConvertTo<int64_t>(params[1]);
     return params;
 }
 

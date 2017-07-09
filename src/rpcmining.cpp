@@ -150,6 +150,16 @@ Value getgenerate(const Array& params, bool fHelp)
     return GetBoolArg("-gen", false);
 }
 
+Value setminingalgo(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() != 1)
+    throw runtime_error("setminingalgo");
+
+  miningAlgo = params[0].get_int();
+
+  return Value::null;
+}
+      
 
 Value setgenerate(const Array& params, bool fHelp)
 {

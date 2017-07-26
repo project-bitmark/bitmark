@@ -56,8 +56,18 @@ You can mine all algorithms using our fork of cpuminer-multi (https://github.com
 
 `<algo>` is `sha256d`, `scrypt`, `ar2`, `x17`, or `lyra2REv2`
 
-Note: you have to change the `miningAlgo` variable in src/rpcmining.cpp (choose one from `ALGO_SHA256D`, `ALGO_SCRYPT`, `ALGO_ARGON2`, `ALGO_X17`, `ALGO_LYRA2REv2`.
+Note: The `miningAlgo` variable in src/rpcmining.cpp (choose one from `ALGO_SHA256D` (1), `ALGO_SCRYPT` (2), `ALGO_ARGON2` (3), `ALGO_X17` (4), `ALGO_LYRA2REv2` (5).
+
+You can also control the mining algo via the rpcommand `bitmark-cli setminingalgo <algo number>`.
 
 You can also use the bitmark-cli command to mine. The last parameter is the algorithm number as defined in core.h. For example, to mine argon2,
 
 `bitmark-cli setgenerate true <ncores> 3`
+
+There are currently 3 types of tests implemented.
+
+1) The testnet block explorer with details for each block, general stats, and charts. These tests are good for looking at how the difficulty adjusts with time.
+
+2) The built in testing framework in src/test. After you compile Bitmark, you can run the tests using the executable `test_bitmark`. Some of the old tests have been disabled, but after disabling a few, all tests should pass now.
+
+3) The newly built tests for the fork, in the directory src/test/fork_tests. To run the tests, you can execute the script `run_tests.sh` and you should see the message "TESTS PASSED" at the end. These ones use the constant min difficulty `regtest` network to perform efficient tests that need to quickly generate a large number of blocks.

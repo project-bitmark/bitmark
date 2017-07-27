@@ -2942,7 +2942,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     }
     
     // check for 3 in a row
-
+    /*
     CBlockIndex * prev_index = mapBlockIndex[pblock->hashPrevBlock];
     int algo = GetAlgo(pblock->nVersion);
     if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
@@ -2955,6 +2955,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 	}
       }
     }
+    */
 
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp))

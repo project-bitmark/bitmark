@@ -2058,11 +2058,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Force the fork to happen exactly at nForkHeight
     if (pindex->nVersion>2 || get_pprev_algo(pindex)) {
       if (pindex->nHeight < nForkHeight) {
+	LogPrintf("nVersion>2 and before fork\n");
 	return false;
       }
     }
     else {
       if (pindex->nHeight >= nForkHeight) {
+	LogPrintf("nVersion<=2 and after fork\n");
 	return false;
       }
     }

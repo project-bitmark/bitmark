@@ -50,7 +50,6 @@ bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
-static const int64_t nForkHeight = -1;
 static const int64_t v2checkpoint = 230000;
 
 /** The term "satoshi" is kept in homage to entity who gave the block chain to the world */
@@ -1462,6 +1461,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
             if (CountBlocks == 1) {
 	      PastDifficultyAverage.SetCompact(BlockReading->nBits);
 	      if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
+	      LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
 	    }
             else { PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (CBigNum().SetCompact(BlockReading->nBits))) / (CountBlocks + 1); }
             PastDifficultyAveragePrev = PastDifficultyAverage;
@@ -1490,8 +1490,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
         nActualTimespan = _nTargetTimespan*3;
 
       // Retarget
-      if (time_since_last_algo > 1200 && nActualTimespan < 2*_nTargetTimespan) {
-	bnNew *= 2;
+      if (time_since_last_algo > 6000 && nActualTimespan < 10*_nTargetTimespan) {
+	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d)\n",algo,time_since_last_algo,pindexLast->nHeight);
+	bnNew *= 10;
       }
       else {
 	bnNew *= nActualTimespan;
@@ -2054,6 +2055,18 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
 
+    // Force the fork to happen exactly at nForkHeight
+    if (pindex->nVersion>2 || get_pprev_algo(pindex)) {
+      if (pindex->nHeight < nForkHeight) {
+	return false;
+      }
+    }
+    else {
+      if (pindex->nHeight >= nForkHeight) {
+	return false;
+      }
+    }
+    
     // Check SSF
     if (pindex->nVersion>2 || get_pprev_algo(pindex)) { //new multi algo blocks are identified like this
       LogPrintf("ConnectBlock nVersion > 2\n");

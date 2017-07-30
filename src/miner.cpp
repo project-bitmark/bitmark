@@ -113,7 +113,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         return NULL;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
 
-    pblock->SetAlgo(miningAlgo);
+    CBlockIndex* pindexPrev = chainActive.Tip();
+    if (pindexPrev->nHeight >= nForkHeight) {
+      pblock->SetAlgo(miningAlgo);
+    }
 
     // Create coinbase tx
     CTransaction txNew;
@@ -465,6 +468,7 @@ CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey)
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
     uint256 hash = pblock->GetPoWHash(miningAlgo);
+    if (pblock->nVersion<=2) hash = pblock->GetPoWHash(ALGO_SCRYPT);
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     if (hash > hashTarget)
@@ -572,6 +576,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	  while (true) {
 	  
 	    uint256 thash = pblock->GetPoWHash(miningAlgo);
+	    if (pblock->nVersion<=2) thash = pblock->GetPoWHash(ALGO_SCRYPT);
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;

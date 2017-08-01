@@ -570,7 +570,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	  //char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
 	  uint256 best_hash;
 	  //LogPrintf("starting best hash: %s\n",best_hash.GetHex().c_str());
-	  //LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
+	  LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
 	  bool first_hash = true;
 
 	  while (true) {
@@ -580,13 +580,15 @@ void static BitmarkMiner(CWallet *pwallet)
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;
-	      //LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
+	      LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
 	    }
 	  
 	    if (thash <= hashTarget)
 	      {
+		LogPrintf("check work\n");
 		SetThreadPriority(THREAD_PRIORITY_NORMAL);
 		CheckWork(pblock, *pwallet, reservekey);
+		LogPrintf("checked work\n");
 		SetThreadPriority(THREAD_PRIORITY_LOWEST);
 		break;
 	      }

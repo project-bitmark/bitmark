@@ -2054,7 +2054,9 @@ void ThreadScriptCheck() {
 
 bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck)
 {
-  LogPrintf("Connect block %d with pprev %d %s\n",pindex->nHeight,pindex->pprev->nHeight,pindex->pprev->GetBlockHash().ToString());
+  if (pindex->nHeight > 0) {
+    LogPrintf("Connect block %d with pprev %d %s\n",pindex->nHeight,pindex->pprev->nHeight,pindex->pprev->GetBlockHash().ToString());
+  }
   
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in

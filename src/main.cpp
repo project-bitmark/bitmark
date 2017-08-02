@@ -1502,11 +1502,15 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     else {
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
       bnNew = Params().ProofOfWorkLimit();
+      if (algo == ALGO_SCRYPT) {
+	LogPrintf("setting nBits to keep continuity of scrypt chain\n");
+	bnNew.SetCompact(BlockReading->nBits/5);
+      }
     }
 
     if (bnNew > Params().ProofOfWorkLimit()){
       LogPrintf("bnNew>ProofOfWorkLimit\n");
-        bnNew = Params().ProofOfWorkLimit();
+      bnNew = Params().ProofOfWorkLimit();
     }
 
     /// debug print
@@ -1526,14 +1530,14 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int workAlgo = pindexLast->nHeight;
     // Mainnet
     if (Params().NetworkID() != CChainParams::TESTNET) {
-      if (nHeight <= nForkHeight || RegTest()) {
+      if (nHeight < nForkHeight || RegTest()) {
 	workAlgo = 0;
       } else {
 	workAlgo = 1;
       }
     // Testnet
     } else {
-      if (nHeight <= nForkHeight) {
+      if (nHeight < nForkHeight) {
             workAlgo = 0;
         } else {
             workAlgo = 1;

@@ -1240,7 +1240,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
         // 35 GH/s
         minimumFullRewardHashrate = 35000000000 / 100;
     }
-    if (nHeight <= forkHeight) {
+    if (nHeight < forkHeight) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1530,14 +1530,14 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int workAlgo = pindexLast->nHeight;
     // Mainnet
     if (Params().NetworkID() != CChainParams::TESTNET) {
-      if (nHeight < nForkHeight || RegTest()) {
+      if (nHeight < nForkHeight-1 || RegTest()) {
 	workAlgo = 0;
       } else {
 	workAlgo = 1;
       }
     // Testnet
     } else {
-      if (nHeight < nForkHeight) {
+      if (nHeight < nForkHeight-1) {
             workAlgo = 0;
         } else {
             workAlgo = 1;

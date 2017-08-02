@@ -2050,15 +2050,17 @@ void ThreadScriptCheck() {
 
 bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck)
 {
+  LogPrintf("Connect block %d with pprev %d %s\n",pindex->nHeight,pindex->pprev->nHeight,pindex->pprev->GetBlockHash().ToString());
+  
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
-
+    
     // Force the fork to happen exactly at nForkHeight
     if (pindex->nVersion>2 || get_pprev_algo(pindex)) {
       if (pindex->nHeight < nForkHeight) {
-	LogPrintf("nVersion>2 and before fork\n");
+	LogPrintf("nVersion>2 and before fork");
 	return false;
       }
     }

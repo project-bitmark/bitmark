@@ -114,7 +114,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
 
     CBlockIndex* pindexPrev = chainActive.Tip();
-    if (pindexPrev->nHeight >= nForkHeight) {
+    if (pindexPrev->nHeight >= nForkHeight - 1) {
       pblock->SetAlgo(miningAlgo);
     }
 

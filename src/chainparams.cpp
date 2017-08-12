@@ -143,7 +143,8 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("us.bitmark.io", "explorer.bitmark.co"));
+	vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
+        vSeeds.push_back(CDNSSeedData("bitmark.co", "explorer.bitmark.co"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(130); // u
         base58Prefixes[SCRIPT_ADDRESS] = list_of(196);

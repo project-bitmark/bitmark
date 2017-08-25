@@ -39,6 +39,8 @@ public:
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
         nSubsidyHalvingInterval = 788000;
+	fStrictChainId = false;
+	nAuxpowChainId = 0x005A;
 
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
@@ -56,8 +58,7 @@ public:
         genesis.nBits    = 0x1d00ffff;
         genesis.nNonce   = 14385103;
 
-        hashGenesisBlock = genesis.GetHash();
-	
+        hashGenesisBlock = genesis.GetHash();	
 	
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
@@ -121,6 +122,8 @@ public:
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
         strDataDir = "testnet4";
+	fStrictChainId = false;
+	nAuxpowChainId = 0x005A;
 
 	const char* pszTimestamp = "Testing Testnet";
 	CTransaction txNew;
@@ -190,6 +193,8 @@ public:
 	genesis.nNonce = 3;
         nDefaultPort = 18444;
         strDataDir = "regtest";
+	fStrictChainId = false;
+	nAuxpowChainId = 0x005A;
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
         assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));

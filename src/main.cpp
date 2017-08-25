@@ -17,6 +17,7 @@
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "pow.h"
 
 #include <sstream>
 #include <inttypes.h>
@@ -36,13 +37,11 @@ using namespace boost;
 // Global state
 //
 
-CCriticalSection cs_main;
-
 CTxMemPool mempool;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-CChain chainActive;
 CChain chainMostWork;
+CCoinsViewCache *pcoinsTip = NULL;
 int64_t nTimeBestReceived = 0;
 int nScriptCheckThreads = 0;
 bool fImporting = false;
@@ -408,7 +407,6 @@ CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
     return Genesis();
 }
 
-CCoinsViewCache *pcoinsTip = NULL;
 CBlockTreeDB *pblocktree = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1605,24 +1603,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
 {
   return GetNextWorkRequired(pindexLast, pblock, ALGO_SCRYPT);
-}
-
-bool CheckProofOfWork(uint256 hash, unsigned int nBits)
-{
-    CBigNum bnTarget;
-    bnTarget.SetCompact(nBits);
-
-    // Check range
-    if (bnTarget <= 0 || bnTarget > Params().ProofOfWorkLimit()) {
-      return error("CheckProofOfWork() : nBits below minimum work");
-    }
-
-    // Check proof of work matches claimed amount
-    if (hash > bnTarget.getuint256()) {
-      return error("CheckProofOfWork() : hash doesn't match nBits");
-    }
-
-    return true;
 }
 
 bool IsInitialBlockDownload()
@@ -2852,31 +2832,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
     return true;
 }
 
-bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
-{
-    unsigned int nFound = 0;
-    for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
-    {
-        if (pstart->nVersion >= minVersion)
-            ++nFound;
-        pstart = pstart->pprev;
-    }
-    return (nFound >= nRequired);
-}
-
-int64_t CBlockIndex::GetMedianTime() const
-{
-    AssertLockHeld(cs_main);
-    const CBlockIndex* pindex = this;
-    for (int i = 0; i < nMedianTimeSpan/2; i++)
-    {
-        if (!chainActive.Next(pindex))
-            return GetBlockTime();
-        pindex = chainActive.Next(pindex);
-    }
-    return pindex->GetMedianTimePast();
-}
-
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 {
     AssertLockHeld(cs_main);
@@ -3157,45 +3112,6 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes)
         return AbortNode(_("Error: Disk space is low!"));
 
     return true;
-}
-
-FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
-{
-    if (pos.IsNull())
-        return NULL;
-    boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
-    boost::filesystem::create_directories(path.parent_path());
-    FILE* file = fopen(path.string().c_str(), "rb+");
-    if (!file && !fReadOnly)
-        file = fopen(path.string().c_str(), "wb+");
-    int counter = 0;
-    while (!file && counter < 10) {
-        LogPrintf("Unable to open file %s\n", path.string());
-	sleep(1);
-	if (fReadOnly) {
-	  file = fopen(path.string().c_str(), "rb+");
-	}
-	else {
-	  file = fopen(path.string().c_str(), "wb+");
-	}
-        //return NULL;
-	counter ++;
-    }
-    if (!file) {
-      return NULL;
-    }
-    if (pos.nPos) {
-        if (fseek(file, pos.nPos, SEEK_SET)) {
-	  LogPrintf("Unable to seek to position %u of %s\n", pos.nPos, path.string());
-            fclose(file);
-            return NULL;
-        }
-    }
-    return file;
-}
-
-FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "blk", fReadOnly);
 }
 
 FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {

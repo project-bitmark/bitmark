@@ -55,7 +55,9 @@ BITMARK_CORE_H = \
   netbase.h \
   net.h \
   noui.h \
+  pow.h \
   protocol.h \
+  pureheader.h \
   rpcclient.h \
   rpcprotocol.h \
   rpcserver.h \
@@ -132,6 +134,8 @@ libbitmark_common_a_SOURCES = \
   hash.cpp \
   key.cpp \
   netbase.cpp \
+  pow.cpp \
+  pureheader.cpp \
   protocol.cpp \
   rpcprotocol.cpp \
   script.cpp \

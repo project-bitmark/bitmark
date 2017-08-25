@@ -68,6 +68,9 @@ public:
     const std::vector<unsigned char> &Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     virtual const vector<CAddress>& FixedSeeds() const = 0;
     int RPCPort() const { return nRPCPort; }
+    bool StrictChainId() const { return fStrictChainId; }
+    int16_t GetAuxpowChainId() const { return nAuxpowChainId; }      
+    
 protected:
     CChainParams() {}
 
@@ -82,6 +85,9 @@ protected:
     string strDataDir;
     vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
+    bool fStrictChainId;
+    int16_t nAuxpowChainId;
+    int nStartAuxPow;
 };
 
 /**

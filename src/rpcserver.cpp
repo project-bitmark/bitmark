@@ -393,6 +393,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getwork",                &getwork,                true,      false,      true  },
     { "gw",                     &getwork,                true,      false,      true  },
     { "setminingalgo",            &setminingalgo,            true,      true,       false },
+    { "getminingalgo",            &getminingalgo,            true,      true,       false },
     { "setgenerate",            &setgenerate,            true,      true,       false },
     { "sg",                     &setgenerate,            true,      true,       false },
 #endif // ENABLE_WALLET

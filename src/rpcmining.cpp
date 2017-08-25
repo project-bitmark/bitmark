@@ -159,6 +159,14 @@ Value setminingalgo(const Array& params, bool fHelp)
 
   return Value::null;
 }
+
+Value getminingalgo(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() != 0)
+    throw runtime_error("getminingalgo");
+
+  return (int)miningAlgo;
+}
       
 
 Value setgenerate(const Array& params, bool fHelp)

@@ -471,7 +471,7 @@ Value getmoneysupply(const Array& params, bool fHelp) {
 						                        "Returns an object containing moneysupply info.\n"
 			);
 
-  int algo = ALGO_SCRYPT;
+  int algo = 0;
   CBlockIndex * blockindex = NULL;
 
   if (params.size()>0) {

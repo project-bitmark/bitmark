@@ -1159,7 +1159,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
+    if (!CheckAuxPowProofOfWork(block, Params())) {
         return error("ReadBlockFromDisk : Errors in block header");
     }
 
@@ -1237,7 +1237,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
         // 35 GH/s
         minimumFullRewardHashrate = 35000000000 / 100;
     }
-    if (nHeight < forkHeight) {
+    if (nHeight < forkHeight && !RegTest()) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -2025,13 +2025,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     
     // Force the fork to happen exactly at nForkHeight
     if (pindex->nVersion>2 || get_pprev_algo(pindex)) {
-      if (pindex->nHeight < nForkHeight) {
+      if (pindex->nHeight < nForkHeight && !RegTest()) {
 	LogPrintf("nVersion>2 and before fork");
 	return false;
       }
     }
     else {
-      if (pindex->nHeight >= nForkHeight) {
+      if (pindex->nHeight >= nForkHeight && !RegTest()) {
 	LogPrintf("nVersion<=2 and after fork\n");
 	return false;
       }
@@ -2090,7 +2090,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // (its coinbase is unspendable)
     if (block.GetHash() == Params().HashGenesisBlock()) {
       //pindex->nMoneySupply = block.vtx[0].GetValueOut();
-      pindex->nMoneySupply = 0;
+      pindex->nMoneySupply = 2000000000;
         view.SetBestBlock(pindex->GetBlockHash());
         return true;
     }
@@ -2223,7 +2223,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }
       else {
-	pindex->nMoneySupply = 0;
+	pindex->nMoneySupply = 2000000000;
       }
     }
     LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
@@ -2681,9 +2681,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                          REJECT_INVALID, "bad-blk-length");
 
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits))
+    if(block.IsAuxpow() && fCheckPOW && !CheckAuxPowProofOfWork(block, Params())) {
+      return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
+		       REJECT_INVALID, "high-hash");
+    }
+    else if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
         return state.DoS(50, error("CheckBlock() : proof of work failed"),
                          REJECT_INVALID, "high-hash");
+    }
 
     // Check timestamp
     if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)

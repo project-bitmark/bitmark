@@ -527,6 +527,11 @@ public:
 	  CPureBlockHeader::SetAuxpow(false);
 	}
     }
+
+    void SetAuxpow(bool apow)
+    {
+      CPureBlockHeader::SetAuxpow(apow);
+    }
 };
 
 /** wrapper for CTxOut that provides a more compact serialization */

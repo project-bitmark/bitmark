@@ -317,14 +317,20 @@ int64_t CBlockIndex::GetMedianTime() const
 bool
 CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& params) const
 {
-    if (nIndex != 0)
+  if (nIndex != 0) {
+    printf("check auxpow err 1\n");
         return error("AuxPow is not a generate");
+  }
 
-    if (params.StrictChainId() && parentBlock.GetChainId() == nChainId)
-        return error("Aux POW parent has our chain ID");
-
-    if (vChainMerkleBranch.size() > 30)
-        return error("Aux POW chain merkle branch too long");
+  if (params.StrictChainId() && parentBlock.GetChainId() == nChainId) {
+    printf("check auxpow err 2\n");
+    return error("Aux POW parent has our chain ID");
+  }
+  
+  if (vChainMerkleBranch.size() > 30) {
+    printf("check auxpow err 3\n");
+    return error("Aux POW chain merkle branch too long");
+  }
 
     // Check that the chain merkle root is in the coinbase
     const uint256 nRootHash = CBlock::CheckMerkleBranch(hashAuxBlock, vChainMerkleBranch, nChainIndex);
@@ -332,8 +338,10 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     std::reverse(vchRootHash.begin(), vchRootHash.end()); // correct endian
 
     // Check that we are in the parent block merkle tree
-    if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != parentBlock.hashMerkleRoot)
+    if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != parentBlock.hashMerkleRoot) {
+      printf("check auxpow err 4\n");
         return error("Aux POW merkle root incorrect");
+    }
 
     const CScript script = vin[0].scriptSig;
 
@@ -346,42 +354,58 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     CScript::const_iterator pc =
         std::search(script.begin(), script.end(), vchRootHash.begin(), vchRootHash.end());
 
-    if (pc == script.end())
+    if (pc == script.end()) {
+      printf("check auxpow err 5\n");
         return error("Aux POW missing chain merkle root in parent coinbase");
+    }
 
     if (pcHead != script.end()) {
         // Enforce only one chain merkle root by checking that a single instance of the merged
         // mining header exists just before.
-        if (script.end() != std::search(pcHead + 1, script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader)))
+      if (script.end() != std::search(pcHead + 1, script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader))) {
             return error("Multiple merged mining headers in coinbase");
-        if (pcHead + sizeof(pchMergedMiningHeader) != pc)
+	    printf("check auxpow err 6\n");
+      }
+      if (pcHead + sizeof(pchMergedMiningHeader) != pc) {
+	printf("check auxpow err 7\n");
             return error("Merged mining header is not just before chain merkle root");
+      }
     } else {
         // For backward compatibility.
         // Enforce only one chain merkle root by checking that it starts early in the coinbase.
         // 8-12 bytes are enough to encode extraNonce and nBits.
-        if (pc - script.begin() > 20)
+      if (pc - script.begin() > 20) {
+	printf("check auxpow err 8\n");
             return error("Aux POW chain merkle root must start in the first 20 bytes of the parent coinbase");
+      }
     }
 
 
     // Ensure we are at a deterministic point in the merkle leaves by hashing
     // a nonce and our chain ID and comparing to the index.
     pc += vchRootHash.size();
-    if (script.end() - pc < 8)
+    if (script.end() - pc < 8) {
+      printf("check auxpow err 9\n");
         return error("Aux POW missing chain merkle tree size and nonce in parent coinbase");
+    }
 
     int nSize;
     memcpy(&nSize, &pc[0], 4);
     const unsigned merkleHeight = vChainMerkleBranch.size();
-    if (nSize != (1 << merkleHeight))
-        return error("Aux POW merkle branch size does not match parent coinbase");
+    if (nSize != (1 << merkleHeight)) {
+      printf("check auxpow err 10\n");
+      return error("Aux POW merkle branch size does not match parent coinbase");
+    }
 
     int nNonce;
     memcpy(&nNonce, &pc[4], 4);
 
-    if (nChainIndex != getExpectedIndex(nNonce, nChainId, merkleHeight))
-        return error("Aux POW wrong index");
+    
+    int expectedIndex = getExpectedIndex(nNonce, nChainId, merkleHeight);
+    if (nChainIndex != expectedIndex) {
+      printf("check auxpow err 11: nChainIndex = %d while expectedIndex (%d,%d,%d) = %d\n",nNonce,nChainId,merkleHeight,nChainIndex,expectedIndex);
+      return error("Aux POW wrong index");
+    }
 
     return true;
 }
@@ -447,30 +471,40 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 {
   int algo = block.GetAlgo();
 
-  if (!block.nVersion <= 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId())
+  if (!block.nVersion <= 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
+    printf("auxpow err 1\n");
     return error("%s : block does not have our chain ID"
 		 " (got %d, expected %d, full nVersion %d)",
 		 __func__,
 		 block.GetChainId(),
 		 params.GetAuxpowChainId(),
 		 block.nVersion);
+  }
 
   if (!block.auxpow) {
-    if (block.IsAuxpow())
+    if (block.IsAuxpow()) {
+      printf("auxpow err 2\n");
       return error("%s : no auxpow on block with auxpow version",
 		   __func__);
+    }
 
-    if (!CheckProofOfWork(block.GetPoWHash(algo), block.nBits))
+    if (!CheckProofOfWork(block.GetPoWHash(algo), block.nBits)) {
+      printf("auxpow err 3\n");
       return error("%s : non-AUX proof of work failed", __func__);
+    }
 
     return true;
   }
 
-  if (!block.IsAuxpow())
+  if (!block.IsAuxpow()) {
+    printf("auxpow err 4\n");
     return error("%s : auxpow on block with non-auxpow version", __func__);
+  }
 
-  if (!block.auxpow->check(block.GetHash(), block.GetChainId(), params))
+  if (!block.auxpow->check(block.GetHash(), block.GetChainId(), params)) {
+    printf("auxpow err 5\n");
     return error("%s : AUX POW is not valid", __func__);
+  }
 
   if(fDebug)
     {

@@ -109,15 +109,16 @@ class CPureBlockHeader {
     return ALGO_SCRYPT;
   }
 
-  void SetChainId(int id)
+  void SetChainId(int32_t id)
   {
     nVersion %= BLOCK_VERSION_CHAIN;
     nVersion |= id * BLOCK_VERSION_CHAIN;
   }
 
-  int GetChainId() const
+  int32_t GetChainId() const
   {
-    return nVersion & BLOCK_VERSION_CHAIN;
+    //return nVersion & BLOCK_VERSION_CHAIN;
+    return nVersion >> 16;
   }
 
   void SetUpdateSSF()

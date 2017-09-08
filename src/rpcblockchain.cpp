@@ -29,7 +29,9 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
         else
             blockindex = chainActive.Tip();
     }
-
+    if (!algo) {
+      algo = GetAlgo(blockindex->nVersion);
+    }
     int algo_tip = GetAlgo(blockindex->nVersion);
     if (algo_tip != algo) {
       blockindex = get_pprev_algo(blockindex,algo);
@@ -217,6 +219,9 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
     else
       blockindex = chainActive.Tip();
   }
+  if (!algo) {
+    algo = GetAlgo(blockindex->nVersion);
+  }
   auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
   if(!pblocktemplate.get())
     return 0.;
@@ -300,7 +305,8 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.nVersion));
-    result.push_back(Pair("algo",GetAlgoName(GetAlgo(block.nVersion))));
+    int algo = GetAlgo(block.nVersion);
+    result.push_back(Pair("algo",GetAlgoName(algo)));
     result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
     result.push_back(Pair("SSF work",get_ssf_work(blockindex)));
     result.push_back(Pair("SSF time",get_ssf_time(blockindex)));
@@ -312,7 +318,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
     result.push_back(Pair("bits", HexBits(block.nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
+    result.push_back(Pair("difficulty", GetDifficulty(blockindex,algo)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
 
     if (blockindex->pprev)

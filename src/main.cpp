@@ -1480,8 +1480,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
       // Retarget
       if (time_since_last_algo > 6000 && nActualTimespan < 10*_nTargetTimespan) {
-	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d)\n",algo,time_since_last_algo,pindexLast->nHeight);
-	bnNew *= 10;
+	int64_t multiplier = time_since_last_algo/6000;
+	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), multiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, multiplier);
+	bnNew *= 10*multiplier;
       }
       else {
 	bnNew *= nActualTimespan;

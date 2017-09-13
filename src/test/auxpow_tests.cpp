@@ -13,6 +13,14 @@
 
 BOOST_AUTO_TEST_SUITE(auxpow_tests)
 
+static void
+tamperWith(uint256& num)
+{
+  CBigNum modifiable (num);
+  modifiable += 1;
+  num = modifiable.getuint256();
+}
+
 /**
  * Utility class to construct auxpow's and manipulate them.  This is used
  * to simulate various scenarios.
@@ -178,13 +186,161 @@ mineBlock(CBlockHeader& block, bool ok, int nBits = -1)
   else
     BOOST_CHECK(!CheckProofOfWork(block.GetPoWHash(algo), nBits));
 }
+
+BOOST_AUTO_TEST_CASE(check_auxpow)
+{
+  CAuxpowBuilder builder(2, 42);
+  CAuxPow auxpow;
   
+  const uint256 hashAux = CBigNum(12345).getuint256();
+  const int32_t ourChainId = Params().GetAuxpowChainId();
+  const unsigned height = 30;
+  const int nonce = 7;
+  int index;
+
+  std::vector<unsigned char> auxRoot, data;
+  CScript scr;
+
+  /* Build a correct auxpow.  The height is the maximally allowed one.  */
+  index = CAuxPow::getExpectedIndex(nonce, ourChainId, height);
+  auxRoot = builder.buildAuxpowChain(hashAux, height, index);
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce);
+  scr = (CScript() << 2809 << 2013) + COINBASE_FLAGS;
+  scr = (scr << OP_2 << data);
+  builder.setCoinbase(scr);
+  BOOST_CHECK(builder.get().check(hashAux, ourChainId, Params()));
+
+  /* Check that the auxpow is invalid if we change either the aux block's                                                   
+     hash or the chain ID.  */
+  uint256 modifiedAux(hashAux);
+  tamperWith(modifiedAux);
+  BOOST_CHECK(!builder.get().check(modifiedAux, ourChainId, Params()));
+  BOOST_CHECK(!builder.get().check(hashAux, ourChainId + 1, Params()));
+
+  /* Non-coinbase parent tx should fail.  Note that we can't just copy                                                      
+     the coinbase literally, as we have to get a tx with different hash.  */
+  const CTransaction oldCoinbase = builder.parentBlock.vtx[0];
+  builder.setCoinbase(scr << 5);
+  builder.parentBlock.vtx.push_back(oldCoinbase);
+  builder.parentBlock.hashMerkleRoot = builder.parentBlock.BuildMerkleTree();
+  auxpow = builder.get(builder.parentBlock.vtx[0]);
+  BOOST_CHECK(auxpow.check(hashAux, ourChainId, Params()));
+  auxpow = builder.get(builder.parentBlock.vtx[1]);
+  BOOST_CHECK(!auxpow.check(hashAux, ourChainId, Params()));
+
+  /* The parent chain can't have the same chain ID.  */
+  CAuxpowBuilder builder2(builder);
+  builder2.parentBlock.SetChainId(150);
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+  builder2.parentBlock.SetChainId(ourChainId);
+  //BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  /* Disallow too long merkle branches.  */
+  builder2 = builder;
+  index = CAuxPow::getExpectedIndex(nonce, ourChainId, height + 1);
+  auxRoot = builder2.buildAuxpowChain(hashAux, height + 1, index);
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height + 1, nonce);
+  scr = (CScript() << 2809 << 2013) + COINBASE_FLAGS;
+  scr = (scr << OP_2 << data);
+  builder2.setCoinbase(scr);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  /* Verify that we compare correctly to the parent block's merkle root.  */
+  builder2 = builder;
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+  tamperWith(builder2.parentBlock.hashMerkleRoot);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  /* Build a non-header legacy version and check that it is also accepted.  */
+  builder2 = builder;
+  index = CAuxPow::getExpectedIndex(nonce, ourChainId, height);
+  auxRoot = builder2.buildAuxpowChain(hashAux, height, index);
+  data = CAuxpowBuilder::buildCoinbaseData(false, auxRoot, height, nonce);
+  scr = (CScript() << 2809 << 2013) + COINBASE_FLAGS;
+  scr = (scr << OP_2 << data);
+  builder2.setCoinbase(scr);
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+
+  /* However, various attempts at smuggling two roots in should be detected.  */
+  
+  const std::vector<unsigned char> wrongAuxRoot = builder2.buildAuxpowChain(modifiedAux, height, index);
+  std::vector<unsigned char> data2 = CAuxpowBuilder::buildCoinbaseData(false, wrongAuxRoot, height, nonce);
+  builder2.setCoinbase(CScript() << data << data2);
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+  builder2.setCoinbase(CScript() << data2 << data);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  data2 = CAuxpowBuilder::buildCoinbaseData(true, wrongAuxRoot, height, nonce);
+  builder2.setCoinbase(CScript() << data << data2);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+  builder2.setCoinbase(CScript() << data2 << data);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce);
+  builder2.setCoinbase(CScript() << data << data2);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+  builder2.setCoinbase(CScript() << data2 << data);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  data2 = CAuxpowBuilder::buildCoinbaseData(false, wrongAuxRoot, height, nonce);
+  builder2.setCoinbase(CScript() << data << data2);
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+  builder2.setCoinbase(CScript() << data2 << data);
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+
+  /* Verify that the appended nonce/size values are checked correctly.  */
+
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce);
+  builder2.setCoinbase(CScript() << data);
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+
+  data.pop_back();
+  builder2.setCoinbase(CScript() << data);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height - 1, nonce);
+  builder2.setCoinbase(CScript() << data);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce + 3);
+  builder2.setCoinbase(CScript() << data);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  /* Put the aux hash in an invalid merkle tree position.  */
+
+  auxRoot = builder.buildAuxpowChain(hashAux, height, index + 1);
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce);
+  builder2.setCoinbase(CScript() << data);
+  BOOST_CHECK(!builder2.get().check(hashAux, ourChainId, Params()));
+
+  auxRoot = builder.buildAuxpowChain(hashAux, height, index);
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce);
+  builder2.setCoinbase(CScript() << data);
+  BOOST_CHECK(builder2.get().check(hashAux, ourChainId, Params()));
+  
+}
+
 BOOST_AUTO_TEST_CASE(auxpow_pow)
 {
   SelectParams(CChainParams::REGTEST);
   CBigNum target = CBigNum(~uint256(0) >> 1);
   CBlockHeader block;
   block.nBits = target.GetCompact();
+
+  /* Check the case when the block does not have auxpow (this is true right now).  */
+
+  block.SetChainId(Params().GetAuxpowChainId());
+  block.SetAuxpow(true);
+  mineBlock(block, true);
+  BOOST_CHECK(!CheckAuxPowProofOfWork(block, Params()));
+
+  block.SetAuxpow(false);
+  mineBlock(block, true);
+  BOOST_CHECK(CheckAuxPowProofOfWork(block, Params()));
+  mineBlock(block, false);
+  BOOST_CHECK(!CheckAuxPowProofOfWork(block, Params()));
+
+  /* Check the case that the block has auxpow.  */
 
   CAuxpowBuilder builder(2,42);
   CAuxPow auxpow;
@@ -194,6 +350,7 @@ BOOST_AUTO_TEST_CASE(auxpow_pow)
   const int index = CAuxPow::getExpectedIndex(nonce, ourChainId, height);
   std::vector<unsigned char> auxRoot, data;
 
+  /* Valid auxpow, PoW check of parent block.  */
   block.SetAuxpow(true);
   block.SetChainId(ourChainId);
   auxRoot = builder.buildAuxpowChain(block.GetHash(), height, index);
@@ -205,6 +362,30 @@ BOOST_AUTO_TEST_CASE(auxpow_pow)
   mineBlock(builder.parentBlock, true, block.nBits);
   block.SetAuxpow(new CAuxPow(builder.get()));
   BOOST_CHECK(CheckAuxPowProofOfWork(block,Params()));
+
+  /*  Mismatch between auxpow being present and block.nVersion. */
+  block.SetAuxpow(false);
+  const uint256 hashAux = block.GetHash();
+  auxRoot = builder.buildAuxpowChain(hashAux, height, index);
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce);
+  builder.setCoinbase(CScript() << data);
+  mineBlock(builder.parentBlock, true, block.nBits);
+  block.SetAuxpow(new CAuxPow(builder.get()));
+  BOOST_CHECK(hashAux != block.GetHash());
+  block.SetAuxpow(false);
+  BOOST_CHECK(hashAux == block.GetHash());
+  BOOST_CHECK(!CheckAuxPowProofOfWork(block, Params()));
+
+  /* Modifying the block invalidates the PoW.  */
+  block.SetAuxpow(true);
+  auxRoot = builder.buildAuxpowChain(block.GetHash(), height, index);
+  data = CAuxpowBuilder::buildCoinbaseData(true, auxRoot, height, nonce);
+  builder.setCoinbase(CScript() << data);
+  mineBlock(builder.parentBlock, true, block.nBits);
+  block.SetAuxpow(new CAuxPow(builder.get()));
+  BOOST_CHECK(CheckAuxPowProofOfWork(block, Params()));
+  tamperWith(block.hashMerkleRoot);
+  BOOST_CHECK(!CheckAuxPowProofOfWork(block, Params()));
   
 }
 

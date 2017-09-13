@@ -339,7 +339,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
 
     // Check that we are in the parent block merkle tree
     if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != parentBlock.hashMerkleRoot) {
-      printf("check auxpow err 4\n");
+      LogPrintf("check auxpow err 4\n");
         return error("Aux POW merkle root incorrect");
     }
 
@@ -355,7 +355,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
         std::search(script.begin(), script.end(), vchRootHash.begin(), vchRootHash.end());
 
     if (pc == script.end()) {
-      printf("check auxpow err 5\n");
+      LogPrintf("check auxpow err 5\n");
         return error("Aux POW missing chain merkle root in parent coinbase");
     }
 
@@ -472,7 +472,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   int algo = block.GetAlgo();
 
   if (!block.nVersion <= 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
-    printf("auxpow err 1\n");
+    LogPrintf("auxpow err 1\n");
     return error("%s : block does not have our chain ID"
 		 " (got %d, expected %d, full nVersion %d)",
 		 __func__,
@@ -483,13 +483,13 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
   if (!block.auxpow) {
     if (block.IsAuxpow()) {
-      printf("auxpow err 2\n");
+      LogPrintf("auxpow err 2\n");
       return error("%s : no auxpow on block with auxpow version",
 		   __func__);
     }
 
     if (!CheckProofOfWork(block.GetPoWHash(algo), block.nBits)) {
-      printf("auxpow err 3\n");
+      LogPrintf("auxpow err 3\n");
       return error("%s : non-AUX proof of work failed", __func__);
     }
 
@@ -497,12 +497,12 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   }
 
   if (!block.IsAuxpow()) {
-    printf("auxpow err 4\n");
+    LogPrintf("auxpow err 4\n");
     return error("%s : auxpow on block with non-auxpow version", __func__);
   }
 
   if (!block.auxpow->check(block.GetHash(), block.GetChainId(), params)) {
-    printf("auxpow err 5\n");
+    LogPrintf("auxpow err 5\n");
     return error("%s : AUX POW is not valid", __func__);
   }
 

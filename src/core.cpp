@@ -517,10 +517,11 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 		bnTarget.GetCompact());
     }
 
+  /*
   if (!(algo == ALGO_SHA256D || algo == ALGO_SCRYPT) )
     {
       return error("%s : AUX POW is not allowed on this algo", __func__);
-    }
+      }*/
 
   if (!CheckProofOfWork(block.auxpow->getParentBlockPoWHash(algo), block.nBits))
     {

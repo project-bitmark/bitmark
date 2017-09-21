@@ -44,7 +44,7 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
             "  \"proxy\": \"host:port\",     (string, optional) the proxy used by the server\n"
-            "  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n"
+            "  \"difficulty <algo>\": xxxxxx,       (numeric) the current difficulty for the algo <ALGO>\n"
             "  \"moneysupply\": xxxxxx,      (numeric) the total amount of coins distributed\n"
             "  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n"
             "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"
@@ -410,8 +410,16 @@ Value getblockspacing(const Array& params, bool fHelp)
 {
     if (fHelp)
         throw runtime_error(
-            "getblockspacing\n"
+            "getblockspacing (algo interval height )\n"
             "Returns an object containing blockspacing info.\n"
+	    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 2 (scrypt) by default\n"
+            "2. \"interval\"     (numeric, optional) The interval in number of blocks, 24 by default\n"
+	    "3. \"height\"     (numeric, optional) The height for the endpoint of the interval, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    "  \"average block spacing\": xxxxx           (numeric)\n"
+	    "}\n"
 			    );
 
     int algo = ALGO_SCRYPT;
@@ -441,8 +449,15 @@ Value getblockspacing(const Array& params, bool fHelp)
 Value getblockreward(const Array& params, bool fHelp) {
   if (fHelp)
     throw runtime_error(
-			"getblockreward\n"
+			"getblockreward (algo height )\n"
 			"Returns an object containing blockreward info.\n"
+	    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 2 (scrypt) by default\n"
+	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    " \"block reward\": xxxxx           (numeric)\n"
+	    "}\n"
 			);
   
   int algo = ALGO_SCRYPT;
@@ -467,8 +482,15 @@ Value getblockreward(const Array& params, bool fHelp) {
 Value getmoneysupply(const Array& params, bool fHelp) {
   if (fHelp)
     throw runtime_error(
-			                        "getmoneysupply\n"
-						                        "Returns an object containing moneysupply info.\n"
+			"getmoneysupply ( algo height )\n"
+			"Returns an object containing moneysupply info.\n"
+				    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 0 (overall) by default\n"
+	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    " \"money supply\": xxxxx           (numeric)\n"
+	    "}\n"
 			);
 
   int algo = 0;
@@ -493,8 +515,15 @@ Value getmoneysupply(const Array& params, bool fHelp) {
 Value getdifficulty (const Array& params, bool fHelp) {
   if (fHelp)
     throw runtime_error(
-			                        "getdifficulty\n"
-						                        "Returns an object containing difficulty info.\n"
+			"getdifficulty ( algo height )\n"
+			"Returns an object containing difficulty info.\n"
+				    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 2 (scrypt) by default\n"
+	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    " \"difficulty\": xxxxx           (numeric)\n"
+	    "}\n"
 			);
 
   int algo = ALGO_SCRYPT;
@@ -523,7 +552,14 @@ Value chaindynamics(const Array& params, bool fHelp)
             "chain dynamics\n"
             "Returns an object containing various state info.\n"
             "}\n"
-            "\nExamples:\n"
+	    "\nResult:\n"
+	    "{\n"
+	    " \"difficulty <algo>\": xxxxx           (numeric),\n"
+	    " \"peak hashrate <algo>\": xxxxx           (numeric),\n"
+	    " \"current hashrate <algo>\": xxxxx           (numeric),\n"
+	    " \"nblocks update SSF <algo>\": xxxxx           (numeric),\n"
+	    " \"average block spacing <algo>\": xxxxx           (numeric)\n"
+	    "}\n"
         );
 
     proxyType proxy;

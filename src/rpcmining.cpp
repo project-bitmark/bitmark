@@ -54,6 +54,7 @@ void ShutdownRPCMining()
 
 /* Set mining algo here for rpc mining */
 int miningAlgo = ALGO_SHA256D;
+int miningAlgoGBT = ALGO_SHA256D;
 
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.
@@ -153,7 +154,11 @@ Value getgenerate(const Array& params, bool fHelp)
 Value setminingalgo(const Array& params, bool fHelp)
 {
   if (fHelp || params.size() != 1)
-    throw runtime_error("setminingalgo");
+    throw runtime_error("setminingalgo algo"
+			"\nSet the algorithm for mining purposes\n"
+			"\nArguments:\n"
+			"1. algo         (numeric, required).\n"
+			);
 
   miningAlgo = params[0].get_int();
 
@@ -163,7 +168,11 @@ Value setminingalgo(const Array& params, bool fHelp)
 Value getminingalgo(const Array& params, bool fHelp)
 {
   if (fHelp || params.size() != 0)
-    throw runtime_error("getminingalgo");
+    throw runtime_error("getminingalgo"
+			"\nGet the mining algorithm\n"
+			"\nResult\n"
+			"x (1-5) The number representing the mining algorithm\n"			
+			);
 
   return (int)miningAlgo;
 }
@@ -180,11 +189,11 @@ Value setgenerate(const Array& params, bool fHelp)
             "\nArguments:\n"
             "1. generate         (boolean, required) Set to true to turn on generation, off to turn off.\n"
             "2. genproclimit     (numeric, optional) Set the processor limit for when generation is on. Can be -1 for unlimited.\n"
-	    "3. mining algo (numeric, optional) Set the mining algo (see core.h for number correspondence)"
+	    "3. mining algo (numeric, optional) Set the mining algo"
             "                    Note: in -regtest mode, genproclimit controls how many blocks are generated immediately.\n"
             "\nExamples:\n"
-            "\nSet the generation on with a limit of one processor\n"
-            + HelpExampleCli("setgenerate", "true 1") +
+            "\nSet the generation on with a limit of one processor and SHA256D for the algo\n"
+            + HelpExampleCli("setgenerate", "true 1 1") +
             "\nCheck the setting\n"
             + HelpExampleCli("getgenerate", "") +
             "\nTurn off generation\n"
@@ -391,6 +400,10 @@ Value getwork(const Array& params, bool fHelp)
         }
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
+	if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
+	  pblock->SetAlgo(miningAlgo);
+	}
+
         // Update nTime
         UpdateTime(*pblock, pindexPrev);
         pblock->nNonce = 0;
@@ -536,7 +549,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     static CBlockIndex* pindexPrev;
     static int64_t nStart;
     static CBlockTemplate* pblocktemplate;
-    if (pindexPrev != chainActive.Tip() ||
+    if (pindexPrev != chainActive.Tip() || miningAlgo != miningAlgoGBT ||
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -560,6 +573,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
         // Need to update only after we know CreateNewBlock succeeded
         pindexPrev = pindexPrevNew;
+	miningAlgoGBT = miningAlgo;
     }
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 

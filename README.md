@@ -71,3 +71,7 @@ There are currently 3 types of tests implemented.
 2) The built in testing framework in src/test. After you compile Bitmark, you can run the tests using the executable `test_bitmark`. Some of the old tests have been disabled, but after disabling a few, all tests should pass now.
 
 3) The newly built tests for the fork, in the directory src/test/fork_tests. To run the tests, you can execute the script `run_tests.sh` and you should see the message "TESTS PASSED" at the end. These ones use the constant min difficulty `regtest` network to perform efficient tests that need to quickly generate a large number of blocks.
+
+## Merge Mining
+
+Also part of the hard fork is merge mining, a way to increase the hashpower security of the chain by allowing the mining of the chain simultaneously with another chain. All 5 algorithms are supported.

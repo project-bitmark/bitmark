@@ -792,6 +792,28 @@ Value getauxblock(const Array& params, bool fHelp)
     result.push_back(Pair("target", HexStr(BEGIN(hashTarget), END(hashTarget))));
 
     return result;
-  }   
+  }
+
+  assert(params.size() == 2);
+  uint256 hash;
+  hash.SetHex(params[0].get_str());
+
+  const std::map<uint256, CBlock*>::iterator mit = mapNewBlock.find(hash);
+  if (mit == mapNewBlock.end())
+    throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
+  CBlock& block = *mit->second;
+
+  const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
+  CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
+  CAuxPow pow;
+  ss >> pow;
+  block.SetAuxpow(new CAuxPow(pow));
+  assert(block.GetHash() == hash);
+
+  CValidationState state;
+  bool fAccepted = ProcessBlock(state, NULL, &block);
+  if (!fAccepted)
+    return "rejected";
+
   return Value::null;
 }

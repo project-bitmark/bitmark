@@ -1502,6 +1502,15 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       bnNew = Params().ProofOfWorkLimit();
     }
 
+    //test
+    /*
+    CBigNum bnTest;
+    bnTest.SetCompact(0x1c055bc8);
+    LogPrintf("bnTest from %s\n",bnTest.getuint256().ToString());
+    bnTest *= 10*287;
+    LogPrintf("to %s\n",bnTest.getuint256().ToString());
+    */
+    
     /// debug print
     LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
     LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);

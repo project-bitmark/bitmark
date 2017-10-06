@@ -689,6 +689,7 @@ Value submitblock(const Array& params, bool fHelp)
 
 Value getauxblock(const Array& params, bool fHelp)
 {
+  LogPrintf("in getauxblock\n");
   if (fHelp || (params.size() != 0 && params.size() != 2))
     throw runtime_error(
 			"getauxblock (hash auxpow)\n"
@@ -724,22 +725,23 @@ Value getauxblock(const Array& params, bool fHelp)
 			+ HelpExampleCli("getauxblock", "\"hash\" \"serialised auxpow\"")
 			+ HelpExampleRpc("getauxblock", "")
 			);
-
+  LogPrintf("in getauxblock 1\n");
   if (pwalletMain == NULL)
     throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
-  
+  LogPrintf("in getauxblock 2\n");
   if (vNodes.empty())
     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Bitmark is not connected!");
-
+  LogPrintf("in getauxblock 3\n");
   if (IsInitialBlockDownload())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Bitmark is downloading blocks...");
-
+  LogPrintf("in getauxblock 4\n");
   static CCriticalSection cs_auxblockCache;
   LOCK(cs_auxblockCache);
   static std::map<uint256, CBlock*> mapNewBlock;
   static std::vector<CBlockTemplate*> vNewBlockTemplate;
-
+  LogPrintf("in getauxblock 5\n");
   if (params.size() == 0) {
+    LogPrintf("in getauxblock param size 0\n");
     static unsigned nTransactionsUpdatedLast;
     static CBlockIndex* pindexPrev = NULL;
     static uint64_t nStart;
@@ -791,29 +793,31 @@ Value getauxblock(const Array& params, bool fHelp)
     result.push_back(Pair("height", static_cast<int64_t> (pindexPrev->nHeight + 1)));
     result.push_back(Pair("target", HexStr(BEGIN(hashTarget), END(hashTarget))));
 
+    LogPrintf("in getauxblock params size 0 return result\n");
+
     return result;
   }
-
+  LogPrintf("in getauxblock 6\n");
   assert(params.size() == 2);
   uint256 hash;
   hash.SetHex(params[0].get_str());
-
+  LogPrintf("in getauxblock 7\n");
   const std::map<uint256, CBlock*>::iterator mit = mapNewBlock.find(hash);
   if (mit == mapNewBlock.end())
     throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
   CBlock& block = *mit->second;
-
+  LogPrintf("in getauxblock 8\n");
   const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
   CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
   CAuxPow pow;
   ss >> pow;
   block.SetAuxpow(new CAuxPow(pow));
   assert(block.GetHash() == hash);
-
+  LogPrintf("in getauxblock 9\n");
   CValidationState state;
   bool fAccepted = ProcessBlock(state, NULL, &block);
   if (!fAccepted)
     return "rejected";
-
+  LogPrintf("in getauxblock 10\n");
   return Value::null;
 }

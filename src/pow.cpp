@@ -15,7 +15,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
     // Check proof of work matches claimed amount
     if (hash > bnTarget.getuint256()) {
-      return error("CheckProofOfWork() : hash doesn't match nBits");
+      return error("CheckProofOfWork() : hash doesn't match nBits (hash is %s, nbits is %s",hash.GetHex().c_str(),bnTarget.getuint256().GetHex().c_str());
     }
 
     return true;

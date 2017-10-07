@@ -469,6 +469,7 @@ FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
 
 bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& params)
 {
+  LogPrintf("checking auxpowproofofwork\n");
   int algo = block.GetAlgo();
 
   if (!block.nVersion <= 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {

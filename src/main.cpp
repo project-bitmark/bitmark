@@ -2691,13 +2691,16 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                          REJECT_INVALID, "bad-blk-length");
 
     // Check proof of work matches claimed amount
-    if(block.IsAuxpow() && fCheckPOW && !CheckAuxPowProofOfWork(block, Params())) {
-      return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
-		       REJECT_INVALID, "high-hash");
+    if(block.IsAuxpow()) {
+      LogPrintf("block being checked is auxpow\n");
+      if (fCheckPOW && !CheckAuxPowProofOfWork(block, Params())) {
+	return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
+			 REJECT_INVALID, "high-hash");
+      }
     }
     else if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
-        return state.DoS(50, error("CheckBlock() : proof of work failed"),
-                         REJECT_INVALID, "high-hash");
+      return state.DoS(50, error("CheckBlock() : proof of work failed"),
+		       REJECT_INVALID, "high-hash");
     }
 
     // Check timestamp

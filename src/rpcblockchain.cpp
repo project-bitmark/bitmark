@@ -306,6 +306,8 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("version", block.nVersion));
     int algo = GetAlgo(block.nVersion);
     result.push_back(Pair("algo",GetAlgoName(algo)));
+    bool auxpow = block.IsAuxpow();
+    result.push_back(Pair("auxpow",auxpow));
     result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
     result.push_back(Pair("SSF work",get_ssf_work(blockindex)));
     result.push_back(Pair("SSF time",get_ssf_time(blockindex)));

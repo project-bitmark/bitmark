@@ -191,6 +191,10 @@ public:
  */
 class CTransaction
 {
+ private:
+  uint256 hash;
+  void UpdateHash() const;
+  
 public:
     static int64_t nMinTxFee;
     static int64_t nMinRelayTxFee;
@@ -212,6 +216,7 @@ public:
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
+	if (fRead) UpdateHash();
     )
 
     void SetNull()
@@ -220,6 +225,7 @@ public:
         vin.clear();
         vout.clear();
         nLockTime = 0;
+	*const_cast<uint256*>(&hash) = 0;
     }
 
     bool IsNull() const
@@ -228,6 +234,7 @@ public:
     }
 
     uint256 GetHash() const;
+    uint256 GetCachedHash() const;
     bool IsNewerThan(const CTransaction& old) const;
 
     // Return sum of txouts.
@@ -245,7 +252,7 @@ public:
 
     friend bool operator==(const CTransaction& a, const CTransaction& b)
     {
-        return (a.nVersion  == b.nVersion &&
+      return (a.nVersion  == b.nVersion &&
                 a.vin       == b.vin &&
                 a.vout      == b.vout &&
                 a.nLockTime == b.nLockTime);
@@ -443,6 +450,11 @@ public:
    * @return The expected index for the aux hash.
    */
     static int getExpectedIndex(int nNonce, int nChainId, unsigned h);
+
+    inline uint256 GetHash() const
+    {
+      return CTransaction::GetCachedHash();
+    }
 };
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,

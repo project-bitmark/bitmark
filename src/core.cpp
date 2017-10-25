@@ -83,6 +83,16 @@ uint256 CTransaction::GetHash() const
     return SerializeHash(*this);
 }
 
+uint256 CTransaction::GetCachedHash() const
+{
+  return hash;
+}
+
+void CTransaction::UpdateHash() const
+{
+  *const_cast<uint256*>(&hash) = SerializeHash(*this);
+}
+
 bool CTransaction::IsNewerThan(const CTransaction& old) const
 {
     if (vin.size() != old.vin.size())
@@ -317,6 +327,9 @@ int64_t CBlockIndex::GetMedianTime() const
 bool
 CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& params) const
 {
+
+  LogPrintf("check auxpow with parentBlock chainId = %d and vChainMerkleBranch size and nChainIndex %d\n",parentBlock.GetChainId(),vChainMerkleBranch.size(),nChainIndex);
+  
   if (nIndex != 0) {
     LogPrintf("check auxpow err 1\n");
         return error("AuxPow is not a generate");
@@ -339,7 +352,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
 
     // Check that we are in the parent block merkle tree
     if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != parentBlock.hashMerkleRoot) {
-      LogPrintf("check auxpow err 4\n");
+      LogPrintf("check auxpow err 4: \n");
         return error("Aux POW merkle root incorrect");
     }
 
@@ -472,6 +485,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   int algo = block.GetAlgo();
   if (block.auxpow || block.IsAuxpow()) {
     LogPrintf("checking auxpowproofofwork for algo %d\n",algo);
+    LogPrintf("chain id : %d\n",block.GetChainId());
   }
 
   if (!block.nVersion <= 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
@@ -485,6 +499,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   }
 
   if (!block.auxpow) {
+    LogPrintf("don't have auxpow in block\n");
     if (block.IsAuxpow()) {
       LogPrintf("auxpow err 2\n");
       return error("%s : no auxpow on block with auxpow version",

@@ -85,7 +85,12 @@ uint256 CTransaction::GetHash() const
 
 uint256 CTransaction::GetCachedHash() const
 {
-  return hash;
+  if (hash!=uint256(0)) {
+    return hash;
+  }
+  else {
+    return SerializeHash(*this);
+  }
 }
 
 void CTransaction::UpdateHash() const
@@ -328,7 +333,7 @@ bool
 CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& params) const
 {
 
-  LogPrintf("check auxpow with parentBlock chainId = %d and vChainMerkleBranch size and nChainIndex %d\n",parentBlock.GetChainId(),vChainMerkleBranch.size(),nChainIndex);
+  LogPrintf("check auxpow with parentBlock chainId = %d and vChainMerkleBranch size %d and nChainIndex %d\n",parentBlock.GetChainId(),vChainMerkleBranch.size(),nChainIndex);
   
   if (nIndex != 0) {
     LogPrintf("check auxpow err 1\n");
@@ -537,7 +542,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
   /*
   if (!(algo == ALGO_SHA256D || algo == ALGO_SCRYPT) )
-    {
+    {*const_cast<uint256*>(&hash)
       return error("%s : AUX POW is not allowed on this algo", __func__);
       }*/
 

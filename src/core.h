@@ -225,7 +225,7 @@ public:
         vin.clear();
         vout.clear();
         nLockTime = 0;
-	*const_cast<uint256*>(&hash) = 0;
+	*const_cast<uint256*>(&hash) = uint256(0);
     }
 
     bool IsNull() const

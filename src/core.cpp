@@ -86,9 +86,11 @@ uint256 CTransaction::GetHash() const
 uint256 CTransaction::GetCachedHash() const
 {
   if (hash!=uint256(0)) {
+    LogPrintf("get cached hash");
     return hash;
   }
   else {
+    LogPrintf("generate cached hash");
     return SerializeHash(*this);
   }
 }
@@ -355,8 +357,20 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     std::vector<unsigned char> vchRootHash(nRootHash.begin(), nRootHash.end());
     std::reverse(vchRootHash.begin(), vchRootHash.end()); // correct endian
 
+    uint256 transaction_hash = GetHash();
+    uint256 merklebranch_hash = CBlock::CheckMerkleBranch(transaction_hash, vMerkleBranch, nIndex);
+    LogPrintf("auxpow transaction = %s\n",ToString().c_str());
+    LogPrintf("auxpow transaction_hash = %s\n",transaction_hash.ToString().c_str());
+    LogPrintf("parentBlock.hashMerkleRoot = %s\n",parentBlock.hashMerkleRoot.ToString().c_str());
+    LogPrintf("merklebranch_hash = %s\n",merklebranch_hash.ToString().c_str());
+    BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
+      {
+	LogPrintf("VMerkleBranch hash: %s\n",otherside.GetHex().c_str());
+      }
+    
+    
     // Check that we are in the parent block merkle tree
-    if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != parentBlock.hashMerkleRoot) {
+    if (merklebranch_hash != parentBlock.hashMerkleRoot) {
       LogPrintf("check auxpow err 4: \n");
         return error("Aux POW merkle root incorrect");
     }

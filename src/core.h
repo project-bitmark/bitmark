@@ -400,6 +400,7 @@ public:
 
     IMPLEMENT_SERIALIZE
       (
+       LogPrintf("serialize aux pow read=%d write=%d getsize=%d",fRead,fWrite,fGetSize);
        nSerSize += SerReadWrite(s, *(CMerkleTx*)this, nType, nVersion,ser_action);
        nVersion = this->nVersion;
        READWRITE(vChainMerkleBranch);

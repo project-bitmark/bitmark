@@ -768,10 +768,11 @@ public:
     // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
 
-    CBlockIndex()
+    void SetNull()
     {
         phashBlock = NULL;
         pprev = NULL;
+	pauxpow.reset();
         nHeight = 0;
         nMoneySupply = 0;
 	subsidyScalingFactor = 0;
@@ -791,27 +792,20 @@ public:
         nNonce         = 0;
     }
 
-    CBlockIndex(CBlockHeader& block)
-    {
-        phashBlock = NULL;
-        pprev = NULL;
-        nHeight = 0;
-        nMoneySupply = 0;
-	subsidyScalingFactor = 0;
-        nFile = 0;
-        nDataPos = 0;
-        nUndoPos = 0;
-        nChainWork = 0;
-        nTx = 0;
-        nChainTx = 0;
-        nStatus = 0;
-        nSequenceId = 0;
+    CBlockIndex()
+      {
+	SetNull();
+      }
 
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
+    CBlockIndex(const CBlockHeader& block)
+    {
+      SetNull();
+
+      nVersion       = block.nVersion;
+      hashMerkleRoot = block.hashMerkleRoot;
+      nTime          = block.nTime;
+      nBits          = block.nBits;
+      nNonce         = block.nNonce;
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -929,6 +923,87 @@ public:
     inline bool IsAuxpow() const
     {
       return nVersion & BLOCK_VERSION_AUXPOW;
+    }
+};
+
+/** Used to marshal pointers into hashes for db storage. */
+class CDiskBlockIndex : public CBlockIndex
+{
+public:
+    uint256 hashPrev;
+
+    CDiskBlockIndex() {
+      SetNull();
+    }
+
+    explicit CDiskBlockIndex(CBlockIndex* pindex) : CBlockIndex(*pindex) {
+      hashPrev = (pprev ? pprev->GetBlockHash() : 0);
+    }
+     
+    IMPLEMENT_SERIALIZE
+      (
+       if (!(nType & SER_GETHASH))
+	 READWRITE(VARINT(nVersion));
+       
+       READWRITE(VARINT(nHeight));
+       READWRITE(VARINT(nMoneySupply));
+       READWRITE(VARINT(nStatus));
+       READWRITE(VARINT(nTx));
+       if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
+	 READWRITE(VARINT(nFile));
+       if (nStatus & BLOCK_HAVE_DATA)
+	 READWRITE(VARINT(nDataPos));
+       if (nStatus & BLOCK_HAVE_UNDO)
+	 READWRITE(VARINT(nUndoPos));
+
+       // block header
+       READWRITE(this->nVersion);
+       READWRITE(hashPrev);
+       READWRITE(hashMerkleRoot);
+       READWRITE(nTime);
+       READWRITE(nBits);
+       READWRITE(nNonce);
+       if (this->IsAuxpow()) {
+	 if (fRead) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
+	 assert(pauxpow);
+	 READWRITE(*pauxpow);
+       } else if (fRead) {
+	 ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
+       }
+    )
+
+    void SetNull() {
+      CBlockIndex::SetNull();
+      pauxpow.reset();
+      hashPrev = 0;
+    }
+      
+    uint256 GetBlockHash() const
+    {
+        CBlockHeader block;
+        block.nVersion        = nVersion;
+        block.hashPrevBlock   = hashPrev;
+        block.hashMerkleRoot  = hashMerkleRoot;
+        block.nTime           = nTime;
+        block.nBits           = nBits;
+        block.nNonce          = nNonce;
+        return block.GetHash();
+    }
+
+
+    std::string ToString() const
+    {
+        std::string str = "CDiskBlockIndex(";
+        str += CBlockIndex::ToString();
+        str += strprintf("\n                hashBlock=%s, hashPrev=%s)",
+            GetBlockHash().ToString().c_str(),
+            hashPrev.ToString().c_str());
+        return str;
+    }
+
+    void print() const
+    {
+        LogPrintf("%s\n", ToString().c_str());
     }
 };
 

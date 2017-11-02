@@ -507,7 +507,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
     LogPrintf("chain id : %d\n",block.GetChainId());
   }
 
-  if (!block.nVersion <= 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
+  if (block.nVersion > 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
     LogPrintf("auxpow err 1\n");
     return error("%s : block does not have our chain ID"
 		 " (got %d, expected %d, full nVersion %d)",

@@ -501,6 +501,10 @@ public:
         assert(fGetSize||fWrite||fRead); /* suppress warning */ \
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
+	if (this->IsAuxpow()) {
+	  assert(auxpow);
+	  READWRITE(*auxpow);
+	}
     }                                           \
     template<typename Stream>                   \
     void Unserialize(Stream& s, int nType, int nVersion)  \

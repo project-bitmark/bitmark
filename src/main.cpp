@@ -2345,8 +2345,11 @@ bool static DisconnectTip(CValidationState &state) {
     mempool.check(pcoinsTip);
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindexDelete))
-        return state.Abort(_("Failed to read block (disconnecttip)"));
+    if (!ReadBlockFromDisk(block, pindexDelete)) {
+      //return state.Abort(_("Failed to read block (disconnecttip)"));
+      LogPrintf("Failed to read block (disconnecttip)\n");
+      return false;
+    }
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
@@ -2386,8 +2389,11 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     mempool.check(pcoinsTip);
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindexNew))
-        return state.Abort(_("Failed to read block (connecttip)"));
+    if (!ReadBlockFromDisk(block, pindexNew)) {
+      //return state.Abort("Failed to read block (connecttip)"));
+      LogPrintf("Failed to read block (connecttip)\n");
+      return false;
+    }
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
@@ -2839,7 +2845,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
             if (!WriteBlockToDisk(block, blockPos))
                 return state.Abort(_("Failed to write block"));
         if (!AddToBlockIndex(block, state, blockPos))
-            return error("AcceptBlock() : AddToBlockIndex failed");
+	  return error("AcceptBlock() : AddToBlockIndex failed");
     } catch(std::runtime_error &e) {
         return state.Abort(_("System error: ") + e.what());
     }
@@ -2949,7 +2955,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp))
-        return error("ProcessBlock() : AcceptBlock FAILED");
+      return error("ProcessBlock() : AcceptBlock FAILED");
 
     // Recursively process any orphan blocks that depended on this one
     vector<uint256> vWorkQueue;

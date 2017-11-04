@@ -565,5 +565,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
       return error("%s : AUX proof of work failed", __func__);
     }
 
+  LogPrintf("checkauxpowproofofwork passed\n");
+  
   return true;
 }

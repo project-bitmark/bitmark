@@ -343,7 +343,7 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-        nSerSize += SerReadWrite(s, *(CTransaction*)this, nType, nVersion, ser_action);
+	READWRITE(*(CTransaction*)this);
         nVersion = this->nVersion;
         READWRITE(hashBlock);
         READWRITE(vMerkleBranch);
@@ -401,7 +401,7 @@ public:
     IMPLEMENT_SERIALIZE
       (
        LogPrintf("serialize aux pow read=%d write=%d getsize=%d",fRead,fWrite,fGetSize);
-       nSerSize += SerReadWrite(s, *(CMerkleTx*)this, nType, nVersion,ser_action);
+       READWRITE(*(CMerkleTx*)this);
        nVersion = this->nVersion;
        READWRITE(vChainMerkleBranch);
        READWRITE(nChainIndex);
@@ -475,56 +475,19 @@ public:
         SetNull();
     }
 
-    unsigned int GetSerializeSize(int nType, int nVersion) const	\
-    {                                           \
-        CSerActionGetSerializeSize ser_action;  \
-        const bool fGetSize = true;             \
-        const bool fWrite = false;              \
-        const bool fRead = false;               \
-        unsigned int nSerSize = 0;              \
-        ser_streamplaceholder s;                \
-        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
-        s.nType = nType;                        \
-        s.nVersion = nVersion;                  \
-	READWRITE(*(CPureBlockHeader*)this);
-	nVersion = this->nVersion;
-        return nSerSize;                        \
-    }                                           \
-    template<typename Stream>                   \
-    void Serialize(Stream& s, int nType, int nVersion) const \
-    {                                           \
-        CSerActionSerialize ser_action;         \
-        const bool fGetSize = false;            \
-        const bool fWrite = true;               \
-        const bool fRead = false;               \
-        unsigned int nSerSize = 0;              \
-        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
-	READWRITE(*(CPureBlockHeader*)this);
-	nVersion = this->nVersion;
-	if (this->IsAuxpow()) {
-	  assert(auxpow);
-	  READWRITE(*auxpow);
-	}
-    }                                           \
-    template<typename Stream>                   \
-    void Unserialize(Stream& s, int nType, int nVersion)  \
-    {                                           \
-        CSerActionUnserialize ser_action;       \
-        const bool fGetSize = false;            \
-        const bool fWrite = false;              \
-        const bool fRead = true;                \
-        unsigned int nSerSize = 0;              \
-        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
-	READWRITE(*(CPureBlockHeader*)this);
-	nVersion = this->nVersion;
-	if (this->IsAuxpow()) {
-	  auxpow.reset(new CAuxPow());
-	  assert(auxpow);
-	  READWRITE(*auxpow);
-	} else {
-	  auxpow.reset();
-	}
-    }
+    IMPLEMENT_SERIALIZE
+      (
+       READWRITE(*(CPureBlockHeader*)this);
+       nVersion = this->nVersion;
+       if (this->IsAuxpow()) {
+	 if (fRead) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
+	 assert(auxpow);
+	 READWRITE(*auxpow);
+       }
+       else if (fRead) {
+	 ((boost::shared_ptr<CAuxPow>)auxpow).reset();
+       }
+       )
 
     void SetNull()
     {

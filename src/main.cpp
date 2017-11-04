@@ -1113,6 +1113,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 {
+  LogPrintf("In writeblocktodisk\n");
     // Open history file to append
     CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
     if (!fileout) {
@@ -1142,6 +1143,8 @@ bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
 {
+
+  LogPrintf("In ReadBlockFromDisk\n");
     block.SetNull();
 
     // Open history file to read
@@ -2538,6 +2541,7 @@ bool ActivateBestChain(CValidationState &state) {
 
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos)
 {
+  LogPrintf("In addtoblockindex\n");
     // Check for duplicate
     uint256 hash = block.GetHash();
     if (mapBlockIndex.count(hash))
@@ -2561,6 +2565,7 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
     pindexNew->nTx = block.vtx.size();
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + pindexNew->GetBlockWork().getuint256();
     if (block.IsAuxpow()) {
+      LogPrintf("addtoblockindex auxpow\n");
       pindexNew->pauxpow = block.auxpow;
       assert(NULL != pindexNew->pauxpow.get());
     }

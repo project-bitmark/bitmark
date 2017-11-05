@@ -481,7 +481,7 @@ public:
        nVersion = this->nVersion;
        if (this->IsAuxpow()) {
 	 LogPrintf("serialize blockheader isauxpow\n");
-	 if (fRead) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
+	 if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
 	 assert(auxpow);
 	 READWRITE(*auxpow);
        }
@@ -932,7 +932,7 @@ public:
        READWRITE(nBits);
        READWRITE(nNonce);
        if (this->IsAuxpow()) {
-	 if (fRead) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
+	 if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
 	 assert(pauxpow);
 	 READWRITE(*pauxpow);
        } else if (fRead) {

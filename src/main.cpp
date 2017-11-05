@@ -1223,7 +1223,6 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
 {
     // Before the fork we'll use the original quartering code. Set a low fork number
     // for testnet
-    int64_t forkHeight;
     int nHeight = pindexPrev->nHeight;
     // This number must be 100 times less than the actual full reward hashrate
     // because we use it to divide a potentially really large number, the
@@ -1232,15 +1231,13 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     // and then convert it into a float for multiplication
     int minimumFullRewardHashrate;
     if (TestNet()) {
-        forkHeight = 15;
         // 5 MH/s
         minimumFullRewardHashrate = 50000;
     } else {
-        forkHeight = nForkHeight;
         // 35 GH/s
         minimumFullRewardHashrate = 35000000000 / 100;
     }
-    if (nHeight < forkHeight && !RegTest()) {
+    if (nHeight < nForkHeight && !RegTest()) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1533,19 +1530,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
     // Mainnet
-    if (Params().NetworkID() != CChainParams::TESTNET) {
-      if (nHeight < nForkHeight-1 || RegTest()) {
-	workAlgo = 0;
-      } else {
-	workAlgo = 1;
-      }
-    // Testnet
+    if (nHeight < nForkHeight-1 || RegTest()) {
+      workAlgo = 0;
     } else {
-      if (nHeight < nForkHeight-1) {
-            workAlgo = 0;
-        } else {
-            workAlgo = 1;
-        }
+      workAlgo = 1;
     }
 
     if (workAlgo == 0) {
@@ -1575,7 +1563,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
                     return pindex->nBits;
                 }
 		}*/
-	  if (pindexLast->nHeight == 0 && Params().NetworkID() == CChainParams::REGTEST) {
+	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
 	  return pindexLast->nBits;

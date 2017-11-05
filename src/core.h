@@ -400,7 +400,7 @@ public:
 
     IMPLEMENT_SERIALIZE
       (
-       LogPrintf("serialize aux pow read=%d write=%d getsize=%d",fRead,fWrite,fGetSize);
+       LogPrintf("serialize aux pow read=%d write=%d getsize=%d\n",fRead,fWrite,fGetSize);
        READWRITE(*(CMerkleTx*)this);
        nVersion = this->nVersion;
        READWRITE(vChainMerkleBranch);
@@ -480,6 +480,7 @@ public:
        READWRITE(*(CPureBlockHeader*)this);
        nVersion = this->nVersion;
        if (this->IsAuxpow()) {
+	 LogPrintf("serialize blockheader isauxpow\n");
 	 if (fRead) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
 	 assert(auxpow);
 	 READWRITE(*auxpow);

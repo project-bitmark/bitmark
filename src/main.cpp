@@ -2555,7 +2555,9 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
     if (block.IsAuxpow()) {
       LogPrintf("addtoblockindex auxpow\n");
       pindexNew->pauxpow = block.auxpow;
+      LogPrintf("Have set pindexNew pauxpow\n");
       assert(NULL != pindexNew->pauxpow.get());
+      LogPrintf("Have asserted pindexNew\n");
     }
     pindexNew->nChainTx = (pindexNew->pprev ? pindexNew->pprev->nChainTx : 0) + pindexNew->nTx;
     pindexNew->nFile = pos.nFile;
@@ -2567,10 +2569,14 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
     if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew)))
         return state.Abort(_("Failed to write block index"));
 
+    LogPrintf("wrote blockindex\n");
+    
     // New best?
     if (!ActivateBestChain(state))
         return false;
 
+    LogPrintf("passed activatebestchain\n");
+    
     LOCK(cs_main);
     if (pindexNew == chainActive.Tip())
     {
@@ -2583,16 +2589,22 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
     } else
         CheckForkWarningConditionsOnNewFork(pindexNew);
 
+    LogPrintf("passed forkwarningconds\n");
+    
     if (!pblocktree->Flush())
         return state.Abort(_("Failed to sync block index"));
 
     uiInterface.NotifyBlocksChanged();
+    LogPrintf("done with addtoblockindex\n");
     return true;
 }
 
 
 bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64_t nTime, bool fKnown = false)
 {
+
+  LogPrintf("In findblockpos with nAddSize = %d",nAddSize);
+  
     bool fUpdatedLast = false;
 
     LOCK(cs_LastBlockFile);
@@ -2691,8 +2703,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
+  unsigned int block_size = ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+  LogPrintf("In checkblock with block size %d\n",block_size);
+  
     // Size limits
-    if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
 
@@ -2762,6 +2777,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
+  LogPrintf("In acceptblock\n");
     AssertLockHeld(cs_main);
     // Check for duplicate
     uint256 hash = block.GetHash();
@@ -2852,6 +2868,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
             if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
+
+    LogPrintf("Done acceptblock\n");
     
     return true;
 }
@@ -2955,6 +2973,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     vWorkQueue.push_back(hash);
     for (unsigned int i = 0; i < vWorkQueue.size(); i++)
     {
+      LogPrintf("processblock work queue %d of %d\n",i,vWorkQueue.size());
         uint256 hashPrev = vWorkQueue[i];
         for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev);
              mi != mapOrphanBlocksByPrev.upper_bound(hashPrev);

@@ -475,21 +475,73 @@ public:
         SetNull();
     }
 
-    IMPLEMENT_SERIALIZE
-      (
-       READWRITE(*(CPureBlockHeader*)this);
-       nVersion = this->nVersion;
-       if (this->IsAuxpow()) {
-	 LogPrintf("serialize blockheader isauxpow\n");
-	 if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
-	 assert(auxpow);
-	 READWRITE(*auxpow);
-       }
-       else if (fRead) {
-	 ((boost::shared_ptr<CAuxPow>)auxpow).reset();
-       }
-       )
-
+        unsigned int GetSerializeSize(int nType, int nVersion) const \
+    {                                           \
+        CSerActionGetSerializeSize ser_action;  \
+        const bool fGetSize = true;             \
+        const bool fWrite = false;              \
+        const bool fRead = false;               \
+        unsigned int nSerSize = 0;              \
+        ser_streamplaceholder s;                \
+        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+        s.nType = nType;                        \
+        s.nVersion = nVersion;                  \
+	READWRITE(*(CPureBlockHeader*)this);
+	nVersion = this->nVersion;
+	if (this->IsAuxpow()) {
+	  LogPrintf("serialize blockheader isauxpow\n");
+	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
+	  assert(auxpow);
+	  READWRITE(*auxpow);
+	}
+	else if (fRead) {
+	  ((boost::shared_ptr<CAuxPow>)auxpow).reset();
+	}
+        return nSerSize;                        \
+    }                                           \
+    template<typename Stream>                   \
+    void Serialize(Stream& s, int nType, int nVersion) const \
+    {                                           \
+        CSerActionSerialize ser_action;         \
+        const bool fGetSize = false;            \
+        const bool fWrite = true;               \
+        const bool fRead = false;               \
+        unsigned int nSerSize = 0;              \
+        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+	READWRITE(*(CPureBlockHeader*)this);
+	nVersion = this->nVersion;
+	if (this->IsAuxpow()) {
+	  LogPrintf("serialize blockheader isauxpow\n");
+	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
+	  assert(auxpow);
+	  READWRITE(*auxpow);
+	}
+	else if (fRead) {
+	  ((boost::shared_ptr<CAuxPow>)auxpow).reset();
+	}
+    }                                           \
+    template<typename Stream>                   \
+    void Unserialize(Stream& s, int nType, int nVersion)  \
+    {                                           \
+        CSerActionUnserialize ser_action;       \
+        const bool fGetSize = false;            \
+        const bool fWrite = false;              \
+        const bool fRead = true;                \
+        unsigned int nSerSize = 0;              \
+        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+	READWRITE(*(CPureBlockHeader*)this);
+	nVersion = this->nVersion;
+	if (this->IsAuxpow()) {
+	  LogPrintf("serialize blockheader isauxpow\n");
+	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
+	  assert(auxpow);
+	  READWRITE(*auxpow);
+	}
+	else if (fRead) {
+	  ((boost::shared_ptr<CAuxPow>)auxpow).reset();
+	}
+    }
+    
     void SetNull()
     {
       CPureBlockHeader::SetNull();
@@ -907,39 +959,125 @@ public:
     explicit CDiskBlockIndex(CBlockIndex* pindex) : CBlockIndex(*pindex) {
       hashPrev = (pprev ? pprev->GetBlockHash() : 0);
     }
-     
-    IMPLEMENT_SERIALIZE
-      (
-       if (!(nType & SER_GETHASH))
-	 READWRITE(VARINT(nVersion));
-       
-       READWRITE(VARINT(nHeight));
-       READWRITE(VARINT(nMoneySupply));
-       READWRITE(VARINT(nStatus));
-       READWRITE(VARINT(nTx));
-       if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
-	 READWRITE(VARINT(nFile));
-       if (nStatus & BLOCK_HAVE_DATA)
-	 READWRITE(VARINT(nDataPos));
-       if (nStatus & BLOCK_HAVE_UNDO)
-	 READWRITE(VARINT(nUndoPos));
 
-       // block header
-       READWRITE(this->nVersion);
-       READWRITE(hashPrev);
-       READWRITE(hashMerkleRoot);
-       READWRITE(nTime);
-       READWRITE(nBits);
-       READWRITE(nNonce);
-       if (this->IsAuxpow()) {
-	 if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
-	 assert(pauxpow);
-	 READWRITE(*pauxpow);
-       } else if (fRead) {
-	 ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
-       }
-    )
+    unsigned int GetSerializeSize(int nType, int nVersion) const \
+    {                                           \
+        CSerActionGetSerializeSize ser_action;  \
+        const bool fGetSize = true;             \
+        const bool fWrite = false;              \
+        const bool fRead = false;               \
+        unsigned int nSerSize = 0;              \
+        ser_streamplaceholder s;                \
+        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+        s.nType = nType;                        \
+        s.nVersion = nVersion;                  \
+	if (!(nType & SER_GETHASH))
+	  READWRITE(VARINT(nVersion));
+        
+	READWRITE(VARINT(nHeight));
+	READWRITE(VARINT(nMoneySupply));
+	READWRITE(VARINT(nStatus));
+	READWRITE(VARINT(nTx));
+	if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
+	  READWRITE(VARINT(nFile));
+	if (nStatus & BLOCK_HAVE_DATA)
+	  READWRITE(VARINT(nDataPos));
+	if (nStatus & BLOCK_HAVE_UNDO)
+	  READWRITE(VARINT(nUndoPos));
 
+	// block header
+	READWRITE(this->nVersion);
+	READWRITE(hashPrev);
+	READWRITE(hashMerkleRoot);
+	READWRITE(nTime);
+	READWRITE(nBits);
+	READWRITE(nNonce);
+	if (this->IsAuxpow()) {
+	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
+	  assert(pauxpow);
+	  READWRITE(*pauxpow);
+	} else if (fRead) {
+	  ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
+	}
+        return nSerSize;                        \
+    }                                           \
+    template<typename Stream>                   \
+    void Serialize(Stream& s, int nType, int nVersion) const \
+    {                                           \
+        CSerActionSerialize ser_action;         \
+        const bool fGetSize = false;            \
+        const bool fWrite = true;               \
+        const bool fRead = false;               \
+        unsigned int nSerSize = 0;              \
+        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+	if (!(nType & SER_GETHASH))
+	  READWRITE(VARINT(nVersion));
+        
+	READWRITE(VARINT(nHeight));
+	READWRITE(VARINT(nMoneySupply));
+	READWRITE(VARINT(nStatus));
+	READWRITE(VARINT(nTx));
+	if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
+	  READWRITE(VARINT(nFile));
+	if (nStatus & BLOCK_HAVE_DATA)
+	  READWRITE(VARINT(nDataPos));
+	if (nStatus & BLOCK_HAVE_UNDO)
+	  READWRITE(VARINT(nUndoPos));
+
+	// block header
+	READWRITE(this->nVersion);
+	READWRITE(hashPrev);
+	READWRITE(hashMerkleRoot);
+	READWRITE(nTime);
+	READWRITE(nBits);
+	READWRITE(nNonce);
+	if (this->IsAuxpow()) {
+	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
+	  assert(pauxpow);
+	  READWRITE(*pauxpow);
+	} else if (fRead) {
+	  ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
+	} 
+    }                                           \
+    template<typename Stream>                   \
+    void Unserialize(Stream& s, int nType, int nVersion)  \
+    {                                           \
+        CSerActionUnserialize ser_action;       \
+        const bool fGetSize = false;            \
+        const bool fWrite = false;              \
+        const bool fRead = true;                \
+        unsigned int nSerSize = 0;              \
+        assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+		if (!(nType & SER_GETHASH))
+	  READWRITE(VARINT(nVersion));
+        
+	READWRITE(VARINT(nHeight));
+	READWRITE(VARINT(nMoneySupply));
+	READWRITE(VARINT(nStatus));
+	READWRITE(VARINT(nTx));
+	if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
+	  READWRITE(VARINT(nFile));
+	if (nStatus & BLOCK_HAVE_DATA)
+	  READWRITE(VARINT(nDataPos));
+	if (nStatus & BLOCK_HAVE_UNDO)
+	  READWRITE(VARINT(nUndoPos));
+
+	// block header
+	READWRITE(this->nVersion);
+	READWRITE(hashPrev);
+	READWRITE(hashMerkleRoot);
+	READWRITE(nTime);
+	READWRITE(nBits);
+	READWRITE(nNonce);
+	if (this->IsAuxpow()) {
+	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
+	  assert(pauxpow);
+	  READWRITE(*pauxpow);
+	} else if (fRead) {
+	  ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
+	}
+    }
+ 
     void SetNull() {
       CBlockIndex::SetNull();
       pauxpow.reset();

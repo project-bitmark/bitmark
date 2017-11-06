@@ -489,13 +489,9 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("serialize blockheader isauxpow\n");
-	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
+	  LogPrintf("getserializesize blockheader isauxpow\n");
 	  assert(auxpow);
 	  READWRITE(*auxpow);
-	}
-	else if (fRead) {
-	  ((boost::shared_ptr<CAuxPow>)auxpow).reset();
 	}
         return nSerSize;                        \
     }                                           \
@@ -512,12 +508,8 @@ public:
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
 	  LogPrintf("serialize blockheader isauxpow\n");
-	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
 	  assert(auxpow);
 	  READWRITE(*auxpow);
-	}
-	else if (fRead) {
-	  ((boost::shared_ptr<CAuxPow>)auxpow).reset();
 	}
     }                                           \
     template<typename Stream>                   \
@@ -532,13 +524,13 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("serialize blockheader isauxpow\n");
-	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)auxpow).reset(new CAuxPow());
+	  LogPrintf("unserialize blockheader isauxpow\n");
+	  auxpow.reset(new CAuxPow());
 	  assert(auxpow);
 	  READWRITE(*auxpow);
 	}
-	else if (fRead) {
-	  ((boost::shared_ptr<CAuxPow>)auxpow).reset();
+	else {
+	  auxpow.reset();
 	}
     }
     
@@ -993,11 +985,8 @@ public:
 	READWRITE(nBits);
 	READWRITE(nNonce);
 	if (this->IsAuxpow()) {
-	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
 	  assert(pauxpow);
 	  READWRITE(*pauxpow);
-	} else if (fRead) {
-	  ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
 	}
         return nSerSize;                        \
     }                                           \
@@ -1032,12 +1021,9 @@ public:
 	READWRITE(nBits);
 	READWRITE(nNonce);
 	if (this->IsAuxpow()) {
-	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
 	  assert(pauxpow);
 	  READWRITE(*pauxpow);
-	} else if (fRead) {
-	  ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
-	} 
+	}
     }                                           \
     template<typename Stream>                   \
     void Unserialize(Stream& s, int nType, int nVersion)  \
@@ -1070,11 +1056,11 @@ public:
 	READWRITE(nBits);
 	READWRITE(nNonce);
 	if (this->IsAuxpow()) {
-	  if (fRead||fGetSize) ((boost::shared_ptr<CAuxPow>)pauxpow).reset(new CAuxPow());
+	  pauxpow.reset(new CAuxPow());
 	  assert(pauxpow);
 	  READWRITE(*pauxpow);
-	} else if (fRead) {
-	  ((boost::shared_ptr<CAuxPow>)pauxpow).reset();
+	} else {
+	  pauxpow.reset();
 	}
     }
  

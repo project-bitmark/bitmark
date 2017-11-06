@@ -140,7 +140,7 @@ public:
         genesis.nBits = 0x1e0ffff0;
 	genesis.nNonce = 1291475;
 	hashGenesisBlock = genesis.GetHash();
-	printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
         assert(hashGenesisBlock == uint256("0x572f069d470350b8facc52a0866671d2d3071230e4df45d193394ae153fa891d"));
 

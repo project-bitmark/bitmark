@@ -380,7 +380,40 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                 // Control
                 //
                 case OP_NOP:
-                case OP_NOP1: case OP_NOP2: case OP_NOP3: case OP_NOP4: case OP_NOP5:
+		case OP_NOP1:
+                break;
+
+	        case OP_NOP2: //OP_CHECKLOCKTIMEVERIFY
+	        {
+                    // see https://github.com/petertodd/bitcoin/commit/ab0f54f38e08ee1e50ff72f801680ee84d0f1bf4
+
+                    if (!(flags & SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY))
+                        break; // not enabled; treat as a NOP
+
+		    if (stack.size() < 1)
+                        return false;
+
+                    const CScriptNum nLockTime(stacktop(-1), 5);
+
+		    if (nLockTime < 0)
+                        return false;
+
+                    if (!(
+                          (txTo.nLockTime <  LOCKTIME_THRESHOLD && nLockTime <  LOCKTIME_THRESHOLD) ||
+                          (txTo.nLockTime >= LOCKTIME_THRESHOLD && nLockTime >= LOCKTIME_THRESHOLD)
+                         ))
+                        return false;
+
+		    if (nLockTime > (int64_t)txTo.nLockTime)
+                        return false;
+
+                    if (txTo.vin[nIn].IsFinal())
+                        return false;
+
+                    break;
+	        }
+
+                case OP_NOP3: case OP_NOP4: case OP_NOP5:
                 case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
                 break;
 
@@ -1660,7 +1693,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     }
 
     // Test solution
-    return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, 0);
+    return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY, 0);
 }
 
 bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType)

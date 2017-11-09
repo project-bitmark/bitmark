@@ -298,6 +298,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 {
     Object result;
     result.push_back(Pair("hash", block.GetHash().GetHex()));
+    result.push_back(Pair("powhash",block.GetPoWHash().GetHex()));
     CMerkleTx txGen(block.vtx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations", (int)txGen.GetDepthInMainChain()));
@@ -308,6 +309,9 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("algo",GetAlgoName(algo)));
     bool auxpow = block.IsAuxpow();
     result.push_back(Pair("auxpow",auxpow));
+    if (auxpow) {
+      result.push_back(Pair("parentblockhash",block.auxpow->parentBlock.GetHash().GetHex()));
+    }
     result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
     result.push_back(Pair("SSF work",get_ssf_work(blockindex)));
     result.push_back(Pair("SSF time",get_ssf_time(blockindex)));

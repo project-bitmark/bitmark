@@ -311,6 +311,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("auxpow",auxpow));
     if (auxpow) {
       result.push_back(Pair("parentblockhash",block.auxpow->parentBlock.GetHash().GetHex()));
+      result.push_back(Pair("parentblockpowhash",block.auxpow->parentBlock.GetPoWHash().GetHex()));
     }
     result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
     result.push_back(Pair("SSF work",get_ssf_work(blockindex)));

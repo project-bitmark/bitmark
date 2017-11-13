@@ -120,5 +120,8 @@ qa/pull-tester/test.*/*
 /doc/doxygen/
 
 libbitcoinconsensus.pc
+<<<<<<< HEAD
 
 *~
+=======
+>>>>>>> 8e7326a6089454948526665ede0677658d8253af

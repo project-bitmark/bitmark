@@ -975,7 +975,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!CheckInputs(tx, state, view, true, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC))
+        if (!CheckInputs(tx, state, view, true, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY))
         {
             return error("AcceptToMemoryPool: : ConnectInputs failed %s", hash.ToString());
         }
@@ -2123,6 +2123,15 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     // BIP16
     unsigned int flags = SCRIPT_VERIFY_NOCACHE | SCRIPT_VERIFY_P2SH;
+    // NOP2 is redefined as CHECKLOCKTIMEVERIFY in blocks with nVersion >= 3
+    //
+    // However the block.nVersion=3 rule is not enforced until 750 of the last
+    // 1,000 blocks are version 3 or greater (51/100 if testnet):
+    if (block.nVersion >= 3 &&
+        CBlockIndex::IsSuperMajority(3, pindex->pprev, 750, 1000))
+    {
+        flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
+    }
 
     CBlockUndo blockundo;
 
@@ -2839,6 +2848,14 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 				!std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin()))
 				return state.DoS(100, error("AcceptBlock() : block height mismatch in coinbase"),
 								 REJECT_INVALID, "bad-cb-height");
+        }
+
+        // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
+        if (block.nVersion < 3 &&
+            CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
+        {
+            return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
+                                 REJECT_OBSOLETE, "bad-version");
         }
     }
 

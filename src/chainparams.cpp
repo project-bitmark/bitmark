@@ -20,15 +20,15 @@ using namespace boost::assign;
 //
 
 // Hard-Coded (Fixed) Network Nodes
-// Verified on January 6, 2016
-unsigned int pnSeed[] =
-{
-//	0xac1f1f0a, 		// *** inoperative ***
-	0xAE240982,		// Bitmark.co 
-//	0x253b1359,		// *** inoperative *** 
-	0x2D2141A1,		// us.bitmark.io
-	0x8BA2805C,		// eu.bitmark.io
-	0xCC447A0B		// one.zmark.org
+// Verified on November 12, 2017
+// (1510514312 Sun Nov 12 19:18:32 UTC 2017)
+unsigned int pnSeed[] = {0x8BA2805C, // eu.bitmark.io IP = 139.162.128.92
+			 0x5E89B1E3, // ge.bitmark.io IP = 94.137.177.227
+			 0x8BA27A8A, // jp.bitmark.io IP = 139.162.122.138
+			 0x2D2141A1, // us.bitmark.io IP = 45.33.65.161
+			 0xCC447A12, // tx.bitmark.io IP = 204.68.122.18
+			 0xCC447A07, // seed.bitmark.mx IP = 204.68.122.7
+			 0xCC447A0B  // one.zmark.org IP = 204.68.122.11
 };
 
 class CMainParams : public CChainParams {

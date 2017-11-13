@@ -2127,8 +2127,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     //
     // However the block.nVersion=3 rule is not enforced until 750 of the last
     // 1,000 blocks are version 3 or greater (51/100 if testnet):
-    if (block.nVersion >= 3 &&
-        CBlockIndex::IsSuperMajority(3, pindex->pprev, 750, 1000))
+    if (block.nVersion >= 3)
     {
         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
     }
@@ -2851,12 +2850,13 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         }
 
         // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
+	/*
         if (block.nVersion < 3 &&
             CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
         {
             return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
                                  REJECT_OBSOLETE, "bad-version");
-        }
+				 }*/
     }
 
     // Write block to history file

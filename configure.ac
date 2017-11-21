@@ -109,6 +109,18 @@ AC_ARG_ENABLE([glibc-back-compat],
 
 AC_ARG_WITH([protoc-bindir],[AS_HELP_STRING([--with-protoc-bindir=BIN_DIR],[specify protoc bin path])], [protoc_bin_path=$withval], [])
 
+AC_ARG_WITH([macports],
+  [AS_HELP_STRING([--with-macports],
+  [use MacPorts for building on OS X (default is yes if port executable is found)])],
+  [use_macports=$withval],
+  [use_macports=auto])
+
+AC_ARG_WITH([homebrew],
+  [AS_HELP_STRING([--with-homebrew],
+  [use Homebrew for building on OS X (default is yes if brew executable is found)])],
+  [use_homebrew=$withval],
+  [use_homebrew=auto])
+
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/bitmark-config.h])
@@ -224,21 +236,28 @@ case $host in
      if  test x$cross_compiling != xyes; then
        BUILD_OS=darwin
        AC_CHECK_PROG([PORT],port, port)
-       if test x$PORT = xport; then
+       if test x$PORT = xport && test x$use_macports != xno; then
          dnl add default macports paths
          CPPFLAGS="$CPPFLAGS -isystem /opt/local/include -I/opt/local/include/db48"
          LIBS="$LIBS -L/opt/local/lib -L/opt/local/lib/db48"
+         use_macports=yes
        fi
 
        AC_CHECK_PROG([BREW],brew, brew)
-       if test x$BREW = xbrew; then
+       if test x$BREW = xbrew && test x$use_homebrew != xno; then
          dnl add default homebrew paths
          openssl_prefix=`$BREW --prefix openssl`
          bdb_prefix=`$BREW --prefix berkeley-db4`
          export PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
          CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
          LIBS="$LIBS -L$bdb_prefix/lib"
+         use_homebrew=yes
        fi
+
+       if test x$use_homebrew = xyes && test x$use_macports = xyes; then
+         AC_MSG_ERROR(["Homebrew and MacPorts cannot be used simultaneously. Please disable one of them"])
+       fi
+
      else
        case $build_os in
          *darwin*)

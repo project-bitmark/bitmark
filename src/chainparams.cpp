@@ -27,6 +27,7 @@ unsigned int pnSeed[] =
 //      0xac1f1f0a,             // *** inoperative: historical IP with IBM / SoftLayer  ***
 //      0x253b1359,             // *** inoperative: historical IP with IBM / SoftLayer  *** 
 //      0xAE240982,             // *** innoperative *** Bitmark.co              IP = 174.36.9.130; bitmark.co resolving to:74.220.215.203 on Nov12'2017
+	0xADFFFC8C,		// seed.bitmark.co	IP = 173.255.252.140	sam
         0x8BA2805C,             // eu.bitmark.io        IP = 139.162.128.92     frank
         0x5E89B1E3,             // ge.bitmark.io        IP = 94.137.177.227     anton
         0x8BA27A8A,             // jp.bitmark.io        IP = 139.162.122.138    akio

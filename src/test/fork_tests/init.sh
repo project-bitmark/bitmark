@@ -2,12 +2,12 @@
 
 set -e
 
+datadir="$(pwd)/.bitmark"
+
 set +e
-bitmark-cli stop
+bitmark-cli -datadir="$datadir" stop
 set -e
 
-datadir="$(pwd)/.bitmark"
-echo "Using datadir $datadir"
 rm -rf "$datadir"
 mkdir -p "$datadir"
 cp bitmark.conf "$datadir"

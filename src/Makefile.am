@@ -1,6 +1,6 @@
 include Makefile.include
 
-CXX = g++ -fPIC
+CXX = g++ -fPIC -std=c++11
 CC = gcc -fPIC
 
 AM_CPPFLAGS += -I$(builddir)
@@ -177,6 +177,8 @@ libbitmark_common_a_SOURCES = \
   ar2/test.c \
   ar2/thread.c \
   ar2/blake2/blake2b.c \
+  equihash.cpp \
+  equihash.tcc \
   $(BITMARK_CORE_H)
 
 if GLIBC_BACK_COMPAT

@@ -61,6 +61,11 @@ public:
         return ret;
     }
 
+    void SetNull()
+    {
+      memset(pn, 0, sizeof(pn));
+    }
+    
     double getdouble() const
     {
       double ret = 0.0;

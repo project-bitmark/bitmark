@@ -80,6 +80,8 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty ARGON2",    (double)GetDifficulty(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("difficulty X17",    (double)GetDifficulty(NULL,ALGO_X17)));
     obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH)));
+    obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT)));    
     obj.push_back(Pair("moneysupply",    (double)GetMoneySupply(NULL,0)));
 
     obj.push_back(Pair("testnet",       TestNet()));

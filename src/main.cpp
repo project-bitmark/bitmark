@@ -2712,13 +2712,19 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     // that can be verified before saving an orphan block.
 
   unsigned int block_size = ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-  LogPrintf("In checkblock with block size %d\n",block_size);
+  LogPrintf("In checkblock with block size %d, %d\n",block_size,block.vtx.size());
   
     // Size limits
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
 
+    // Check Equihash solution if applicable
+    if (fCheckPOW && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
+      return state.DoS(50, error("CheckBlock() : Invalid Equihash Solution"),
+			 REJECT_INVALID, "bad-equihash-solution");      
+    }
+    
     // Check proof of work matches claimed amount
     if(block.IsAuxpow()) {
       LogPrintf("block being checked is auxpow\n");
@@ -4842,6 +4848,10 @@ int GetAlgo (int nVersion) {
       return ALGO_X17;
     case BLOCK_VERSION_LYRA2REv2:
       return ALGO_LYRA2REv2;
+    case BLOCK_VERSION_EQUIHASH:
+      return ALGO_EQUIHASH;
+    case BLOCK_VERSION_CRYPTONIGHT:
+      return ALGO_CRYPTONIGHT;      
     }
   return ALGO_SCRYPT;
 }
@@ -4861,6 +4871,12 @@ const char * GetAlgoName (int algo) {
   }
   else if (algo == 5) {
     return "LYRA2REv2";
+  }
+  else  if (algo == 6) {
+    return "EQUIHASH";
+  }
+  else if (algo == 7) {
+    return "CRYPTONIGHT";
   }
   return "SCRYPT";
 }

@@ -16,6 +16,9 @@
 #include "bignum.h"
 #include "chainparams.h"
 #include "pureheader.h"
+
+class CBlockHeader;
+
 #include "pow.h"
 
 #include <boost/filesystem.hpp>
@@ -521,6 +524,7 @@ public:
         const bool fRead = true;                \
         unsigned int nSerSize = 0;              \
         assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+	LogPrintf("read pureblockheader\n");
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
@@ -557,6 +561,26 @@ public:
     {
       CPureBlockHeader::SetAuxpow(apow);
     }
+};
+
+class CEquihashInput : private CBlockHeader
+{
+public:
+    CEquihashInput(const CBlockHeader &header)
+    {
+        CBlockHeader::SetNull();
+        *((CBlockHeader*)this) = header;
+    }
+
+    IMPLEMENT_SERIALIZE
+    (
+        READWRITE(this->nVersion);
+	nVersion = this->nVersion;
+        READWRITE(hashPrevBlock);
+        READWRITE(hashMerkleRoot);
+        READWRITE(nTime);
+        READWRITE(nBits);
+    )
 };
 
 /** wrapper for CTxOut that provides a more compact serialization */
@@ -662,7 +686,9 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
+     if (fRead) LogPrintf("read blockheader\n");
         READWRITE(*(CBlockHeader*)this);
+     if (fRead) LogPrintf("r vtx\n");
         READWRITE(vtx);
     )
 

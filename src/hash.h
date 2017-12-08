@@ -143,5 +143,7 @@ void hash_scrypt(const char * input, char * output);
 void hash_argon2(const char * input, char * output);
 uint256 hash_x17(const char * begin, const char * end);
 void hash_lyra2rev2(const char * input, char * output);
+void hash_equihash(const char * input, char * output);
+void hash_cryptonight(const char * input, char * output);
 
 #endif

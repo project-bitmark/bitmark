@@ -74,8 +74,16 @@ public:
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
-        // todo add more dns seeders
-        vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
+        // DNS Seeders
+        vSeeds.push_back(CDNSSeedData("bitmark.guru", "da.bitmark.guru"));
+        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one", "biji.bitmark.one"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one", "shido.bitmark.one"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one", "uk.bitmark.one"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one", "da.bitmark.mx"));
+        vSeeds.push_back(CDNSSeedData("zmark.org", "btm.zmark.org"));
+        vSeeds.push_back(CDNSSeedData("zmark.org", "btmk.zmark.org"));
+        vSeeds.push_back(CDNSSeedData("zmark.org", "ra.zmark.org"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(85); // b
         base58Prefixes[SCRIPT_ADDRESS] = list_of(5);

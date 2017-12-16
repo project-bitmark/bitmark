@@ -9,6 +9,7 @@ src/qt/bitmark-qt
 src/test/test_bitcoin
 src/test/test_bitmark
 src/qt/test/test_bitcoin-qt
+binaries/*
 
 # autoreconf
 Makefile.in

@@ -3362,8 +3362,8 @@ bool InitBlockIndex() {
     if (!fReindex) {
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
-	    /*
-	    uint256 best_hash = block.GetPoWHash();
+
+	    /*uint256 best_hash = block.GetPoWHash();
 	    CBigNum bnTarget;
 	    bnTarget.SetCompact(block.nBits);
 	    uint256 target = bnTarget.getuint256();

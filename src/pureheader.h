@@ -8,11 +8,12 @@
 #include "hash.h"
 #include "bignum.h"
 
-const int NUM_ALGOS = 7;
+const int NUM_ALGOS = 8;
 
 enum {
+  ALGO_SCRYPT = 0,
   ALGO_SHA256D = 1,
-  ALGO_SCRYPT = 2,
+  ALGO_YESCRYPT = 2,
   ALGO_ARGON2 = 3,
   ALGO_X17 = 4,
   ALGO_LYRA2REv2 = 5,
@@ -25,8 +26,9 @@ enum
   {
     BLOCK_VERSION_AUXPOW = (1 << 8),
     BLOCK_VERSION_ALGO = (7 << 9),
+    BLOCK_VERSION_SCRYPT = (0 << 9),
     BLOCK_VERSION_SHA256D = (1 << 9),
-    BLOCK_VERSION_SCRYPT = (2 << 9),
+    BLOCK_VERSION_YESCRYPT = (2 << 9),
     BLOCK_VERSION_ARGON2 = (3 << 9),
     BLOCK_VERSION_X17 = (4 << 9),
     BLOCK_VERSION_LYRA2REv2 = (5 << 9),
@@ -122,7 +124,10 @@ class CPureBlockHeader {
 	break;
       case ALGO_CRYPTONIGHT:
 	nVersion |= BLOCK_VERSION_CRYPTONIGHT;
-	break;	
+	break;
+      case ALGO_YESCRYPT:
+	nVersion |= BLOCK_VERSION_YESCRYPT;
+	break;
       default:
 	break;
       }
@@ -144,7 +149,9 @@ class CPureBlockHeader {
       case BLOCK_VERSION_EQUIHASH:
 	return ALGO_EQUIHASH;
       case BLOCK_VERSION_CRYPTONIGHT:
-	return ALGO_CRYPTONIGHT;	
+	return ALGO_CRYPTONIGHT;
+      case BLOCK_VERSION_YESCRYPT:
+	return ALGO_YESCRYPT;
       }
     return ALGO_SCRYPT;
   }
@@ -210,8 +217,14 @@ class CPureBlockHeader {
 	uint256 thash;
 	hash_cryptonight(BEGIN(nVersion),BEGIN(thash));
 	return thash;
+      } 
+    case ALGO_YESCRYPT:
+      {
+	uint256 thash;
+	hash_yescrypt(BEGIN(nVersion),BEGIN(thash));
+	return thash;
       }
-    }    
+    }
     uint256 thash;
     hash_scrypt(BEGIN(nVersion),BEGIN(thash));
     return thash;

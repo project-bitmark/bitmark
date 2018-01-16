@@ -4851,17 +4851,22 @@ int GetAlgo (int nVersion) {
     case BLOCK_VERSION_EQUIHASH:
       return ALGO_EQUIHASH;
     case BLOCK_VERSION_CRYPTONIGHT:
-      return ALGO_CRYPTONIGHT;      
+      return ALGO_CRYPTONIGHT;
+    case BLOCK_VERSION_YESCRYPT:
+      return ALGO_YESCRYPT;
     }
   return ALGO_SCRYPT;
 }
 
 const char * GetAlgoName (int algo) {
+  if (algo == 0) {
+    return "SCRYPT";
+  }
   if (algo == 1) {
     return "SHA256D";
   }
   else if (algo == 2) {
-    return "SCRYPT";
+    return "YESCRYPT";
   }
   else if (algo == 3) {
     return "ARGON2";

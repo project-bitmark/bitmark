@@ -53,7 +53,7 @@ void ShutdownRPCMining()
 #endif
 
 /* Set mining algo here for rpc mining */
-int miningAlgo = ALGO_SHA256D;
+int miningAlgo = ALGO_SCRYPT;
 int miningAlgoGBT = miningAlgo;
 int miningAlgoGAB = miningAlgo;
 
@@ -402,6 +402,7 @@ Value getwork(const Array& params, bool fHelp)
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
 	if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
+	  pblock->nVersion = 3;
 	  pblock->SetAlgo(miningAlgo);
 	}
 

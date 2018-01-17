@@ -118,6 +118,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     miningAlgo = GetArg("-miningalgo", miningAlgo);
     if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
       LogPrintf("algo set to %d\n",miningAlgo);
+      pblock->nVersion = 3;
       pblock->SetAlgo(miningAlgo);
     }
 
@@ -720,7 +721,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	  if (pindexPrev != chainActive.Tip())
 	    break;
 
-	  if (miningAlgo=ALGO_EQUIHASH) {
+	  if (miningAlgo==ALGO_EQUIHASH) {
 	    pblock->nNonce256 = (CBigNum(pblock->nNonce256) + 1).getuint256();
 	  }
 	  // Update nTime every few seconds

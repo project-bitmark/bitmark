@@ -125,11 +125,9 @@ void hash_equihash(const char * input, char * output) {
 }
 
 void hash_cryptonight(const char * input, char * output) {
-  LogPrintf("do cryptonight hash\n");
   cryptonight_hash((void *)output,(const void*)input,80);
 }
 
 void hash_yescrypt(const char * input, char * output) {
-  LogPrintf("do yescrypt hash\n");
   yescrypt_hash(input,output);
 }

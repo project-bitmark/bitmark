@@ -59,32 +59,19 @@ class CPureBlockHeader {
   IMPLEMENT_SERIALIZE
     (
      READWRITE(this->nVersion);
-     if (fRead) LogPrintf("pureheader r nVersion: %d\n",this->nVersion);
      nVersion = this->nVersion;
      READWRITE(hashPrevBlock);
-     if (fRead) LogPrintf("pureheader r hashPrevBlock: %s\n",hashPrevBlock.GetHex().c_str());
      READWRITE(hashMerkleRoot);
-     if (fRead) LogPrintf("pureheader r hashMerkleRoot: %s\n",hashMerkleRoot.GetHex().c_str());
      READWRITE(nTime);
-     if (fRead) LogPrintf("pureheader r nTime: %d\n",nTime);     
      READWRITE(nBits);
      CBigNum nBits_bn;
      nBits_bn.SetCompact(nBits);
-     if (fRead) LogPrintf("pureheader r nBits: %s\n",nBits_bn.getuint256().GetHex().c_str());
      if (GetAlgo()==ALGO_EQUIHASH) {
        READWRITE(nNonce256);
        READWRITE(nSolution);
      }
      else {
        READWRITE(nNonce);
-     }
-     if (fRead) LogPrintf("nNonce256 = %s\n",nNonce256.GetHex().c_str());
-     if (fRead) {
-       LogPrintf("nSolution = ");
-       for (unsigned int i=0; i<nSolution.size(); i++) {
-	 LogPrintf("%x",nSolution[i]);
-       }
-       LogPrintf("\n");
      }
      )
 

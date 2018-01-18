@@ -108,6 +108,7 @@ public:
 
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 {
+  LogPrintf("in createnewblock\n");
     // Create new block
     auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if(!pblocktemplate.get())
@@ -116,10 +117,13 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
     CBlockIndex* pindexPrev = chainActive.Tip();
     miningAlgo = GetArg("-miningalgo", miningAlgo);
+    LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
     if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
       LogPrintf("algo set to %d\n",miningAlgo);
       pblock->nVersion = 3;
+      LogPrintf("pblock nVersion is 3\n");
       pblock->SetAlgo(miningAlgo);
+      LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
     }
 
     // Create coinbase tx

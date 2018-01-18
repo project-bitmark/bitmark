@@ -226,6 +226,7 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
   if(!pblocktemplate.get())
     return 0.;
   CBlock *pblock = &pblocktemplate->block;
+  pblock->nVersion = 3;
   pblock->SetAlgo(algo);
   CBlockIndex indexDummy(*pblock);
   indexDummy.pprev = blockindex;

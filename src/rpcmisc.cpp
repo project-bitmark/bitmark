@@ -425,7 +425,7 @@ Value getblockspacing(const Array& params, bool fHelp)
 	    "}\n"
 			    );
 
-    int algo = ALGO_SCRYPT;
+    int algo = -1;
     int interval = 24;
     CBlockIndex * blockindex = NULL;
     
@@ -575,30 +575,40 @@ Value chaindynamics(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty ARGON2",    (double)GetDifficulty(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("difficulty X17",    (double)GetDifficulty(NULL,ALGO_X17)));
     obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH)));
+    obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT)));
     obj.push_back(Pair("peak hashrate SCRYPT",    (double)GetPeakHashrate(NULL,ALGO_SCRYPT)));    
     obj.push_back(Pair("peak hashrate SHA256D",    (double)GetPeakHashrate(NULL,ALGO_SHA256D)));
     obj.push_back(Pair("peak hashrate YESCRYPT",    (double)GetPeakHashrate(NULL,ALGO_YESCRYPT)));
     obj.push_back(Pair("peak hashrate ARGON2",    (double)GetPeakHashrate(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("peak hashrate X17",    (double)GetPeakHashrate(NULL,ALGO_X17)));
     obj.push_back(Pair("peak hashrate LYRA2REv2",    (double)GetPeakHashrate(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("peak hashrate EQUIHASH",    (double)GetPeakHashrate(NULL,ALGO_EQUIHASH)));
+    obj.push_back(Pair("peak hashrate CRYPTONIGHT",    (double)GetPeakHashrate(NULL,ALGO_CRYPTONIGHT)));
     obj.push_back(Pair("current hashrate SCRYPT",    (double)GetCurrentHashrate(NULL,ALGO_SCRYPT)));    
     obj.push_back(Pair("current hashrate SHA256D",    (double)GetCurrentHashrate(NULL,ALGO_SHA256D)));
     obj.push_back(Pair("current hashrate YESCRYPT",    (double)GetCurrentHashrate(NULL,ALGO_YESCRYPT)));
     obj.push_back(Pair("current hashrate ARGON2",    (double)GetCurrentHashrate(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("current hashrate X17",    (double)GetCurrentHashrate(NULL,ALGO_X17)));
     obj.push_back(Pair("current hashrate LYRA2REv2",    (double)GetCurrentHashrate(NULL,ALGO_LYRA2REv2)));
-        obj.push_back(Pair("nblocks update SSF SCRYPT",    (int)GetNBlocksUpdateSSF(NULL,ALGO_SCRYPT)));
+    obj.push_back(Pair("current hashrate EQUIHASH",    (double)GetCurrentHashrate(NULL,ALGO_EQUIHASH)));
+    obj.push_back(Pair("current hashrate CRYPTONIGHT",    (double)GetCurrentHashrate(NULL,ALGO_CRYPTONIGHT)));    
+    obj.push_back(Pair("nblocks update SSF SCRYPT",    (int)GetNBlocksUpdateSSF(NULL,ALGO_SCRYPT)));
     obj.push_back(Pair("nblocks update SSF SHA256D",    (int)GetNBlocksUpdateSSF(NULL,ALGO_SHA256D)));
     obj.push_back(Pair("nblocks update SSF YESCRYPT",    (int)GetNBlocksUpdateSSF(NULL,ALGO_YESCRYPT)));
     obj.push_back(Pair("nblocks update SSF ARGON2",    (int)GetNBlocksUpdateSSF(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("nblocks update SSF X17",    (int)GetNBlocksUpdateSSF(NULL,ALGO_X17)));
     obj.push_back(Pair("nblocks update SSF LYRA2REv2",    (int)GetNBlocksUpdateSSF(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("nblocks update SSF EQUIHASH",    (int)GetNBlocksUpdateSSF(NULL,ALGO_EQUIHASH)));
+    obj.push_back(Pair("nblocks update SSF CRYPTONIGHT",    (int)GetNBlocksUpdateSSF(NULL,ALGO_CRYPTONIGHT)));
     obj.push_back(Pair("average block spacing SCRYPT",    (double)GetAverageBlockSpacing(NULL,ALGO_SCRYPT)));    
     obj.push_back(Pair("average block spacing SHA256D",    (double)GetAverageBlockSpacing(NULL,ALGO_SHA256D)));
     obj.push_back(Pair("average block spacing YESCRYPT",    (double)GetAverageBlockSpacing(NULL,ALGO_YESCRYPT)));
     obj.push_back(Pair("average block spacing ARGON2",    (double)GetAverageBlockSpacing(NULL,ALGO_ARGON2)));
     obj.push_back(Pair("average block spacing X17",    (double)GetAverageBlockSpacing(NULL,ALGO_X17)));
     obj.push_back(Pair("average block spacing LYRA2REv2",    (double)GetAverageBlockSpacing(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("average block spacing EQUIHASH",    (double)GetAverageBlockSpacing(NULL,ALGO_EQUIHASH)));
+    obj.push_back(Pair("average block spacing CRYPTONIGHT",    (double)GetAverageBlockSpacing(NULL,ALGO_CRYPTONIGHT)));    
 
     return obj;
 }

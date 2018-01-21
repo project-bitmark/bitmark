@@ -1256,7 +1256,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     // emitted
     uint256 emitted;
 
-    CBlockIndex * pprev_algo = get_pprev_algo(pindexPrev);
+    CBlockIndex * pprev_algo = get_pprev_algo(pindexPrev,-1);
 
     if (pprev_algo) { //make emitted 5 times bigger so that the target points are divided in 8 for each algo
       emitted = 8 * pprev_algo->nMoneySupply;
@@ -1276,7 +1276,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
 	    pindexPrev->subsidyScalingFactor = scalingFactor;
 	    break;
 	  }
-	  pprev_algo = get_pprev_algo(pprev_algo);
+	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 	} while (pprev_algo);
       }
     }
@@ -2025,7 +2025,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         return false;
     
     // Force the fork to happen exactly at nForkHeight
-    if (pindex->nVersion>2 || get_pprev_algo(pindex)) {
+    if (pindex->nVersion>2 || get_pprev_algo(pindex,-1)) {
       if (pindex->nHeight < nForkHeight && !RegTest()) {
 	LogPrintf("nVersion>2 and before fork");
 	return false;
@@ -2039,11 +2039,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     }
     
     // Check SSF
-    if (pindex->nVersion>2 || get_pprev_algo(pindex)) { //new multi algo blocks are identified like this
+    if (pindex->nVersion>2 || get_pprev_algo(pindex,-1)) { //new multi algo blocks are identified like this
       CBlockIndex * pprev_algo = pindex;
       if (update_ssf(pindex->nVersion)) {
 	for (int i=0; i<144; i++) {
-	  pprev_algo = get_pprev_algo(pprev_algo);
+	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 	  if (!pprev_algo) break;
 	  if (update_ssf(pprev_algo->nVersion)) {
 	    if (i != 143) {
@@ -2055,7 +2055,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       }
       else {
 	for (int i=0; i<144; i++) {
-	  pprev_algo = get_pprev_algo(pprev_algo);
+	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 	  if (!pprev_algo) break;
 	  if (update_ssf(pprev_algo->nVersion)) {
 	    if (i == 143) {
@@ -2185,7 +2185,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         LogPrintf("- Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin)\n", (unsigned)block.vtx.size(), 0.001 * nTime, 0.001 * nTime / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * nTime / (nInputs-1));
 
     CBlockIndex * pprev_algo = 0;
-    if (!fJustCheck) pprev_algo = get_pprev_algo(pindex);
+    if (!fJustCheck) pprev_algo = get_pprev_algo(pindex,-1);
     if (!fJustCheck && (pindex->nVersion > 2 || pprev_algo)) { // set scaling factor
       if (update_ssf(pindex->nVersion)) {
 	pindex->subsidyScalingFactor = get_ssf(pindex);
@@ -4891,8 +4891,8 @@ int GetVersion (int nVersion) {
 CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
   if (!p) return 0;
   if (!TestNet() && !RegTest() && p->nHeight < v2checkpoint) return 0; //for speeding up initialization
-  int algo = 0;
-  if (use_algo) {
+  int algo = -1;
+  if (use_algo>=0) {
     algo = use_algo;
   }
   else {
@@ -4925,7 +4925,7 @@ CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
 int64_t get_mpow_ms_correction (CBlockIndex * p) {
   CBlockIndex * pprev = p->pprev;
   while (pprev) {
-    if (pprev->nVersion <= 2 && !get_pprev_algo(pprev)) {
+    if (pprev->nVersion <= 2 && !get_pprev_algo(pprev,-1)) {
       if (pprev->nHeight == 0) {
 	return 400000000;
       }
@@ -4962,7 +4962,7 @@ double get_ssf (CBlockIndex * pindex) {
   double hashes_cur = 0.;
   for (int i=0; i<365; i++) { // use at most a year's worth of history
     //LogPrintf("i=%d\n",i);
-    pprev_algo = get_pprev_algo(pprev_algo);
+    pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) {
       break;
     }
@@ -4970,7 +4970,7 @@ double get_ssf (CBlockIndex * pindex) {
     int time_f = pprev_algo->GetBlockTime();
     int time_i = 0;
     for (int j=0; j<143; j++) {  // 144 blocks = 24 hours, using only blocks from the same algo as the target block
-      pprev_algo = get_pprev_algo(pprev_algo);
+      pprev_algo = get_pprev_algo(pprev_algo,-1);
       if (!pprev_algo) {
 	hashes_bn = CBigNum(0);
 	break;
@@ -4978,7 +4978,7 @@ double get_ssf (CBlockIndex * pindex) {
       hashes_bn += pprev_algo->GetBlockWork();
       time_i = pprev_algo->GetBlockTime();
     }
-    CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo);
+    CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
     if (pprev_algo_time) {
       time_i = pprev_algo_time->GetBlockTime();
     }
@@ -5015,7 +5015,7 @@ int get_ssf_height (const CBlockIndex * pindex) {
     if (update_ssf(pprev_algo->nVersion)) {
       return i;
     }
-    pprev_algo = get_pprev_algo(pprev_algo);
+    pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) return -1;
   }
   return -1;
@@ -5028,7 +5028,7 @@ unsigned long get_ssf_work (const CBlockIndex * pindex) {
     if (update_ssf(pprev_algo->nVersion)) {
       return hashes_bn.getulong();
     }
-    pprev_algo = get_pprev_algo(pprev_algo);
+    pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) return 0;
     hashes_bn += pprev_algo->GetBlockWork();
   }
@@ -5039,7 +5039,7 @@ double get_ssf_time (const CBlockIndex * pindex) {
   int time_f = pindex->GetBlockTime();
   //LogPrintf("time_f = %d\n",time_f);
   const CBlockIndex * pcur_algo = pindex;
-  const CBlockIndex * pprev_algo = get_pprev_algo(pindex);
+  const CBlockIndex * pprev_algo = get_pprev_algo(pindex,-1);
   int time_i = 0;
   for (int i=0; i<144; i++) {
     if (pprev_algo) {
@@ -5057,7 +5057,7 @@ double get_ssf_time (const CBlockIndex * pindex) {
       }
     }
     pcur_algo = pprev_algo;
-    if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo);
+    if (pprev_algo) pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pcur_algo) return 0.;
   }
   return 0.;

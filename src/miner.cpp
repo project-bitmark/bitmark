@@ -12,7 +12,9 @@
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #endif
+#include "tromp/equi_miner.h"
 #include "equihash.h"
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // BitmarkMiner
@@ -642,6 +644,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	      return cancelSolver;
 	    };
 
+	    /*
 	    try {
 	      LogPrintf("try ehoptimisedsolve hashprevblock=%s\n",pblock->hashPrevBlock.GetHex().c_str());
 	      bool found = EhOptimisedSolve(n, k, curr_state, validBlock, cancelled);
@@ -655,6 +658,31 @@ void static BitmarkMiner(CWallet *pwallet)
 	      LogPrintf("Equihash solver cancelled\n");
 	      LOCK(cs_main);
 	      cancelSolver = false;
+	      }*/
+
+	    //tromp solver
+	    equi eq(1);
+	    eq.setstate(&curr_state);
+	    eq.digit0(0);
+	    eq.xfull = eq.bfull = eq.hfull = 0;
+	    eq.showbsizes(0);
+	    for (u32 r = 1; r < WK; r++) {
+	      (r&1) ? eq.digitodd(r, 0) : eq.digiteven(r, 0);
+	      eq.xfull = eq.bfull = eq.hfull = 0;
+	      eq.showbsizes(r);
+	    }
+	    eq.digitK(0);
+	    //ehSolverRuns.increment();
+	    for (size_t s = 0; s < eq.nsols; s++) {
+	      LogPrint("pow", "Checking solution %d\n", s+1);
+	      std::vector<eh_index> index_vector(PROOFSIZE);
+	      for (size_t i = 0; i < PROOFSIZE; i++) {
+		index_vector[i] = eq.sols[s][i];
+	      }
+	      std::vector<unsigned char> sol_char = GetMinimalFromIndices(index_vector, DIGITBITS);
+	      if (validBlock(sol_char)) {
+		break;
+	      }
 	    }
 	    
 	  }

@@ -5004,8 +5004,8 @@ double get_ssf (CBlockIndex * pindex) {
   //LogPrintf("calculated factor to %f\n",scalingFactor);
   if (scalingFactor > 1.0)
     scalingFactor = 1.0;
-  if (scalingFactor < 0.15)
-    scalingFactor = 0.15;
+  //if (scalingFactor < 0.15)
+  //scalingFactor = 0.15;
   return scalingFactor;
 }
 

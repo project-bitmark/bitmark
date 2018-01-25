@@ -343,7 +343,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	  if (GetAlgo(pprev_algo->nVersion)!=miningAlgo) {
 	    pprev_algo = get_pprev_algo(pindexPrev,miningAlgo);
 	  }
-	  if (!pprev_algo || (pprev_algo && pprev_algo->nVersion <=2 && !get_pprev_algo(pprev_algo))) {
+	  if (!pprev_algo || (pprev_algo && pprev_algo->nVersion <=2 && !get_pprev_algo(pprev_algo,-1))) {
 	    LogPrintf("miner set update ssf\n");
 	    pblock->SetUpdateSSF();
 	  }
@@ -358,7 +358,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 		}
 		break;
 	      }
-	      pprev_algo = get_pprev_algo(pprev_algo);
+	      pprev_algo = get_pprev_algo(pprev_algo,-1);
 	      if (!pprev_algo) break;
 	    }
 	    if (update) pblock->SetUpdateSSF();

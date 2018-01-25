@@ -912,7 +912,23 @@ public:
         bnTarget.SetCompact(nBits);
         if (bnTarget <= 0)
             return 0;
-        return (CBigNum(1)<<256) / (bnTarget+1);
+	CBigNum weight(1000);
+	switch (nVersion & BLOCK_VERSION_ALGO)
+	  {
+	  case BLOCK_VERSION_SHA256D:
+	    weight.setulong(2);
+	  case BLOCK_VERSION_ARGON2:
+	    weight.setulong(450000);
+	  case BLOCK_VERSION_LYRA2REv2:
+	    weight.setulong(350);
+	  case BLOCK_VERSION_EQUIHASH:
+	    weight.setulong(6500000);
+	  case BLOCK_VERSION_CRYPTONIGHT:
+	    weight.setulong(850000);
+	  case BLOCK_VERSION_YESCRYPT:
+	    weight.setulong(100000);
+	  }
+        return (CBigNum(1)<<256) / (bnTarget+1) * weight;
     }
 
     bool CheckIndex() const

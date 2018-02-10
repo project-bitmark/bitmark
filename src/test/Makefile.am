@@ -1,5 +1,7 @@
 include $(top_srcdir)/src/Makefile.include
 
+CXX = g++ -fPIC -std=c++11
+
 AM_CPPFLAGS += -I$(top_srcdir)/src
 
 bin_PROGRAMS = test_bitmark

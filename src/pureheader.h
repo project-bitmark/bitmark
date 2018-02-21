@@ -45,6 +45,7 @@ class CPureBlockHeader {
   int nVersion;
   uint256 hashPrevBlock;
   uint256 hashMerkleRoot;
+  uint256 hashReserved;
   unsigned int nTime;
   unsigned int nBits;
   unsigned int nNonce;
@@ -62,6 +63,9 @@ class CPureBlockHeader {
      nVersion = this->nVersion;
      READWRITE(hashPrevBlock);
      READWRITE(hashMerkleRoot);
+     if (GetAlgo()==ALGO_EQUIHASH) {
+       READWRITE(hashReserved);
+     }
      READWRITE(nTime);
      READWRITE(nBits);
      CBigNum nBits_bn;
@@ -80,6 +84,7 @@ class CPureBlockHeader {
       nVersion = CPureBlockHeader::CURRENT_VERSION;
       hashPrevBlock = 0;
       hashMerkleRoot = 0;
+      hashReserved = 0;
       nTime = 0;
       nBits = 0;
       nNonce = 0;

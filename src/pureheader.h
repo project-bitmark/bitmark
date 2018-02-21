@@ -45,12 +45,12 @@ class CPureBlockHeader {
   int nVersion;
   uint256 hashPrevBlock;
   uint256 hashMerkleRoot;
-  uint256 hashReserved;
   unsigned int nTime;
   unsigned int nBits;
   unsigned int nNonce;
   uint256 nNonce256;
   std::vector<unsigned char> nSolution;
+  uint256 hashReserved;
 
   CPureBlockHeader()
     {

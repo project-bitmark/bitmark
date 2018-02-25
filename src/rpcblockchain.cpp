@@ -219,7 +219,7 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
     else
       blockindex = chainActive.Tip();
   }
-  if (!algo) {
+  if (algo<0) {
     algo = GetAlgo(blockindex->nVersion);
   }
   auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());

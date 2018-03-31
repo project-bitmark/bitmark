@@ -3,8 +3,10 @@
 #include "argon2.h"
 #include "hashx17.h"
 #include "Lyra2RE.h"
+#include "cryptonight.h"
+#include "yescrypt/yescrypt.h"
 
-inline uint32_t ROTL32 ( uint32_t x, int8_t r )
+inline uint32_t MROTL32 ( uint32_t x, int8_t r )
 {
     return (x << r) | (x >> (32 - r));
 }
@@ -27,11 +29,11 @@ unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char
         uint32_t k1 = blocks[i];
 
         k1 *= c1;
-        k1 = ROTL32(k1,15);
+        k1 = MROTL32(k1,15);
         k1 *= c2;
 
         h1 ^= k1;
-        h1 = ROTL32(h1,13); 
+        h1 = MROTL32(h1,13); 
         h1 = h1*5+0xe6546b64;
     }
 
@@ -46,7 +48,7 @@ unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char
     case 3: k1 ^= tail[2] << 16;
     case 2: k1 ^= tail[1] << 8;
     case 1: k1 ^= tail[0];
-            k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+            k1 *= c1; k1 = MROTL32(k1,15); k1 *= c2; h1 ^= k1;
     };
 
     //----------
@@ -107,7 +109,7 @@ void hash_scrypt(const char * input, char * output) {
 }
 
 void hash_argon2(const char * input, char * output) {
-  argon2d_hash_raw(2,16,1,input,80,input,80,output,32);
+  argon2d_hash_raw(1,4096,1,input,80,input,80,output,32);
 }
 
 uint256 hash_x17(const char * begin, const char * end) {
@@ -116,4 +118,16 @@ uint256 hash_x17(const char * begin, const char * end) {
 
 void hash_lyra2rev2(const char * input, char * output) {
   lyra2re2_hash(input,output);
+}
+
+void hash_equihash(const char * input, char * output) {
+  //lyra2re2_hash(input,output);
+}
+
+void hash_cryptonight(const char * input, char * output) {
+  cryptonight_hash((void *)output,(const void*)input,80);
+}
+
+void hash_yescrypt(const char * input, char * output) {
+  yescrypt_hash(input,output);
 }

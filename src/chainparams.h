@@ -69,7 +69,10 @@ public:
     virtual const vector<CAddress>& FixedSeeds() const = 0;
     int RPCPort() const { return nRPCPort; }
     bool StrictChainId() const { return fStrictChainId; }
-    int16_t GetAuxpowChainId() const { return nAuxpowChainId; }      
+    int16_t GetAuxpowChainId() const { return nAuxpowChainId; }
+    unsigned int EquihashN() const { return nEquihashN; }
+    unsigned int EquihashK() const { return nEquihashK; }
+    bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
     
 protected:
     CChainParams() {}
@@ -88,6 +91,10 @@ protected:
     bool fStrictChainId;
     int16_t nAuxpowChainId;
     int nStartAuxPow;
+    unsigned int nEquihashN = 0;
+    unsigned int nEquihashK = 0;
+    bool fMineBlocksOnDemand = true;
+ 
 };
 
 /**

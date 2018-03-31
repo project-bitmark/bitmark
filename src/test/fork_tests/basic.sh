@@ -50,7 +50,7 @@ prevblockalgo=$(bitmark-cli getblock $prevblockhash | grep algo | awk '{ print $
 ASSERT_EQUALS "$prevblockalgo" \"ARGON2\"
 prevblockhash=$(bitmark-cli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
 prevblockalgo=$(bitmark-cli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"SCRYPT\"
+ASSERT_EQUALS "$prevblockalgo" \"YESCRYPT\"
 
 prevblockssfheight=$(bitmark-cli getblock $prevblockhash | grep 'SSF height' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 ASSERT_EQUALS "$prevblockssfheight" 5
@@ -61,7 +61,7 @@ prevblockheight=$(($prevblockheight - 17))
 prevblockhash="$(bitmark-cli getblockhash $prevblockheight)"
 
 prevblockalgo=$(bitmark-cli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"SCRYPT\"
+ASSERT_EQUALS "$prevblockalgo" \"YESCRYPT\"
 
 prevblockssfheight=$(bitmark-cli getblock $prevblockhash | grep 'SSF height' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 ASSERT_EQUALS "$prevblockssfheight" 0
@@ -70,7 +70,7 @@ prevblockheight=$(($prevblockheight - 13))
 prevblockhash="$(bitmark-cli getblockhash $prevblockheight)"
 
 prevblockalgo=$(bitmark-cli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"SCRYPT\"
+ASSERT_EQUALS "$prevblockalgo" \"YESCRYPT\"
 
 prevblockssfheight=$(bitmark-cli getblock $prevblockhash | grep 'SSF height' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 ASSERT_EQUALS "$prevblockssfheight" 143
@@ -109,7 +109,7 @@ algo=$(bitmark-cli getblock $blockhash | grep algo | awk '{ print $3 }' | awk -F
 ASSERT_EQUALS "$algo" \"SHA256D\"
 blockhash=$(bitmark-cli getblockhash 1219)
 algo=$(bitmark-cli getblock $blockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$algo" \"SCRYPT\"
+ASSERT_EQUALS "$algo" \"YESCRYPT\"
 set +e
 txidmatch=$(bitmark-cli getblock $blockhash | grep $txid)
 set -e

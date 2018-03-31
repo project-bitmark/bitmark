@@ -53,7 +53,7 @@ void ShutdownRPCMining()
 #endif
 
 /* Set mining algo here for rpc mining */
-int miningAlgo = ALGO_SHA256D;
+int miningAlgo = ALGO_SCRYPT;
 int miningAlgoGBT = miningAlgo;
 int miningAlgoGAB = miningAlgo;
 
@@ -315,7 +315,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("reward_next",      ValueFromAmount(GetBlockReward(chainActive.Tip(),0)*100000000.)));
     obj.push_back(Pair("reward_max",       ValueFromAmount(GetBlockValue(chainActive.Tip(), 0, false))));
     obj.push_back(Pair("hashrate_4max_reward", (uint64_t)35000000000));
-    obj.push_back(Pair("difficulty",       (double)GetDifficulty()));
+    obj.push_back(Pair("difficulty",       (double)GetDifficulty(NULL,-1)));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
     obj.push_back(Pair("genproclimit",     (int)GetArg("-genproclimit", -1)));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
@@ -402,6 +402,7 @@ Value getwork(const Array& params, bool fHelp)
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
 	if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
+	  pblock->nVersion = 3;
 	  pblock->SetAlgo(miningAlgo);
 	}
 
@@ -568,7 +569,9 @@ Value getblocktemplate(const Array& params, bool fHelp)
             pblocktemplate = NULL;
         }
         CScript scriptDummy = CScript() << OP_TRUE;
+	LogPrintf("gbt create new block\n");
         pblocktemplate = CreateNewBlock(scriptDummy);
+	LogPrintf("gbt block created\n");
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -670,6 +673,7 @@ Value submitblock(const Array& params, bool fHelp)
         );
 
     vector<unsigned char> blockData(ParseHex(params[0].get_str()));
+    LogPrintf("block submitted:\n%s\n",params[0].get_str());
     CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
     CBlock pblock;
     try {

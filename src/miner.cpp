@@ -12,6 +12,9 @@
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #endif
+#include "tromp/equi_miner.h"
+#include "equihash.h"
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // BitmarkMiner
@@ -107,6 +110,7 @@ public:
 
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 {
+  LogPrintf("in createnewblock\n");
     // Create new block
     auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if(!pblocktemplate.get())
@@ -115,8 +119,13 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
     CBlockIndex* pindexPrev = chainActive.Tip();
     miningAlgo = GetArg("-miningalgo", miningAlgo);
+    LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
     if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
+      LogPrintf("algo set to %d\n",miningAlgo);
+      pblock->nVersion = 3;
+      LogPrintf("pblock nVersion is 3\n");
       pblock->SetAlgo(miningAlgo);
+      LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
     }
 
     // Create coinbase tx
@@ -334,7 +343,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	  if (GetAlgo(pprev_algo->nVersion)!=miningAlgo) {
 	    pprev_algo = get_pprev_algo(pindexPrev,miningAlgo);
 	  }
-	  if (!pprev_algo || (pprev_algo && pprev_algo->nVersion <=2 && !get_pprev_algo(pprev_algo))) {
+	  if (!pprev_algo || (pprev_algo && pprev_algo->nVersion <=2 && !get_pprev_algo(pprev_algo,-1))) {
 	    LogPrintf("miner set update ssf\n");
 	    pblock->SetUpdateSSF();
 	  }
@@ -349,7 +358,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 		}
 		break;
 	      }
-	      pprev_algo = get_pprev_algo(pprev_algo);
+	      pprev_algo = get_pprev_algo(pprev_algo,-1);
 	      if (!pprev_algo) break;
 	    }
 	    if (update) pblock->SetUpdateSSF();
@@ -365,7 +374,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 
 	UpdateTime(*pblock, pindexPrev);
 	pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
+	LogPrintf("create block nBits = %s\n",CBigNum().SetCompact(pblock->nBits).getuint256().GetHex().c_str());
 	pblock->nNonce         = 0;
+	if (miningAlgo==ALGO_EQUIHASH) {
+	  pblock->nNonce256.SetNull();
+	  pblock->nSolution.clear();
+	}
 	pblock->vtx[0].vin[0].scriptSig = CScript() << OP_0 << OP_0;
 	pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 	
@@ -373,9 +387,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         indexDummy.pprev = pindexPrev;
         indexDummy.nHeight = pindexPrev->nHeight + 1;
 
+	LogPrintf("GetBlockValue\n");
 	pblock->vtx[0].vout[0].nValue = GetBlockValue(&indexDummy, nFees);
-	
+	LogPrintf("new view\n");
         CCoinsViewCache viewNew(*pcoinsTip, true);
+	LogPrintf("state\n");
         CValidationState state;	
 	
         if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true))
@@ -574,14 +590,110 @@ void static BitmarkMiner(CWallet *pwallet)
 	  //LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
 	  bool first_hash = true;
 
-	  while (true) {
-	  
+	  if (miningAlgo==ALGO_EQUIHASH) {
+	    LogPrintf("Mining algo equihash\n");
+	    unsigned int n = Params().EquihashN();
+	    unsigned int k = Params().EquihashK();
+	    bool cancelSolver = false;
+	    crypto_generichash_blake2b_state state;
+	    EhInitialiseState(n, k, state);
+	    CEquihashInput I{*pblock};
+	    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+	    ss << I;
+	    crypto_generichash_blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
+	    crypto_generichash_blake2b_state curr_state;
+	    curr_state = state;
+	    crypto_generichash_blake2b_update(&curr_state,
+					      pblock->nNonce256.begin(),
+					      pblock->nNonce256.size());
+	    std::function<bool(std::vector<unsigned char>)> validBlock =
+	      [&pblock, &hashTarget, &pwallet, &reservekey, &cs_main, &cancelSolver] (std::vector<unsigned char> soln) {
+	      pblock->nSolution = soln;
+	      //solutionTargetChecks.increment();
+
+	      LogPrintf("check if valid block\n");
+	      
+	      if (pblock->GetPoWHash(miningAlgo) > hashTarget) {
+		return false;
+	      }
+
+	      LogPrintf("passed powhash req\n");
+
+	      SetThreadPriority(THREAD_PRIORITY_NORMAL);
+	      LogPrintf("ZcashMiner:\n");
+	      LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", pblock->GetHash().GetHex(), hashTarget.GetHex());
+	      CValidationState state;
+	      if (ProcessBlock(state,NULL,pblock)) {
+		//std::lock_guard<std::mutex> lock{m_cs};
+		LOCK(cs_main);
+		cancelSolver = false;
+	      }
+
+	      SetThreadPriority(THREAD_PRIORITY_LOWEST);
+
+	      if (Params().MineBlocksOnDemand()) {
+		//ehSolverRuns.increment();
+		throw boost::thread_interrupted();
+	      }
+
+	      return true;
+	    };
+
+	    std::function<bool(EhSolverCancelCheck)> cancelled = [&cs_main, &cancelSolver](EhSolverCancelCheck pos) {
+	      LOCK(cs_main);
+	      return cancelSolver;
+	    };
+
+	    /*
+	    try {
+	      LogPrintf("try ehoptimisedsolve hashprevblock=%s\n",pblock->hashPrevBlock.GetHex().c_str());
+	      bool found = EhOptimisedSolve(n, k, curr_state, validBlock, cancelled);
+	      //ehSolverRuns.increment();
+	      if (found) {
+		LogPrintf("ehsolver found\n");
+		break;
+	      }
+	      LogPrintf("ehsolver not found\n");
+	    } catch (EhSolverCancelledException&) {
+	      LogPrintf("Equihash solver cancelled\n");
+	      LOCK(cs_main);
+	      cancelSolver = false;
+	      }*/
+
+	    //tromp solver
+	    equi eq(1);
+	    eq.setstate(&curr_state);
+	    eq.digit0(0);
+	    eq.xfull = eq.bfull = eq.hfull = 0;
+	    eq.showbsizes(0);
+	    for (u32 r = 1; r < WK; r++) {
+	      (r&1) ? eq.digitodd(r, 0) : eq.digiteven(r, 0);
+	      eq.xfull = eq.bfull = eq.hfull = 0;
+	      eq.showbsizes(r);
+	    }
+	    eq.digitK(0);
+	    //ehSolverRuns.increment();
+	    for (size_t s = 0; s < eq.nsols; s++) {
+	      LogPrint("pow", "Checking solution %d\n", s+1);
+	      std::vector<eh_index> index_vector(PROOFSIZE);
+	      for (size_t i = 0; i < PROOFSIZE; i++) {
+		index_vector[i] = eq.sols[s][i];
+	      }
+	      std::vector<unsigned char> sol_char = GetMinimalFromIndices(index_vector, DIGITBITS);
+	      if (validBlock(sol_char)) {
+		break;
+	      }
+	    }
+	    
+	  }
+	  else while(true) {
+	    
 	    uint256 thash = pblock->GetPoWHash(miningAlgo);
 	    if (pblock->nVersion<=2) thash = pblock->GetPoWHash(ALGO_SCRYPT);
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;
-	      //LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
+	      LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
 	    }
 	  
 	    if (thash <= hashTarget)
@@ -598,6 +710,8 @@ void static BitmarkMiner(CWallet *pwallet)
 	      break;
 	    }
 	  }
+
+	  LogPrintf("Calc hash per sec\n");
 	  
 	  // Meter hashes/sec
 	  static int64_t nHashCounter;
@@ -622,7 +736,7 @@ void static BitmarkMiner(CWallet *pwallet)
 		    if (GetTime() - nLogTime > 30 * 60)
 		      {
 			nLogTime = GetTime();
-			if (!RegTest()) printf("hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
+			if (!RegTest()) LogPrintf("hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
 		      }
 		  }
 	      }
@@ -639,6 +753,9 @@ void static BitmarkMiner(CWallet *pwallet)
 	  if (pindexPrev != chainActive.Tip())
 	    break;
 
+	  if (miningAlgo==ALGO_EQUIHASH) {
+	    pblock->nNonce256 = (CBigNum(pblock->nNonce256) + 1).getuint256();
+	  }
 	  // Update nTime every few seconds
 	  UpdateTime(*pblock, pindexPrev);
 	  nBlockTime = ByteReverse(pblock->nTime);

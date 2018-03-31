@@ -6,15 +6,19 @@
 #include "util.h"
 #include "scrypt.h"
 #include "hash.h"
+#include "bignum.h"
 
-const int NUM_ALGOS = 5;
+const int NUM_ALGOS = 8;
 
 enum {
+  ALGO_SCRYPT = 0,
   ALGO_SHA256D = 1,
-  ALGO_SCRYPT = 2,
+  ALGO_YESCRYPT = 2,
   ALGO_ARGON2 = 3,
   ALGO_X17 = 4,
-    ALGO_LYRA2REv2 = 5
+  ALGO_LYRA2REv2 = 5,
+  ALGO_EQUIHASH = 6,
+  ALGO_CRYPTONIGHT = 7
 };
 
 /* Use the rightmost 8 bits for standard version number, 9th bit for merge mining (todo), 10-12 th bits for POW algo, 13 th bit for update scaling factor flag */
@@ -22,11 +26,14 @@ enum
   {
     BLOCK_VERSION_AUXPOW = (1 << 8),
     BLOCK_VERSION_ALGO = (7 << 9),
+    BLOCK_VERSION_SCRYPT = (0 << 9),
     BLOCK_VERSION_SHA256D = (1 << 9),
-    BLOCK_VERSION_SCRYPT = (2 << 9),
+    BLOCK_VERSION_YESCRYPT = (2 << 9),
     BLOCK_VERSION_ARGON2 = (3 << 9),
     BLOCK_VERSION_X17 = (4 << 9),
     BLOCK_VERSION_LYRA2REv2 = (5 << 9),
+    BLOCK_VERSION_EQUIHASH = (6 << 9),
+    BLOCK_VERSION_CRYPTONIGHT = (7 << 9),
     BLOCK_VERSION_UPDATE_SSF = (1 << 12),
     BLOCK_VERSION_CHAIN = (1 << 16)
   };
@@ -41,6 +48,9 @@ class CPureBlockHeader {
   unsigned int nTime;
   unsigned int nBits;
   unsigned int nNonce;
+  uint256 nNonce256;
+  std::vector<unsigned char> nSolution;
+  uint256 hashReserved;
 
   CPureBlockHeader()
     {
@@ -53,9 +63,20 @@ class CPureBlockHeader {
      nVersion = this->nVersion;
      READWRITE(hashPrevBlock);
      READWRITE(hashMerkleRoot);
+     if (GetAlgo()==ALGO_EQUIHASH) {
+       READWRITE(hashReserved);
+     }
      READWRITE(nTime);
      READWRITE(nBits);
-     READWRITE(nNonce);
+     CBigNum nBits_bn;
+     nBits_bn.SetCompact(nBits);
+     if (GetAlgo()==ALGO_EQUIHASH) {
+       READWRITE(nNonce256);
+       READWRITE(nSolution);
+     }
+     else {
+       READWRITE(nNonce);
+     }
      )
 
     void SetNull()
@@ -63,9 +84,12 @@ class CPureBlockHeader {
       nVersion = CPureBlockHeader::CURRENT_VERSION;
       hashPrevBlock = 0;
       hashMerkleRoot = 0;
+      hashReserved = 0;
       nTime = 0;
       nBits = 0;
       nNonce = 0;
+      nNonce256.SetNull();
+      nSolution.clear();
     }
 
   void SetAlgo(int algo)
@@ -87,6 +111,15 @@ class CPureBlockHeader {
       case ALGO_LYRA2REv2:
 	nVersion |= BLOCK_VERSION_LYRA2REv2;
 	break;
+      case ALGO_EQUIHASH:
+	nVersion |= BLOCK_VERSION_EQUIHASH;
+	break;
+      case ALGO_CRYPTONIGHT:
+	nVersion |= BLOCK_VERSION_CRYPTONIGHT;
+	break;
+      case ALGO_YESCRYPT:
+	nVersion |= BLOCK_VERSION_YESCRYPT;
+	break;
       default:
 	break;
       }
@@ -105,6 +138,12 @@ class CPureBlockHeader {
 	return ALGO_X17;
       case BLOCK_VERSION_LYRA2REv2:
 	return ALGO_LYRA2REv2;
+      case BLOCK_VERSION_EQUIHASH:
+	return ALGO_EQUIHASH;
+      case BLOCK_VERSION_CRYPTONIGHT:
+	return ALGO_CRYPTONIGHT;
+      case BLOCK_VERSION_YESCRYPT:
+	return ALGO_YESCRYPT;
       }
     return ALGO_SCRYPT;
   }
@@ -156,6 +195,25 @@ class CPureBlockHeader {
       {
 	uint256 thash;
 	hash_lyra2rev2(BEGIN(nVersion),BEGIN(thash));
+	return thash;
+      }
+    case ALGO_EQUIHASH:
+      {
+	/*uint256 thash;
+	hash_equihash(BEGIN(nVersion),BEGIN(thash));
+	return thash;*/
+	return GetHash();
+      }
+    case ALGO_CRYPTONIGHT:
+      {
+	uint256 thash;
+	hash_cryptonight(BEGIN(nVersion),BEGIN(thash));
+	return thash;
+      } 
+    case ALGO_YESCRYPT:
+      {
+	uint256 thash;
+	hash_yescrypt(BEGIN(nVersion),BEGIN(thash));
 	return thash;
       }
     }

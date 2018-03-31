@@ -48,6 +48,9 @@ public:
         nSubsidyHalvingInterval = 788000;
 	fStrictChainId = false;
 	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = false;
 
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
@@ -73,11 +76,11 @@ public:
         // todo add more dns seeders
         vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = list_of(85); // b
-        base58Prefixes[SCRIPT_ADDRESS] = list_of(5);
-        base58Prefixes[SECRET_KEY] =     list_of(213);
-        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E);
-        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
+	base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,213);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
 
         // Convert the pnSeeds array into usable address objects.
         for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
@@ -131,6 +134,9 @@ public:
         strDataDir = "testnet4";
 	fStrictChainId = false;
 	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = false;
 
 	const char* pszTimestamp = "Testing Testnet";
 	CTransaction txNew;
@@ -143,24 +149,25 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1509891419;
+        genesis.nTime = 1516910545;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 1291475;
+	genesis.nNonce = 93144;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0x572f069d470350b8facc52a0866671d2d3071230e4df45d193394ae153fa891d"));
+        assert(hashGenesisBlock == uint256("0c27520aa443b80780050baf16f90ddbd024a602ef434c4017a29232aec25355"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
 	vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
         vSeeds.push_back(CDNSSeedData("bitmark.co", "explorer.bitmark.co"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = list_of(130); // u
-        base58Prefixes[SCRIPT_ADDRESS] = list_of(196);
-        base58Prefixes[SECRET_KEY]     = list_of(258);
-        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x35)(0x87)(0xCF);
-        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x35)(0x83)(0x94);
+	base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // b
+	base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,258);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };
@@ -202,6 +209,9 @@ public:
         strDataDir = "regtest";
 	fStrictChainId = false;
 	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = true;
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
         assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));

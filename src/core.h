@@ -16,6 +16,9 @@
 #include "bignum.h"
 #include "chainparams.h"
 #include "pureheader.h"
+
+class CBlockHeader;
+
 #include "pow.h"
 
 #include <boost/filesystem.hpp>
@@ -521,6 +524,7 @@ public:
         const bool fRead = true;                \
         unsigned int nSerSize = 0;              \
         assert(fGetSize||fWrite||fRead); /* suppress warning */ \
+	LogPrintf("read pureblockheader\n");
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
@@ -557,6 +561,26 @@ public:
     {
       CPureBlockHeader::SetAuxpow(apow);
     }
+};
+
+class CEquihashInput : private CBlockHeader
+{
+public:
+    CEquihashInput(const CBlockHeader &header)
+    {
+        CBlockHeader::SetNull();
+        *((CBlockHeader*)this) = header;
+    }
+
+    IMPLEMENT_SERIALIZE
+    (
+        READWRITE(this->nVersion);
+	nVersion = this->nVersion;
+        READWRITE(hashPrevBlock);
+        READWRITE(hashMerkleRoot);
+        READWRITE(nTime);
+        READWRITE(nBits);
+    )
 };
 
 /** wrapper for CTxOut that provides a more compact serialization */
@@ -662,7 +686,9 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
+     if (fRead) LogPrintf("read blockheader\n");
         READWRITE(*(CBlockHeader*)this);
+     if (fRead) LogPrintf("r vtx\n");
         READWRITE(vtx);
     )
 
@@ -886,7 +912,30 @@ public:
         bnTarget.SetCompact(nBits);
         if (bnTarget <= 0)
             return 0;
-        return (CBigNum(1)<<256) / (bnTarget+1);
+	CBigNum weight(1000);
+	switch (nVersion & BLOCK_VERSION_ALGO)
+	  {
+	  case BLOCK_VERSION_SHA256D:
+	    weight.setulong(2);
+	    break;
+	  case BLOCK_VERSION_ARGON2:
+	    weight.setulong(450000);
+	    break;
+	  case BLOCK_VERSION_LYRA2REv2:
+	    weight.setulong(350);
+	    break;
+	  case BLOCK_VERSION_EQUIHASH:
+	    weight.setulong(6500000);
+	    break;
+	  case BLOCK_VERSION_CRYPTONIGHT:
+	    weight.setulong(850000);
+	    break;
+	  case BLOCK_VERSION_YESCRYPT:
+	    weight.setulong(100000);
+	    break;
+	  }
+	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
+        return (CBigNum(1)<<256) / (bnTarget+1) * weight;
     }
 
     bool CheckIndex() const

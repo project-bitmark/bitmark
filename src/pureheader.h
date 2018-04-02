@@ -172,6 +172,8 @@ class CPureBlockHeader {
 
   uint256 GetHash() const;
 
+  uint256 GetHashE() const;
+
   uint256 GetPoWHash(int algo) const
   {
     switch(algo) {
@@ -202,7 +204,7 @@ class CPureBlockHeader {
 	/*uint256 thash;
 	hash_equihash(BEGIN(nVersion),BEGIN(thash));
 	return thash;*/
-	return GetHash();
+	return GetHashE();
       }
     case ALGO_CRYPTONIGHT:
       {

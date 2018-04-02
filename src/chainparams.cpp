@@ -34,6 +34,7 @@ unsigned int pnSeed[] = {0x8BA2805C, // eu.bitmark.io IP = 139.162.128.92
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
+      LogPrintf("mainnet params\n");
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
@@ -212,8 +213,8 @@ public:
 	nEquihashN = 200;
 	nEquihashK = 9;
 	fMineBlocksOnDemand = true;
-	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
-	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
+	printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
         assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
@@ -233,8 +234,9 @@ const CChainParams &Params() {
 void SelectParams(CChainParams::Network network) {
     switch (network) {
         case CChainParams::MAIN:
-            pCurrentParams = &mainParams;
-            break;
+	  LogPrintf("network is mainnet\n");
+	  pCurrentParams = &mainParams;
+	  break;
         case CChainParams::TESTNET:
             pCurrentParams = &testNetParams;
             break;

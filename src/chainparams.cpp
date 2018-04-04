@@ -150,13 +150,13 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1516910545;
+        genesis.nTime = 1522687205;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 93144;
+	genesis.nNonce = 148629;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0c27520aa443b80780050baf16f90ddbd024a602ef434c4017a29232aec25355"));
+        assert(hashGenesisBlock == uint256("78f34cb493a27a782049249496e7897d5983598888c7542f06af95a25cc4fec6"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

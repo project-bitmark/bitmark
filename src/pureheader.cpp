@@ -21,9 +21,15 @@ uint256 CPureBlockHeader::GetHashE() const
   memcpy(input+100,BEGIN(nTime),4);
   memcpy(input+104,BEGIN(nBits),4);
   memcpy(input+108,BEGIN(nNonce256),32);
-  input[140] = 0xfd;
-  input[141] = 0x40;
-  input[142] = 0x05;
-  memcpy(input+143,BEGIN(nSolution[0]),1344);
+  if (nSolution.size()==1344) {
+    input[140] = 0xfd;
+    input[141] = 0x40;
+    input[142] = 0x05;
+    memcpy(input+143,BEGIN(nSolution[0]),1344);
+  }
+  else {
+    LogPrintf("nSolution size %lu/n",nSolution.size());
+    return Hash((unsigned char *)input,(unsigned char *)input+140);
+  }
   return Hash((unsigned char *)input,(unsigned char *)input+1487);
 }

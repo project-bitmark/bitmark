@@ -29,7 +29,7 @@ uint256 CPureBlockHeader::GetHashE() const
   }
   else {
     LogPrintf("nSolution size %lu/n",nSolution.size());
-    return Hash((unsigned char *)input,(unsigned char *)input+140);
+    return Hash((unsigned char *)input,(unsigned char *)input+141);
   }
   return Hash((unsigned char *)input,(unsigned char *)input+1487);
 }

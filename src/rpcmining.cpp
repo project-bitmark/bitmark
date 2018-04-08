@@ -781,6 +781,7 @@ Value getauxblock(const Array& params, bool fHelp)
 
 	mapNewBlock[pblock->GetHash()] = pblock;
 	vNewBlockTemplate.push_back(pblocktemplate);
+	miningAlgoGAB = miningAlgo;
       }	    	  
     }
 
@@ -789,7 +790,9 @@ Value getauxblock(const Array& params, bool fHelp)
     uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
 
     json_spirit::Object result;
+    LogPrintf("get hash for aux\n");
     result.push_back(Pair("hash", block.GetHash().GetHex()));
+    LogPrintf("got hash for aux\n");
     result.push_back(Pair("chainid", block.GetChainId()));
     result.push_back(Pair("previousblockhash", block.hashPrevBlock.GetHex()));
     result.push_back(Pair("coinbasevalue", (int64_t)block.vtx[0].vout[0].nValue));

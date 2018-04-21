@@ -2715,12 +2715,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
-
-    // Check Equihash solution if applicable
-    if (fCheckPOW && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
-      return state.DoS(50, error("CheckBlock() : Invalid Equihash Solution"),
-			 REJECT_INVALID, "bad-equihash-solution");      
-    }
     
     // Check proof of work matches claimed amount
     if(block.IsAuxpow()) {
@@ -2730,9 +2724,16 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 			 REJECT_INVALID, "high-hash");
       }
     }
-    else if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
-      return state.DoS(50, error("CheckBlock() : proof of work failed"),
-		       REJECT_INVALID, "high-hash");
+    else {
+          if (fCheckPOW && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
+	    return state.DoS(50, error("CheckBlock() : Invalid Equihash Solution"),
+			     REJECT_INVALID, "bad-equihash-solution");      
+	  }
+
+	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
+	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
+			 REJECT_INVALID, "high-hash");
+	  }
     }
 
     // Check timestamp

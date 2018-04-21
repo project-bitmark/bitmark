@@ -51,6 +51,8 @@ class CPureBlockHeader {
   uint256 nNonce256;
   std::vector<unsigned char> nSolution;
   uint256 hashReserved;
+  bool isParent;
+  int algoParent;
 
   CPureBlockHeader()
     {
@@ -63,14 +65,14 @@ class CPureBlockHeader {
      nVersion = this->nVersion;
      READWRITE(hashPrevBlock);
      READWRITE(hashMerkleRoot);
-     if (GetAlgo()==ALGO_EQUIHASH) {
+     if ((!isParent && GetAlgo()==ALGO_EQUIHASH) || (isParent && algoParent==ALGO_EQUIHASH)) {
        READWRITE(hashReserved);
      }
      READWRITE(nTime);
      READWRITE(nBits);
      CBigNum nBits_bn;
      nBits_bn.SetCompact(nBits);
-     if (GetAlgo()==ALGO_EQUIHASH) {
+     if ((!isParent && GetAlgo()==ALGO_EQUIHASH) || (isParent && algoParent==ALGO_EQUIHASH)) {
        READWRITE(nNonce256);
        READWRITE(nSolution);
      }
@@ -90,6 +92,8 @@ class CPureBlockHeader {
       nNonce = 0;
       nNonce256.SetNull();
       nSolution.clear();
+      isParent = false;
+      algoParent = -1;
     }
 
   void SetAlgo(int algo)
@@ -126,6 +130,7 @@ class CPureBlockHeader {
   }
 
   int GetAlgo () const {
+    if (algoParent != -1) return algoParent;
     switch (nVersion & BLOCK_VERSION_ALGO)
       {
       case BLOCK_VERSION_SHA256D:

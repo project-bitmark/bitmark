@@ -22,7 +22,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     return true;
 }
 
-bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& params)
+bool CheckEquihashSolution(const CPureBlockHeader *pblock, const CChainParams& params)
 {
 
   if (pblock->nSolution.size()>1) {

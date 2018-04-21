@@ -207,6 +207,9 @@ public:
     std::vector<CTxOut> vout;
     unsigned int nLockTime;
 
+    bool vector_format;
+    std::vector<unsigned char> vector_representation;
+
     CTransaction()
     {
         SetNull();
@@ -214,12 +217,17 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-        READWRITE(this->nVersion);
-        nVersion = this->nVersion;
-        READWRITE(vin);
-        READWRITE(vout);
-        READWRITE(nLockTime);
-	if (fRead) UpdateHash();
+     if (vector_format) {
+       READWRITE(this->vector_representation);
+     }
+     else {
+       READWRITE(this->nVersion);
+       nVersion = this->nVersion;
+       READWRITE(vin);
+       READWRITE(vout);
+       READWRITE(nLockTime);
+     }
+     if (fRead) UpdateHash();
     )
 
     void SetNull()
@@ -229,6 +237,8 @@ public:
         vout.clear();
         nLockTime = 0;
 	*const_cast<uint256*>(&hash) = uint256(0);
+	vector_format = false;
+	vector_representation.clear();
     }
 
     bool IsNull() const
@@ -346,11 +356,17 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
+     LogPrintf("rw cmerkletx\n");
 	READWRITE(*(CTransaction*)this);
         nVersion = this->nVersion;
+     LogPrintf("rw cmerkletx hashBlock\n");
         READWRITE(hashBlock);
+     LogPrintf("hashBlock = %s\n",hashBlock.GetHex().c_str());
+     LogPrintf("rw cmerkletx vMerkleBranch\n");
         READWRITE(vMerkleBranch);
+     LogPrintf("rw cmerkletx nIndex\n");
         READWRITE(nIndex);
+     LogPrintf("finished rw cmerkletx\n");
     )
 
 
@@ -389,22 +405,28 @@ public:
     /** Parent block header (on which the real PoW is done).  */
     CPureBlockHeader parentBlock;
 
+    int algo = 0;
+ 
+
 public:
     /* Prevent accidental conversion.  */
     inline explicit CAuxPow(const CTransaction& txIn)
         : CMerkleTx(txIn)
     {
+      parentBlock.isParent = true;
     }
 
     inline CAuxPow()
         : CMerkleTx()
     {
+      parentBlock.isParent = true;
     }
 
     IMPLEMENT_SERIALIZE
       (
        LogPrintf("serialize aux pow read=%d write=%d getsize=%d\n",fRead,fWrite,fGetSize);
        READWRITE(*(CMerkleTx*)this);
+       LogPrintf("serialize aux pow rw vChain...\n");
        nVersion = this->nVersion;
        READWRITE(vChainMerkleBranch);
        READWRITE(nChainIndex);
@@ -494,6 +516,9 @@ public:
 	if (this->IsAuxpow()) {
 	  LogPrintf("getserializesize blockheader isauxpow\n");
 	  assert(auxpow);
+	  (*auxpow).parentBlock.isParent = true;
+	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
+	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
 	  READWRITE(*auxpow);
 	}
         return nSerSize;                        \
@@ -512,6 +537,9 @@ public:
 	if (this->IsAuxpow()) {
 	  LogPrintf("serialize blockheader isauxpow\n");
 	  assert(auxpow);
+	  (*auxpow).parentBlock.isParent = true;
+	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
+	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
 	  READWRITE(*auxpow);
 	}
     }                                           \
@@ -531,6 +559,9 @@ public:
 	  LogPrintf("unserialize blockheader isauxpow\n");
 	  auxpow.reset(new CAuxPow());
 	  assert(auxpow);
+	  (*auxpow).parentBlock.isParent = true;
+	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
+	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
 	  READWRITE(*auxpow);
 	}
 	else {
@@ -548,6 +579,10 @@ public:
     {
       if (apow)
 	{
+	  if (GetAlgo()==ALGO_EQUIHASH) {
+	    apow->vector_format = true;
+	  }
+	  apow->parentBlock.algoParent = GetAlgo();
 	  auxpow.reset(apow);
 	  CPureBlockHeader::SetAuxpow(true);
 	} else
@@ -563,13 +598,13 @@ public:
     }
 };
 
-class CEquihashInput : private CBlockHeader
+class CEquihashInput : private CPureBlockHeader
 {
 public:
-    CEquihashInput(const CBlockHeader &header)
+    CEquihashInput(const CPureBlockHeader &header)
     {
-        CBlockHeader::SetNull();
-        *((CBlockHeader*)this) = header;
+        CPureBlockHeader::SetNull();
+        *((CPureBlockHeader*)this) = header;
     }
 
     IMPLEMENT_SERIALIZE

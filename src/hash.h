@@ -53,13 +53,24 @@ public:
     }
 
     CHashWriter& write(const char *pch, size_t size) {
-        SHA256_Update(&ctx, pch, size);
-        return (*this);
+      LogPrintf("Hashwriter\n");
+      for (unsigned int i=0;i<size;i++) {
+	LogPrintf("%02x",((unsigned char *)pch)[i]);
+      }
+      LogPrintf("\n");
+      SHA256_Update(&ctx, pch, size);
+      return (*this);
     }
 
     // invalidates the object
     uint256 GetHash() {
         uint256 hash1;
+	unsigned char * data = (unsigned char *)&ctx.data[0];
+	LogPrintf("GetHash(): \n");
+	for (int i=0;i<174;i++) {
+	  LogPrintf("%02x",data[i]);
+	}
+	LogPrintf("\n");
         SHA256_Final((unsigned char*)&hash1, &ctx);
         uint256 hash2;
         SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);

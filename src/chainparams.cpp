@@ -103,6 +103,8 @@ public:
             addr.nTime = GetTime() - GetRand(nOneWeek) - nOneWeek;
             vFixedSeeds.push_back(addr);
         }
+
+        dgw3ForkHeight = 447318; // Replace with actual fork block height
     }
 
     virtual const CBlock& GenesisBlock() const { return genesis; }

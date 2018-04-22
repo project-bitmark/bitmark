@@ -68,6 +68,10 @@ public:
     const std::vector<unsigned char> &Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     virtual const vector<CAddress>& FixedSeeds() const = 0;
     int RPCPort() const { return nRPCPort; }
+
+    // fork heights
+    unsigned int DGW3ForkHeight() const { return dgw3ForkHeight; }
+
 protected:
     CChainParams() {}
 
@@ -82,6 +86,8 @@ protected:
     string strDataDir;
     vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
+
+    unsigned int dgw3ForkHeight;
 };
 
 /**

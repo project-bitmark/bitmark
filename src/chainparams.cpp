@@ -247,6 +247,7 @@ void SelectParams(CChainParams::Network network) {
             assert(false && "Unimplemented network");
             return;
     }
+    fReopenDebugLog = true;
 }
 
 /*

@@ -218,10 +218,13 @@ public:
     IMPLEMENT_SERIALIZE
     (
      if (vector_format) {
+       LogPrintf("transaction rw vector rep\n");
        READWRITE(this->vector_representation);
      }
      else {
+       LogPrintf("transaction rw normal\n");
        READWRITE(this->nVersion);
+       LogPrintf("got nVersion\n");
        nVersion = this->nVersion;
        READWRITE(vin);
        READWRITE(vout);
@@ -1021,6 +1024,30 @@ public:
     {
       return nVersion & BLOCK_VERSION_AUXPOW;
     }
+
+    int GetAlgo () const {
+      switch (nVersion & BLOCK_VERSION_ALGO)
+	{
+	case BLOCK_VERSION_SHA256D:
+	  return ALGO_SHA256D;
+	case BLOCK_VERSION_SCRYPT:
+	  return ALGO_SCRYPT;
+	case BLOCK_VERSION_ARGON2:
+	  return ALGO_ARGON2;
+	case BLOCK_VERSION_X17:
+	  return ALGO_X17;
+	case BLOCK_VERSION_LYRA2REv2:
+	  return ALGO_LYRA2REv2;
+	case BLOCK_VERSION_EQUIHASH:
+	  return ALGO_EQUIHASH;
+	case BLOCK_VERSION_CRYPTONIGHT:
+	  return ALGO_CRYPTONIGHT;
+	case BLOCK_VERSION_YESCRYPT:
+	  return ALGO_YESCRYPT;
+	}
+      return ALGO_SCRYPT;
+    }
+
 };
 
 /** Used to marshal pointers into hashes for db storage. */
@@ -1071,6 +1098,9 @@ public:
 	READWRITE(nNonce);
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
+	  (*pauxpow).parentBlock.isParent = true;
+          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
+          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
 	  READWRITE(*pauxpow);
 	}
         return nSerSize;                        \
@@ -1107,6 +1137,9 @@ public:
 	READWRITE(nNonce);
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
+	  (*pauxpow).parentBlock.isParent = true;
+          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
+          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
 	  READWRITE(*pauxpow);
 	}
     }                                           \
@@ -1143,6 +1176,9 @@ public:
 	if (this->IsAuxpow()) {
 	  pauxpow.reset(new CAuxPow());
 	  assert(pauxpow);
+	  (*pauxpow).parentBlock.isParent = true;
+          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
+          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
 	  READWRITE(*pauxpow);
 	} else {
 	  pauxpow.reset();

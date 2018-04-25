@@ -1,5 +1,5 @@
-#ifndef __cryptonight_hash_h
-#define __cryptonight_hash_h
+#ifndef __hash_h
+#define __hash_h
 /*
 #include "crypto_uint8.h"
 #include "crypto_uint32.h"
@@ -12,7 +12,7 @@ typedef crypto_uint64 uint64_t;
 */
 #include <stdint.h>
 
-#include "cryptonight/hash.h"
+#include "hash.h"
 
 /* some sizes (number of bytes) */
 #define ROWS 8

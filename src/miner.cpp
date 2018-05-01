@@ -337,13 +337,13 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         nLastBlockSize = nBlockSize;
         LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-	if (pblock->nVersion > 2) {
-	  LogPrintf("miner nVersion>2\n");
+	if (pindexPrev->nHeight>=nForkHeight-1 && CBlockIndex::IsSuperMajority(3,pindexPrev,750,1000)) {
+	  LogPrintf("miner on fork\n");
 	  CBlockIndex * pprev_algo = pindexPrev;
 	  if (GetAlgo(pprev_algo->nVersion)!=miningAlgo) {
 	    pprev_algo = get_pprev_algo(pindexPrev,miningAlgo);
 	  }
-	  if (!pprev_algo || (pprev_algo && pprev_algo->nVersion <=2 && !get_pprev_algo(pprev_algo,-1))) {
+	  if (!pprev_algo) {
 	    LogPrintf("miner set update ssf\n");
 	    pblock->SetUpdateSSF();
 	  }

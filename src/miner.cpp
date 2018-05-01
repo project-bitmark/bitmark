@@ -120,7 +120,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     CBlockIndex* pindexPrev = chainActive.Tip();
     miningAlgo = GetArg("-miningalgo", miningAlgo);
     LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
-    if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(3,pindexPrev,750,1000) || RegTest()) {
+    if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(3,pindexPrev,75,100) || RegTest()) {
       LogPrintf("algo set to %d\n",miningAlgo);
       //pblock->nVersion = 3;
       LogPrintf("pblock nVersion is %d\n",pblock->nVersion);
@@ -337,7 +337,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         nLastBlockSize = nBlockSize;
         LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-	if (pindexPrev->nHeight>=nForkHeight-1 && CBlockIndex::IsSuperMajority(3,pindexPrev,750,1000)) {
+	if (pindexPrev->nHeight>=nForkHeight-1 && CBlockIndex::IsSuperMajority(3,pindexPrev,75,100)) {
 	  LogPrintf("miner on fork\n");
 	  CBlockIndex * pprev_algo = pindexPrev;
 	  if (GetAlgo(pprev_algo->nVersion)!=miningAlgo) {

@@ -41,8 +41,7 @@ enum
 
 class CPureBlockHeader {
  public:
-  static const int CURRENT_VERSION=2;
-  static const int HARD_FORK_VERSION=3;
+  static const int CURRENT_VERSION=3;
   int nVersion;
   uint256 hashPrevBlock;
   uint256 hashMerkleRoot;

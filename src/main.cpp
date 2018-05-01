@@ -2324,7 +2324,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
         const CBlockIndex* pindex = chainActive.Tip();
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-	  if (GetVersion(pindex->nVersion) > CBlock::HARD_FORK_VERSION)
+	  if (GetVersion(pindex->nVersion) > CBlock::CURRENT_VERSION)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }

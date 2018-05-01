@@ -198,7 +198,7 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
     }
   }
   else {
-    if (blockindex->nHeight < nForkHeight && !RegTest()) {
+    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(3,blockindex->pprev,75,100))&& !RegTest()) {
       return ((double)blockindex->nMoneySupply)/100000000.;
     }
     return GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5);

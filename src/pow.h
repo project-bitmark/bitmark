@@ -8,6 +8,6 @@
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 
 /** Check whether the block's equihash solultion is valid, in the case of an equihash algo */
-bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& params);
+bool CheckEquihashSolution(const CPureBlockHeader *pblock, const CChainParams& params);
 
 #endif

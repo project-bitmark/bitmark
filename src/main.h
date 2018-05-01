@@ -65,7 +65,7 @@ static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
 /** Timeout in seconds before considering a block download peer unresponsive. */
 static const unsigned int BLOCK_DOWNLOAD_TIMEOUT = 60;
 
-static const int64_t nForkHeight = 50;
+static const int64_t nForkHeight = 200;
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
@@ -288,6 +288,8 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state);
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
 */
 bool IsStandardTx(const CTransaction& tx, std::string& reason);
+
+bool onFork(const CBlockIndex * p);
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 

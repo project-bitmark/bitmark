@@ -228,8 +228,8 @@ struct CNodeState {
     }
 };
 
-// Map maintaining per-node state. Requires cs_main.
-map<NodeId, CNodeState> mapNodeState;
+  // Map maintaining per-node state. Requires cs_main.
+  map<NodeId, CNodeState> mapNodeState;
 
 // Requires cs_main.
 CNodeState *State(NodeId pnode) {
@@ -239,7 +239,7 @@ CNodeState *State(NodeId pnode) {
     return &it->second;
 }
 
-int GetHeight()
+  int GetHeight()
 {
     LOCK(cs_main);
     return chainActive.Height();
@@ -263,7 +263,7 @@ void FinalizeNode(NodeId nodeid) {
     EraseOrphansFor(nodeid);
     mapNodeState.erase(nodeid);
 }
-
+  
 // Requires cs_main.
 void MarkBlockAsReceived(const uint256 &hash, NodeId nodeFrom = -1) {
     map<uint256, pair<NodeId, list<uint256>::iterator> >::iterator itToDownload = mapBlocksToDownload.find(hash);
@@ -493,11 +493,10 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
     return nEvicted;
 }
 
-
-
-
-
-
+bool onFork (const CBlockIndex * pindex) {
+  if (pindex->nHeight >= nForkHeight && CBlockIndex::IsSuperMajority(3,pindex->pprev,75,100)) return true;
+  return false;
+}
 
 bool IsStandardTx(const CTransaction& tx, string& reason)
 {
@@ -1237,7 +1236,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
         // 35 GH/s
         minimumFullRewardHashrate = 35000000000 / 100;
     }
-    if (nHeight < nForkHeight && !RegTest()) {
+    if (!onFork(pindexPrev) && !RegTest()) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1266,7 +1265,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     }
 
     double scalingFactor = 1.;
-    if (pindexPrev->nVersion>2||pprev_algo) {
+    if (onFork(pindexPrev)) {
       scalingFactor = pindexPrev->subsidyScalingFactor;
       if (scalingFactor == 0.) { // find the key block and recalculate
 	CBlockIndex * pprev_algo = pindexPrev;
@@ -1472,22 +1471,24 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     int64_t _nTargetTimespan = CountBlocks * 960; //16 min target
 
     if (CountBlocks > 0) {
+
+      int64_t multiplier = 1;
+      // Retarget
+      if (time_since_last_algo > 9600 && nActualTimespan < 10*_nTargetTimespan) { //160 min for special retarget
+	multiplier = time_since_last_algo/9600;
+	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), multiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, multiplier);
+	nActualTimespan = 10*multiplier*_nTargetTimespan;
+      }
+      
     
       if (nActualTimespan < _nTargetTimespan/3)
         nActualTimespan = _nTargetTimespan/3;
       if (nActualTimespan > _nTargetTimespan*3)
-        nActualTimespan = _nTargetTimespan*3;
+        nActualTimespan = multiplier*_nTargetTimespan*3;
 
-      // Retarget
-      if (time_since_last_algo > 9600 && nActualTimespan < 10*_nTargetTimespan) { //160 min for special retarget
-	int64_t multiplier = 1;
-	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), multiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, multiplier);
-	bnNew *= 10*multiplier;
-      }
-      else {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
-      }
+
     }
     else {
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
@@ -1527,7 +1528,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
     // Mainnet
-    if (nHeight < nForkHeight-1 || RegTest()) {
+    if (nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(3,pindexLast,75,100) || RegTest()) {
       workAlgo = 0;
     } else {
       workAlgo = 1;
@@ -2025,21 +2026,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         return false;
     
     // Force the fork to happen exactly at nForkHeight
-    if (pindex->nVersion>2 || get_pprev_algo(pindex,-1)) {
-      if (pindex->nHeight < nForkHeight && !RegTest()) {
-	LogPrintf("nVersion>2 and before fork");
-	return false;
-      }
-    }
-    else {
-      if (pindex->nHeight >= nForkHeight && !RegTest()) {
-	LogPrintf("nVersion<=2 and after fork\n");
-	return false;
-      }
+    if (onFork(pindex) && !RegTest() && block.nVersion<3) {
+      LogPrintf("nVersion<=2 and after fork\n");
+      return false;
     }
     
     // Check SSF
-    if (pindex->nVersion>2 || get_pprev_algo(pindex,-1)) { //new multi algo blocks are identified like this
+    if (onFork(pindex)) { //new multi algo blocks are identified like this
       CBlockIndex * pprev_algo = pindex;
       if (update_ssf(pindex->nVersion)) {
 	for (int i=0; i<144; i++) {
@@ -2124,7 +2117,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     //
     // However the block.nVersion=3 rule is not enforced until 750 of the last
     // 1,000 blocks are version 3 or greater (51/100 if testnet):
-    if (block.nVersion >= 3)
+    if (onFork(pindex))
     {
         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
     }
@@ -2186,7 +2179,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     CBlockIndex * pprev_algo = 0;
     if (!fJustCheck) pprev_algo = get_pprev_algo(pindex,-1);
-    if (!fJustCheck && (pindex->nVersion > 2 || pprev_algo)) { // set scaling factor
+    if (!fJustCheck && onFork(pindex)) { // set scaling factor
       if (update_ssf(pindex->nVersion)) {
 	pindex->subsidyScalingFactor = get_ssf(pindex);
       }
@@ -2218,7 +2211,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     // Increment the nMoneySupply to include this blocks subsidy
     
-    if (pindex->nVersion > 2 || pprev_algo) {
+    if (onFork(pindex)) {
       if (pprev_algo) {
 	pindex->nMoneySupply = pprev_algo->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }
@@ -2227,7 +2220,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	pindex->nMoneySupply = ms_correction+block.vtx[0].GetValueOut() - nFees;
       }
     }
-    else if (pindex->nVersion <= 2) {
+    else {
       if (pindex->pprev) {
 	pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }
@@ -2715,12 +2708,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
-
-    // Check Equihash solution if applicable
-    if (fCheckPOW && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
-      return state.DoS(50, error("CheckBlock() : Invalid Equihash Solution"),
-			 REJECT_INVALID, "bad-equihash-solution");      
-    }
     
     // Check proof of work matches claimed amount
     if(block.IsAuxpow()) {
@@ -2730,9 +2717,16 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 			 REJECT_INVALID, "high-hash");
       }
     }
-    else if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
-      return state.DoS(50, error("CheckBlock() : proof of work failed"),
-		       REJECT_INVALID, "high-hash");
+    else {
+          if (fCheckPOW && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
+	    return state.DoS(50, error("CheckBlock() : Invalid Equihash Solution"),
+			     REJECT_INVALID, "bad-equihash-solution");      
+	  }
+
+	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
+	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
+			 REJECT_INVALID, "high-hash");
+	  }
     }
 
     // Check timestamp
@@ -2853,13 +2847,11 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         }
 
         // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
-	/*
-        if (block.nVersion < 3 &&
-            CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
-        {
-            return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
-                                 REJECT_OBSOLETE, "bad-version");
-				 }*/
+
+        if (block.nVersion < 3 && pindexPrev->nHeight >= nForkHeight-1 && CBlockIndex::IsSuperMajority(3,pindexPrev,75,100)) {
+	  return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
+			       REJECT_OBSOLETE, "bad-version");
+	}
     }
 
     // Write block to history file
@@ -4890,7 +4882,7 @@ int GetVersion (int nVersion) {
 /* Get previous CBlockIndex pointer with the given algo. If nVersion<=2, return null if no nVersion>2 come before it. This is a way to check for the mPOW fork without hardcoding a height for the fork. */
 CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
   if (!p) return 0;
-  if (!TestNet() && !RegTest() && p->nHeight < v2checkpoint) return 0; //for speeding up initialization
+  if (!onFork(p)) return 0;
   int algo = -1;
   if (use_algo>=0) {
     algo = use_algo;
@@ -4899,22 +4891,10 @@ CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
     algo = GetAlgo(p->nVersion);
   }
   CBlockIndex * pprev = p->pprev;
-  CBlockIndex * pprev_prelim = 0;
-  while (pprev) {
-    //LogPrintf("get_pprev_algo height = %d\n",pprev->nHeight);
-    int cur_nVersion = pprev->nVersion;
-    int cur_algo = GetAlgo(cur_nVersion);
+  while (pprev && pprev->nHeight>=nForkHeight) {
+    int cur_algo = GetAlgo(pprev->nVersion);
     if (cur_algo == algo) {
-      if (cur_nVersion <= 2) {
-	//LogPrintf("get_pprev_algo cur_nVersion<=2\n");
-	pprev_prelim = pprev;
-      }
-      else {
-	if (pprev_prelim) {
-	  return pprev_prelim;
-	}
-	return pprev;
-      }
+      return pprev;
     }
     pprev = pprev->pprev;
   }
@@ -4924,15 +4904,20 @@ CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
 
 int64_t get_mpow_ms_correction (CBlockIndex * p) {
   CBlockIndex * pprev = p->pprev;
+  if (pprev && !onFork(pprev)) {
+    if (pprev->nHeight == 0) {
+      return 400000000;
+    }
+    return pprev->nMoneySupply/5;
+  }
   while (pprev) {
-    if (pprev->nVersion <= 2 && !get_pprev_algo(pprev,-1)) {
+    pprev = pprev->pprev;
+    if (pprev->nHeight<nForkHeight) {
       if (pprev->nHeight == 0) {
 	return 400000000;
       }
-      //LogPrintf("return %l for correction\n",pprev->nMoneySupply/5);
       return pprev->nMoneySupply/5;
     }
-    pprev = pprev->pprev;
   }
   //LogPrintf("just return 0 for correction\n");
   return 0;

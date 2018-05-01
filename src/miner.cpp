@@ -120,10 +120,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     CBlockIndex* pindexPrev = chainActive.Tip();
     miningAlgo = GetArg("-miningalgo", miningAlgo);
     LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
-    if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
+    if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(3,pindexPrev,75,100) || RegTest()) {
       LogPrintf("algo set to %d\n",miningAlgo);
-      pblock->nVersion = 3;
-      LogPrintf("pblock nVersion is 3\n");
+      //pblock->nVersion = 3;
+      LogPrintf("pblock nVersion is %d\n",pblock->nVersion);
       pblock->SetAlgo(miningAlgo);
       LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
     }
@@ -337,13 +337,13 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         nLastBlockSize = nBlockSize;
         LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-	if (pblock->nVersion > 2) {
-	  LogPrintf("miner nVersion>2\n");
+	if (pindexPrev->nHeight>=nForkHeight-1 && CBlockIndex::IsSuperMajority(3,pindexPrev,75,100)) {
+	  LogPrintf("miner on fork\n");
 	  CBlockIndex * pprev_algo = pindexPrev;
 	  if (GetAlgo(pprev_algo->nVersion)!=miningAlgo) {
 	    pprev_algo = get_pprev_algo(pindexPrev,miningAlgo);
 	  }
-	  if (!pprev_algo || (pprev_algo && pprev_algo->nVersion <=2 && !get_pprev_algo(pprev_algo,-1))) {
+	  if (!pprev_algo) {
 	    LogPrintf("miner set update ssf\n");
 	    pblock->SetUpdateSSF();
 	  }
@@ -594,15 +594,28 @@ void static BitmarkMiner(CWallet *pwallet)
 	    LogPrintf("Mining algo equihash\n");
 	    unsigned int n = Params().EquihashN();
 	    unsigned int k = Params().EquihashK();
+	    LogPrintf("equi n k = %d %d\n",n,k);
 	    bool cancelSolver = false;
 	    crypto_generichash_blake2b_state state;
 	    EhInitialiseState(n, k, state);
 	    CEquihashInput I{*pblock};
 	    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
 	    ss << I;
+	    LogPrintf("ss (%lu) = ",ss.size());
+	    for (int i=0; i<ss.size(); i++) {
+	      LogPrintf("%02x",*((unsigned char *)&ss[0]+i));
+	    }
+	    LogPrintf("\n");
 	    crypto_generichash_blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
 	    crypto_generichash_blake2b_state curr_state;
 	    curr_state = state;
+	    unsigned char * nonce256 = pblock->nNonce256.begin();
+	    LogPrintf("nonce (%lu) = ",pblock->nNonce256.size());
+	    for (int i=0; i<pblock->nNonce256.size(); i++) {
+	      LogPrintf("%02x",nonce256[i]);
+	    }
+	    LogPrintf("\n");
+	    
 	    crypto_generichash_blake2b_update(&curr_state,
 					      pblock->nNonce256.begin(),
 					      pblock->nNonce256.size());
@@ -673,6 +686,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	    }
 	    eq.digitK(0);
 	    //ehSolverRuns.increment();
+	    LogPrintf("PROOFSIZE = %d DIGITBITS = %d\n",PROOFSIZE,DIGITBITS);
 	    for (size_t s = 0; s < eq.nsols; s++) {
 	      LogPrint("pow", "Checking solution %d\n", s+1);
 	      std::vector<eh_index> index_vector(PROOFSIZE);

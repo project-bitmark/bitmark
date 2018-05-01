@@ -47,8 +47,8 @@ public:
     }
 
     CHashWriter& write(const char *pch, size_t size) {
-        SHA256_Update(&ctx, pch, size);
-        return (*this);
+      SHA256_Update(&ctx, pch, size);
+      return (*this);
     }
 
     // invalidates the object

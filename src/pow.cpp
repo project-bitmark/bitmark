@@ -22,7 +22,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     return true;
 }
 
-bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& params)
+bool CheckEquihashSolution(const CPureBlockHeader *pblock, const CChainParams& params)
 {
 
   if (pblock->nSolution.size()>1) {
@@ -46,6 +46,18 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& param
     ss << I;
     ss << pblock->nNonce256;
 
+    LogPrintf("checkES ss (%lu) = ",ss.size());
+    for (int i=0; i<ss.size(); i++) {
+      LogPrintf("%02x",*((unsigned char *)&ss[0]+i));
+    }
+
+    LogPrintf("\n");
+    LogPrintf("checkES nSolution (%lu) = ",(pblock->nSolution).size());
+    for (int i=0; i<(pblock->nSolution).size(); i++) {
+      LogPrintf("%02x",*((unsigned char *)&(pblock->nSolution)[0]+i));
+    }
+    LogPrintf("\n");
+    
     // H(I||V||...
     crypto_generichash_blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
 

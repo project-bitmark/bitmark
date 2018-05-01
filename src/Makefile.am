@@ -179,15 +179,14 @@ libbitmark_common_a_SOURCES = \
   ar2/blake2/blake2b.c \
   equihash.cpp \
   equihash.tcc \
-  cryptonight/cryptonight.c \
+  cryptonight/cryptonight_common.c \
   cryptonight/c_blake256.c \
   cryptonight/c_groestl.c \
   cryptonight/c_jh.c \
   cryptonight/c_keccak.c \
   cryptonight/c_skein.c \
   cryptonight/oaes_lib.c \
-  cryptonight/aesb.c \
-  cryptonight/aesb-x64.S \
+  cryptonight/cryptonight_lobotomized.c \
   yescrypt/yescryptcommon.c \
   yescrypt/yescrypt-best.c \
   yescrypt/yescrypt-platform.c \

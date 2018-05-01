@@ -70,7 +70,7 @@ uint256 CTxOut::GetHash() const
 
 std::string CTxOut::ToString() const
 {
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString().substr(0,30));
+    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString());
 }
 
 void CTxOut::print() const
@@ -80,6 +80,8 @@ void CTxOut::print() const
 
 uint256 CTransaction::GetHash() const
 {
+  if (vin[0].prevout.IsNull())
+    LogPrintf("get coinbase transaction hash\n");
     return SerializeHash(*this);
 }
 
@@ -97,7 +99,12 @@ uint256 CTransaction::GetCachedHash() const
 
 void CTransaction::UpdateHash() const
 {
-  *const_cast<uint256*>(&hash) = SerializeHash(*this);
+  if (this->vector_format) {
+    *const_cast<uint256*>(&hash) = Hash((unsigned char *)&vector_representation[0],(unsigned char *)&vector_representation[vector_representation.size()]);
+  }
+  else {
+    *const_cast<uint256*>(&hash) = SerializeHash(*this);
+  }
 }
 
 bool CTransaction::IsNewerThan(const CTransaction& old) const
@@ -272,10 +279,12 @@ std::vector<uint256> CBlock::GetMerkleBranch(int nIndex) const
 
 uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex)
 {
+  LogPrintf("in checkmerklebranch nIndex=%d\n",nIndex);
     if (nIndex == -1)
         return 0;
     BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
     {
+      LogPrintf("otherside\n");
         if (nIndex & 1)
             hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
         else
@@ -351,18 +360,28 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     LogPrintf("check auxpow err 3\n");
     return error("Aux POW chain merkle branch too long");
   }
+  LogPrintf("get nRootHash vChainMerkleBranch size %d\n",vChainMerkleBranch.size());
 
     // Check that the chain merkle root is in the coinbase
     const uint256 nRootHash = CBlock::CheckMerkleBranch(hashAuxBlock, vChainMerkleBranch, nChainIndex);
+    LogPrintf("create vchRootHash: %s\n",nRootHash.GetHex().c_str());
     std::vector<unsigned char> vchRootHash(nRootHash.begin(), nRootHash.end());
     std::reverse(vchRootHash.begin(), vchRootHash.end()); // correct endian
 
+    LogPrintf("get transaction hash\n");
     uint256 transaction_hash = GetHash();
+    LogPrintf("transaction_hash = %s\n",transaction_hash.GetHex().c_str());
+    LogPrintf("hashBlock = %s\n",hashBlock.GetHex().c_str());
+    LogPrintf("get merklebranch_hash\n");
     uint256 merklebranch_hash = CBlock::CheckMerkleBranch(transaction_hash, vMerkleBranch, nIndex);
-    LogPrintf("auxpow transaction = %s\n",ToString().c_str());
-    LogPrintf("auxpow transaction_hash = %s\n",transaction_hash.ToString().c_str());
+    //LogPrintf("auxpow transaction = %s\n",ToString().c_str());
+    //LogPrintf("auxpow transaction_hash = %s\n",transaction_hash.ToString().c_str());
+    LogPrintf("parentBlock.nVersion = %u\n",parentBlock.nVersion);
+    LogPrintf("parentBlock.hashPrevBlock = %s\n",parentBlock.hashPrevBlock.ToString().c_str());
     LogPrintf("parentBlock.hashMerkleRoot = %s\n",parentBlock.hashMerkleRoot.ToString().c_str());
-    LogPrintf("merklebranch_hash = %s\n",merklebranch_hash.ToString().c_str());
+    LogPrintf("parentBlock.nTime = %lu\n",parentBlock.nTime);
+    LogPrintf("parentBlock.solution size = %lu\n",parentBlock.nSolution.size());
+    //LogPrintf("merklebranch_hash = %s\n",merklebranch_hash.ToString().c_str());
     BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
       {
 	LogPrintf("VMerkleBranch hash: %s\n",otherside.GetHex().c_str());
@@ -374,47 +393,64 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
       LogPrintf("check auxpow err 4: \n");
         return error("Aux POW merkle root incorrect");
     }
-
-    const CScript script = vin[0].scriptSig;
+    LogPrintf("check scriptsig\n");
+    std::vector<unsigned char> script;
+    if (vector_format) {
+      script = vector_representation;
+    }
+    else {
+      script = vin[0].scriptSig;
+    }
+    LogPrintf("script size = %lu\n",script.size());
 
     // Check that the same work is not submitted twice to our chain.
     //
 
-    CScript::const_iterator pcHead =
-        std::search(script.begin(), script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader));
-
-    CScript::const_iterator pc =
-        std::search(script.begin(), script.end(), vchRootHash.begin(), vchRootHash.end());
-
-    if (pc == script.end()) {
-      LogPrintf("check auxpow err 5\n");
-        return error("Aux POW missing chain merkle root in parent coinbase");
+    /*
+    LogPrintf("search pcHead\n");
+    std::vector<unsigned char>::iterator pcHead =
+    std::search(script.begin(), script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader));*/
+      
+    LogPrintf("script:\n");
+    for (unsigned int i=0;i<script.size();i++) {
+      LogPrintf("%02x",script[i]);
     }
+    LogPrintf("\n");
+    std::vector<unsigned char>::iterator pc =
+      std::search(script.begin(), script.end(), vchRootHash.begin(), vchRootHash.end());
 
-    if (pcHead != script.end()) {
-        // Enforce only one chain merkle root by checking that a single instance of the merged
-        // mining header exists just before.
+    //LogPrintf("check if multiple headers in coinbase\n");
+       
+    if (pc != script.end()) {
+      // Enforce only one chain merkle root by checking that a single instance of the merged
+      // mining header exists just before.
+      /*
       if (script.end() != std::search(pcHead + 1, script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader))) {
-            return error("Multiple merged mining headers in coinbase");
-	    LogPrintf("check auxpow err 6\n");
-      }
+	return error("Multiple merged mining headers in coinbase");
+	LogPrintf("check auxpow err 6\n");
+	}*/
+      /*
       if (pcHead + sizeof(pchMergedMiningHeader) != pc) {
 	LogPrintf("check auxpow err 7\n");
-            return error("Merged mining header is not just before chain merkle root");
-      }
+	return error("Merged mining header is not just before chain merkle root");
+	}*/
     } else {
-        // For backward compatibility.
-        // Enforce only one chain merkle root by checking that it starts early in the coinbase.
-        // 8-12 bytes are enough to encode extraNonce and nBits.
-      if (pc - script.begin() > 20) {
+      return error("Aux hash not in parent coinbase");
+      // For backward compatibility.
+      // Enforce only one chain merkle root by checking that it starts early in the coinbase.
+      // 8-12 bytes are enough to encode extraNonce and nBits.
+      /*
+      if (pc - script.begin() > 256) {
 	LogPrintf("check auxpow err 8\n");
-            return error("Aux POW chain merkle root must start in the first 20 bytes of the parent coinbase");
-      }
+	return error("Aux POW chain merkle root must start in the first 20 bytes of the parent coinbase");
+	}*/
     }
 
-
+    LogPrintf("check deterministic point\n");
+    
     // Ensure we are at a deterministic point in the merkle leaves by hashing
     // a nonce and our chain ID and comparing to the index.
+    LogPrintf("vchRootHash size = %lu\n",vchRootHash.size());
     pc += vchRootHash.size();
     if (script.end() - pc < 8) {
       LogPrintf("check auxpow err 9\n");
@@ -561,6 +597,10 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
       return error("%s : AUX POW is not allowed on this algo", __func__);
       }*/
 
+  if (block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&(block.auxpow->parentBlock), Params())) {
+    return error("%s : AUX equihash solution failed", __func__);
+  }
+  
   if (!CheckProofOfWork(block.auxpow->getParentBlockPoWHash(algo), block.nBits))
     {
       return error("%s : AUX proof of work failed", __func__);

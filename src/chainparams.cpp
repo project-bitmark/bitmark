@@ -34,6 +34,7 @@ unsigned int pnSeed[] = {0x8BA2805C, // eu.bitmark.io IP = 139.162.128.92
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
+      LogPrintf("mainnet params\n");
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
@@ -149,13 +150,13 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1516910545;
+        genesis.nTime = 1525177632;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 93144;
+	genesis.nNonce = 1629886;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0c27520aa443b80780050baf16f90ddbd024a602ef434c4017a29232aec25355"));
+        assert(hashGenesisBlock == uint256("3b00b071eac782aa9f496ebe15dfe334e49b7a4808aefd4e909bc00cda7e054e"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -233,8 +234,9 @@ const CChainParams &Params() {
 void SelectParams(CChainParams::Network network) {
     switch (network) {
         case CChainParams::MAIN:
-            pCurrentParams = &mainParams;
-            break;
+	  LogPrintf("network is mainnet\n");
+	  pCurrentParams = &mainParams;
+	  break;
         case CChainParams::TESTNET:
             pCurrentParams = &testNetParams;
             break;
@@ -245,6 +247,7 @@ void SelectParams(CChainParams::Network network) {
             assert(false && "Unimplemented network");
             return;
     }
+    fReopenDebugLog = true;
 }
 
 /*

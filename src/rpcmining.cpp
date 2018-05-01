@@ -18,6 +18,7 @@
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
+#include "base58.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -401,8 +402,8 @@ Value getwork(const Array& params, bool fHelp)
         }
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
-	if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
-	  pblock->nVersion = 3;
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(3,pindexPrev,75,100)) || RegTest()) {
+	  //pblock->nVersion = 3;
 	  pblock->SetAlgo(miningAlgo);
 	}
 
@@ -781,6 +782,7 @@ Value getauxblock(const Array& params, bool fHelp)
 
 	mapNewBlock[pblock->GetHash()] = pblock;
 	vNewBlockTemplate.push_back(pblocktemplate);
+	miningAlgoGAB = miningAlgo;
       }	    	  
     }
 
@@ -789,13 +791,30 @@ Value getauxblock(const Array& params, bool fHelp)
     uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
 
     json_spirit::Object result;
+    LogPrintf("get hash for aux\n");
     result.push_back(Pair("hash", block.GetHash().GetHex()));
+    LogPrintf("got hash for aux\n");
+    LogPrintf("nVersion is %d\n",block.nVersion);
     result.push_back(Pair("chainid", block.GetChainId()));
     result.push_back(Pair("previousblockhash", block.hashPrevBlock.GetHex()));
     result.push_back(Pair("coinbasevalue", (int64_t)block.vtx[0].vout[0].nValue));
+    /*
+    char * coinbasedata = (char *)malloc(2*174+1);
+    for (int i=0; i<174; i++) {
+      sprintf(coinbasedata+2*i,"%02x",((unsigned char *)&block.vtx[0])[i]);
+    }
+    result.push_back(Pair("coinbasedata",coinbasedata));
+    */
+    block.vtx[0].print();
+    CTxDestination address;
+    ExtractDestination(block.vtx[0].vout[0].scriptPubKey,address);
+    result.push_back(Pair("address",CBitmarkAddress(address).ToString()));
     result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
     result.push_back(Pair("height", static_cast<int64_t> (pindexPrev->nHeight + 1)));
     result.push_back(Pair("target", HexStr(BEGIN(hashTarget), END(hashTarget))));
+    result.push_back(Pair("version",block.nVersion));
+    result.push_back(Pair("curtime", (int64_t)block.nTime));
+    result.push_back(Pair("scriptsig",HexStr(block.vtx[0].vin[0].scriptSig)));
 
     LogPrintf("in getauxblock params size 0 return result\n");
 
@@ -804,19 +823,35 @@ Value getauxblock(const Array& params, bool fHelp)
   LogPrintf("in getauxblock 6\n");
   assert(params.size() == 2);
   uint256 hash;
+  const char * hash_str = params[0].get_str().c_str();
+  LogPrintf("hash_str=\n%s\n",hash_str);
   hash.SetHex(params[0].get_str());
   LogPrintf("in getauxblock 7\n");
   const std::map<uint256, CBlock*>::iterator mit = mapNewBlock.find(hash);
-  if (mit == mapNewBlock.end())
+  if (strlen(hash_str)>0 && mit == mapNewBlock.end())
     throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
   CBlock& block = *mit->second;
   LogPrintf("in getauxblock 8\n");
+  const char * block_str = params[1].get_str().c_str();
+  LogPrintf("block_str=\n%s\n",block_str);
   const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
+  LogPrintf("create cdatastream\n");
   CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
+  LogPrintf("create cdatastream\n");
   CAuxPow pow;
+  if (block.GetAlgo()==ALGO_EQUIHASH) {
+    pow.vector_format = true;
+  }
+  pow.parentBlock.algoParent = block.GetAlgo();
+  pow.parentBlock.isParent = true;
+  LogPrintf("write it to pow\n");
   ss >> pow;
+  LogPrintf("written to pow\n");
   block.SetAuxpow(new CAuxPow(pow));
-  assert(block.GetHash() == hash);
+  LogPrintf("block has set the auxpow\n");
+  if (strlen(hash_str)>0) {
+    assert(block.GetHash() == hash);
+  }
   LogPrintf("in getauxblock 9\n");
   CValidationState state;
   bool fAccepted = ProcessBlock(state, NULL, &block);

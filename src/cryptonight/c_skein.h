@@ -1,5 +1,5 @@
-#ifndef _CRYPTONIGHT_SKEIN_H_
-#define _CRYPTONIGHT_SKEIN_H_     1
+#ifndef _SKEIN_H_
+#define _SKEIN_H_     1
 /**************************************************************************
 **
 ** Interface declarations and internal definitions for Skein hashing.

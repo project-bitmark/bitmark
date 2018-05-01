@@ -207,6 +207,9 @@ public:
     std::vector<CTxOut> vout;
     unsigned int nLockTime;
 
+    bool vector_format;
+    std::vector<unsigned char> vector_representation;
+
     CTransaction()
     {
         SetNull();
@@ -214,12 +217,17 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-        READWRITE(this->nVersion);
-        nVersion = this->nVersion;
-        READWRITE(vin);
-        READWRITE(vout);
-        READWRITE(nLockTime);
-	if (fRead) UpdateHash();
+     if (vector_format) {
+       READWRITE(this->vector_representation);
+     }
+     else {
+       READWRITE(this->nVersion);
+       nVersion = this->nVersion;
+       READWRITE(vin);
+       READWRITE(vout);
+       READWRITE(nLockTime);
+     }
+     if (fRead) UpdateHash();
     )
 
     void SetNull()
@@ -229,6 +237,8 @@ public:
         vout.clear();
         nLockTime = 0;
 	*const_cast<uint256*>(&hash) = uint256(0);
+	vector_format = false;
+	vector_representation.clear();
     }
 
     bool IsNull() const
@@ -389,21 +399,25 @@ public:
     /** Parent block header (on which the real PoW is done).  */
     CPureBlockHeader parentBlock;
 
+    int algo = 0;
+ 
+
 public:
     /* Prevent accidental conversion.  */
     inline explicit CAuxPow(const CTransaction& txIn)
         : CMerkleTx(txIn)
     {
+      parentBlock.isParent = true;
     }
 
     inline CAuxPow()
         : CMerkleTx()
     {
+      parentBlock.isParent = true;
     }
 
     IMPLEMENT_SERIALIZE
       (
-       LogPrintf("serialize aux pow read=%d write=%d getsize=%d\n",fRead,fWrite,fGetSize);
        READWRITE(*(CMerkleTx*)this);
        nVersion = this->nVersion;
        READWRITE(vChainMerkleBranch);
@@ -492,8 +506,10 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("getserializesize blockheader isauxpow\n");
 	  assert(auxpow);
+	  (*auxpow).parentBlock.isParent = true;
+	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
+	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
 	  READWRITE(*auxpow);
 	}
         return nSerSize;                        \
@@ -510,8 +526,10 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("serialize blockheader isauxpow\n");
 	  assert(auxpow);
+	  (*auxpow).parentBlock.isParent = true;
+	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
+	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
 	  READWRITE(*auxpow);
 	}
     }                                           \
@@ -524,13 +542,14 @@ public:
         const bool fRead = true;                \
         unsigned int nSerSize = 0;              \
         assert(fGetSize||fWrite||fRead); /* suppress warning */ \
-	LogPrintf("read pureblockheader\n");
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("unserialize blockheader isauxpow\n");
 	  auxpow.reset(new CAuxPow());
 	  assert(auxpow);
+	  (*auxpow).parentBlock.isParent = true;
+	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
+	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
 	  READWRITE(*auxpow);
 	}
 	else {
@@ -548,6 +567,10 @@ public:
     {
       if (apow)
 	{
+	  if (GetAlgo()==ALGO_EQUIHASH) {
+	    apow->vector_format = true;
+	  }
+	  apow->parentBlock.algoParent = GetAlgo();
 	  auxpow.reset(apow);
 	  CPureBlockHeader::SetAuxpow(true);
 	} else
@@ -563,13 +586,13 @@ public:
     }
 };
 
-class CEquihashInput : private CBlockHeader
+class CEquihashInput : private CPureBlockHeader
 {
 public:
-    CEquihashInput(const CBlockHeader &header)
+    CEquihashInput(const CPureBlockHeader &header)
     {
-        CBlockHeader::SetNull();
-        *((CBlockHeader*)this) = header;
+        CPureBlockHeader::SetNull();
+        *((CPureBlockHeader*)this) = header;
     }
 
     IMPLEMENT_SERIALIZE
@@ -578,6 +601,7 @@ public:
 	nVersion = this->nVersion;
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
+	READWRITE(hashReserved);
         READWRITE(nTime);
         READWRITE(nBits);
     )
@@ -985,6 +1009,30 @@ public:
     {
       return nVersion & BLOCK_VERSION_AUXPOW;
     }
+
+    int GetAlgo () const {
+      switch (nVersion & BLOCK_VERSION_ALGO)
+	{
+	case BLOCK_VERSION_SHA256D:
+	  return ALGO_SHA256D;
+	case BLOCK_VERSION_SCRYPT:
+	  return ALGO_SCRYPT;
+	case BLOCK_VERSION_ARGON2:
+	  return ALGO_ARGON2;
+	case BLOCK_VERSION_X17:
+	  return ALGO_X17;
+	case BLOCK_VERSION_LYRA2REv2:
+	  return ALGO_LYRA2REv2;
+	case BLOCK_VERSION_EQUIHASH:
+	  return ALGO_EQUIHASH;
+	case BLOCK_VERSION_CRYPTONIGHT:
+	  return ALGO_CRYPTONIGHT;
+	case BLOCK_VERSION_YESCRYPT:
+	  return ALGO_YESCRYPT;
+	}
+      return ALGO_SCRYPT;
+    }
+
 };
 
 /** Used to marshal pointers into hashes for db storage. */
@@ -1035,6 +1083,9 @@ public:
 	READWRITE(nNonce);
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
+	  (*pauxpow).parentBlock.isParent = true;
+          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
+          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
 	  READWRITE(*pauxpow);
 	}
         return nSerSize;                        \
@@ -1071,6 +1122,9 @@ public:
 	READWRITE(nNonce);
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
+	  (*pauxpow).parentBlock.isParent = true;
+          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
+          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
 	  READWRITE(*pauxpow);
 	}
     }                                           \
@@ -1107,6 +1161,9 @@ public:
 	if (this->IsAuxpow()) {
 	  pauxpow.reset(new CAuxPow());
 	  assert(pauxpow);
+	  (*pauxpow).parentBlock.isParent = true;
+          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
+          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
 	  READWRITE(*pauxpow);
 	} else {
 	  pauxpow.reset();

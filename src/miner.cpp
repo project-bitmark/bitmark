@@ -120,10 +120,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     CBlockIndex* pindexPrev = chainActive.Tip();
     miningAlgo = GetArg("-miningalgo", miningAlgo);
     LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
-    if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
+    if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(3,pindexPrev,750,1000) || RegTest()) {
       LogPrintf("algo set to %d\n",miningAlgo);
-      pblock->nVersion = 3;
-      LogPrintf("pblock nVersion is 3\n");
+      //pblock->nVersion = 3;
+      LogPrintf("pblock nVersion is %d\n",pblock->nVersion);
       pblock->SetAlgo(miningAlgo);
       LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
     }

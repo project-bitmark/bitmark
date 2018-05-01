@@ -1237,7 +1237,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
         // 35 GH/s
         minimumFullRewardHashrate = 35000000000 / 100;
     }
-    if (nHeight < nForkHeight && !RegTest()) {
+    if ((nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(3,pindexPrev->pprev,750,1000)) && !RegTest()) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1529,7 +1529,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
     // Mainnet
-    if (nHeight < nForkHeight-1 || RegTest()) {
+    if (nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(3,pindexLast,750,1000) || RegTest()) {
       workAlgo = 0;
     } else {
       workAlgo = 1;
@@ -2028,13 +2028,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     
     // Force the fork to happen exactly at nForkHeight
     if (pindex->nVersion>2 || get_pprev_algo(pindex,-1)) {
-      if (pindex->nHeight < nForkHeight && !RegTest()) {
+      /*if (pindex->nHeight < nForkHeight && !RegTest()) {
 	LogPrintf("nVersion>2 and before fork");
 	return false;
-      }
+	}*/
     }
     else {
-      if (pindex->nHeight >= nForkHeight && !RegTest()) {
+      if (pindex->nHeight >= nForkHeight && CBlockIndex::IsSuperMajority(3,pindex->pprev,750,1000) && !RegTest()) {
 	LogPrintf("nVersion<=2 and after fork\n");
 	return false;
       }
@@ -2324,7 +2324,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
         const CBlockIndex* pindex = chainActive.Tip();
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-	  if (GetVersion(pindex->nVersion) > CBlock::CURRENT_VERSION)
+	  if (GetVersion(pindex->nVersion) > CBlock::HARD_FORK_VERSION)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
@@ -2856,13 +2856,13 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         }
 
         // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
-	/*
+
         if (block.nVersion < 3 &&
-            CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
+            CBlockIndex::IsSuperMajority(3, pindexPrev, 750, 1000))
         {
             return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
                                  REJECT_OBSOLETE, "bad-version");
-				 }*/
+				 }
     }
 
     // Write block to history file
@@ -3365,8 +3365,8 @@ bool InitBlockIndex() {
     if (!fReindex) {
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
-	    /*
-	    uint256 best_hash = block.GetPoWHash();
+
+	    /*uint256 best_hash = block.GetPoWHash();
 	    CBigNum bnTarget;
 	    bnTarget.SetCompact(block.nBits);
 	    uint256 target = bnTarget.getuint256();

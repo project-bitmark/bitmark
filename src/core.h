@@ -218,13 +218,10 @@ public:
     IMPLEMENT_SERIALIZE
     (
      if (vector_format) {
-       LogPrintf("transaction rw vector rep\n");
        READWRITE(this->vector_representation);
      }
      else {
-       LogPrintf("transaction rw normal\n");
        READWRITE(this->nVersion);
-       LogPrintf("got nVersion\n");
        nVersion = this->nVersion;
        READWRITE(vin);
        READWRITE(vout);
@@ -359,17 +356,11 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-     LogPrintf("rw cmerkletx\n");
 	READWRITE(*(CTransaction*)this);
         nVersion = this->nVersion;
-     LogPrintf("rw cmerkletx hashBlock\n");
         READWRITE(hashBlock);
-     LogPrintf("hashBlock = %s\n",hashBlock.GetHex().c_str());
-     LogPrintf("rw cmerkletx vMerkleBranch\n");
         READWRITE(vMerkleBranch);
-     LogPrintf("rw cmerkletx nIndex\n");
         READWRITE(nIndex);
-     LogPrintf("finished rw cmerkletx\n");
     )
 
 
@@ -427,9 +418,7 @@ public:
 
     IMPLEMENT_SERIALIZE
       (
-       LogPrintf("serialize aux pow read=%d write=%d getsize=%d\n",fRead,fWrite,fGetSize);
        READWRITE(*(CMerkleTx*)this);
-       LogPrintf("serialize aux pow rw vChain...\n");
        nVersion = this->nVersion;
        READWRITE(vChainMerkleBranch);
        READWRITE(nChainIndex);
@@ -517,7 +506,6 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("getserializesize blockheader isauxpow\n");
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
 	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
@@ -538,7 +526,6 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("serialize blockheader isauxpow\n");
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
 	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
@@ -555,11 +542,9 @@ public:
         const bool fRead = true;                \
         unsigned int nSerSize = 0;              \
         assert(fGetSize||fWrite||fRead); /* suppress warning */ \
-	LogPrintf("read pureblockheader\n");
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("unserialize blockheader isauxpow\n");
 	  auxpow.reset(new CAuxPow());
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;

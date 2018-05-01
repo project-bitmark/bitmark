@@ -1472,22 +1472,24 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     int64_t _nTargetTimespan = CountBlocks * 960; //16 min target
 
     if (CountBlocks > 0) {
+
+      int64_t multiplier = 1;
+      // Retarget
+      if (time_since_last_algo > 9600 && nActualTimespan < 10*_nTargetTimespan) { //160 min for special retarget
+	multiplier = time_since_last_algo/9600;
+	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), multiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, multiplier);
+	nActualTimespan = 10*multiplier*_nTargetTimespan;
+      }
+      
     
       if (nActualTimespan < _nTargetTimespan/3)
         nActualTimespan = _nTargetTimespan/3;
       if (nActualTimespan > _nTargetTimespan*3)
-        nActualTimespan = _nTargetTimespan*3;
+        nActualTimespan = multiplier*_nTargetTimespan*3;
 
-      // Retarget
-      if (time_since_last_algo > 9600 && nActualTimespan < 10*_nTargetTimespan) { //160 min for special retarget
-	int64_t multiplier = 1;
-	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), multiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, multiplier);
-	bnNew *= 10*multiplier;
-      }
-      else {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
-      }
+
     }
     else {
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);

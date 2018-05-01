@@ -21,12 +21,6 @@
 template<typename T1>
 inline uint256 Hash(const T1 pbegin, const T1 pend)
 {
-  int len = (pend - pbegin) * sizeof(pbegin[0]);
-  LogPrintf("do sha256d (len %d) hash of: \n",len);
-  for (int i=0; i<len; i++) {
-    LogPrintf("%02x",((unsigned char*)&pbegin[0])[i]);
-  }
-  LogPrintf("\n");
     static unsigned char pblank[1];
     uint256 hash1;
     SHA256((pbegin == pend ? pblank : (unsigned char*)&pbegin[0]), (pend - pbegin) * sizeof(pbegin[0]), (unsigned char*)&hash1);
@@ -53,11 +47,6 @@ public:
     }
 
     CHashWriter& write(const char *pch, size_t size) {
-      LogPrintf("Hashwriter\n");
-      for (unsigned int i=0;i<size;i++) {
-	LogPrintf("%02x",((unsigned char *)pch)[i]);
-      }
-      LogPrintf("\n");
       SHA256_Update(&ctx, pch, size);
       return (*this);
     }
@@ -65,12 +54,6 @@ public:
     // invalidates the object
     uint256 GetHash() {
         uint256 hash1;
-	unsigned char * data = (unsigned char *)&ctx.data[0];
-	LogPrintf("GetHash(): \n");
-	for (int i=0;i<174;i++) {
-	  LogPrintf("%02x",data[i]);
-	}
-	LogPrintf("\n");
         SHA256_Final((unsigned char*)&hash1, &ctx);
         uint256 hash2;
         SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);

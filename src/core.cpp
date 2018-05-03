@@ -100,7 +100,7 @@ uint256 CTransaction::GetCachedHash() const
 void CTransaction::UpdateHash() const
 {
   if (this->vector_format) {
-    *const_cast<uint256*>(&hash) = Hash((unsigned char *)&vector_representation[0],(unsigned char *)&vector_representation[vector_representation.size()]);
+    *const_cast<uint256*>(&hash) = Hash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
   }
   else {
     *const_cast<uint256*>(&hash) = SerializeHash(*this);
@@ -315,12 +315,19 @@ void CBlock::print() const
     LogPrintf("\n");
 }
 
+int GetBlockVersion (const int nVersion) {
+  return nVersion & 255;
+}
+
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
+  /* force the fork if miners don't cooperate after 1000 blocks from target fork height */
+  if (minVersion==4 && pstart->nHeight>=nForkHeightForce) return true;
+  
   unsigned int nFound = 0;
   for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
     {
-      if (pstart->nVersion >= minVersion)
+      if (GetBlockVersion(pstart->nVersion) >= minVersion)
 	++nFound;
       pstart = pstart->pprev;
     }
@@ -396,7 +403,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     LogPrintf("check scriptsig\n");
     std::vector<unsigned char> script;
     if (vector_format) {
-      script = vector_representation;
+      script = vector_rep;
     }
     else {
       script = vin[0].scriptSig;

@@ -188,26 +188,26 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
 	blockindex = chainActive.Tip();
     }
   if (blockindex->nHeight == 0) {
-    if (algo) return 4.;
+    if (algo==-1) return 2.5;
     return 20.;
   }
-  if (algo) {
+  if (algo>=0) {
     int algo_tip = GetAlgo(blockindex->nVersion);
     if (algo_tip != algo) {
       blockindex = get_pprev_algo(blockindex,algo);
     }
   }
   else {
-    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(3,blockindex->pprev,75,100))&& !RegTest()) {
+    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(4,blockindex->pprev,75,100))&& !RegTest()) {
       return ((double)blockindex->nMoneySupply)/100000000.;
     }
-    return GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5);
+    return GetMoneySupply(blockindex,0)+GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5)+GetMoneySupply(blockindex,6)+GetMoneySupply(blockindex,7);
   }
-  if (!blockindex) {
-    if (RegTest()) return 4.;
-    return ((double)(nForkHeight*20))/5.;
-  }
-  if (blockindex->nMoneySupply == 0) return 4.;
+  /*if (!blockindex) {
+    if (RegTest()) return 2.5;
+    return ((double)(nForkHeight*20))/8.;
+    }*/
+  if (blockindex->nMoneySupply == 0) return 2.5;
   //if (blockindex->nHeight == 0) return 4.;
   return ((double)blockindex->nMoneySupply)/100000000.;
 }

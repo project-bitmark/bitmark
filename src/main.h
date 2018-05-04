@@ -65,7 +65,7 @@ static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
 /** Timeout in seconds before considering a block download peer unresponsive. */
 static const unsigned int BLOCK_DOWNLOAD_TIMEOUT = 60;
 
-static const int64_t nForkHeight = 200;
+static const int64_t nForkHeight = 200; //446500
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
@@ -702,9 +702,6 @@ int GetAlgo (int nVersion);
 
 /* Get name of algo from its number */
 const char * GetAlgoName (int algo);
-
-/* Get base version number */
-int GetVersion (int nVersion);
 
 /* Get previous CBlockIndex pointer that has the same POW algo as p */
 CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo = 0);

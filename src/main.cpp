@@ -494,7 +494,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 }
 
 bool onFork (const CBlockIndex * pindex) {
-  if (pindex->nHeight >= nForkHeight && CBlockIndex::IsSuperMajority(3,pindex->pprev,75,100)) return true;
+  if (pindex->nHeight >= nForkHeight && CBlockIndex::IsSuperMajority(4,pindex->pprev,75,100)) return true;
   return false;
 }
 
@@ -1257,7 +1257,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
 
     CBlockIndex * pprev_algo = get_pprev_algo(pindexPrev,-1);
 
-    if (pprev_algo) { //make emitted 5 times bigger so that the target points are divided in 8 for each algo
+    if (pprev_algo) { //make emitted 8 times bigger so that the target points are divided in 8 for each algo
       emitted = 8 * pprev_algo->nMoneySupply;
     }
     else {
@@ -1528,7 +1528,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
     // Mainnet
-    if (nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(3,pindexLast,75,100) || RegTest()) {
+    if (nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexLast,75,100) || RegTest()) {
       workAlgo = 0;
     } else {
       workAlgo = 1;
@@ -2315,7 +2315,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
         const CBlockIndex* pindex = chainActive.Tip();
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-	  if (GetVersion(pindex->nVersion) > CBlock::CURRENT_VERSION)
+	  if (GetBlockVersion(pindex->nVersion) > CBlock::CURRENT_VERSION)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
@@ -2848,7 +2848,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 
         // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
 
-        if (block.nVersion < 3 && pindexPrev->nHeight >= nForkHeight-1 && CBlockIndex::IsSuperMajority(3,pindexPrev,75,100)) {
+        if (block.nVersion < 3 && pindexPrev->nHeight >= nForkHeight-1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
 	  return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
 			       REJECT_OBSOLETE, "bad-version");
 	}
@@ -4875,10 +4875,6 @@ const char * GetAlgoName (int algo) {
   return "SCRYPT";
 }
 
-int GetVersion (int nVersion) {
-  return nVersion & 255;
-}
-
 /* Get previous CBlockIndex pointer with the given algo. If nVersion<=2, return null if no nVersion>2 come before it. This is a way to check for the mPOW fork without hardcoding a height for the fork. */
 CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
   if (!p) return 0;
@@ -4908,7 +4904,7 @@ int64_t get_mpow_ms_correction (CBlockIndex * p) {
     if (pprev->nHeight == 0) {
       return 400000000;
     }
-    return pprev->nMoneySupply/5;
+    return pprev->nMoneySupply/NUM_ALGOS;
   }
   while (pprev) {
     pprev = pprev->pprev;
@@ -4916,7 +4912,7 @@ int64_t get_mpow_ms_correction (CBlockIndex * p) {
       if (pprev->nHeight == 0) {
 	return 400000000;
       }
-      return pprev->nMoneySupply/5;
+      return pprev->nMoneySupply/NUM_ALGOS;
     }
   }
   //LogPrintf("just return 0 for correction\n");

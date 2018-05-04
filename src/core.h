@@ -32,6 +32,7 @@ class CTransaction;
 // todo cap this after taxation is accounted for, block reward dies after 36 changes
 static const int64_t MAX_MONEY = 28000000 * COIN;
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+static const int64_t nForkHeightForce = 447120;
 
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
 class COutPoint
@@ -208,7 +209,7 @@ public:
     unsigned int nLockTime;
 
     bool vector_format;
-    std::vector<unsigned char> vector_representation;
+    std::vector<unsigned char> vector_rep;
 
     CTransaction()
     {
@@ -218,7 +219,7 @@ public:
     IMPLEMENT_SERIALIZE
     (
      if (vector_format) {
-       READWRITE(this->vector_representation);
+       READWRITE(this->vector_rep);
      }
      else {
        READWRITE(this->nVersion);
@@ -238,7 +239,7 @@ public:
         nLockTime = 0;
 	*const_cast<uint256*>(&hash) = uint256(0);
 	vector_format = false;
-	vector_representation.clear();
+	vector_rep.clear();
     }
 
     bool IsNull() const
@@ -1297,6 +1298,9 @@ public:
 
 /** The currently-connected chain of blocks. */
 extern CChain chainActive;
+
+/* Get base version number */
+int GetBlockVersion (const int nVersion);
 
 //#include "coins.h"
 

@@ -53,6 +53,8 @@ class CPureBlockHeader {
   uint256 hashReserved;
   bool isParent;
   int algoParent;
+  bool vector_format;
+  std::vector<unsigned char> vector_rep;
 
   CPureBlockHeader()
     {
@@ -61,23 +63,28 @@ class CPureBlockHeader {
 
   IMPLEMENT_SERIALIZE
     (
-     READWRITE(this->nVersion);
-     nVersion = this->nVersion;
-     READWRITE(hashPrevBlock);
-     READWRITE(hashMerkleRoot);
-     if ((!isParent && GetAlgo()==ALGO_EQUIHASH) || (isParent && algoParent==ALGO_EQUIHASH)) {
-       READWRITE(hashReserved);
-     }
-     READWRITE(nTime);
-     READWRITE(nBits);
-     CBigNum nBits_bn;
-     nBits_bn.SetCompact(nBits);
-     if ((!isParent && GetAlgo()==ALGO_EQUIHASH) || (isParent && algoParent==ALGO_EQUIHASH)) {
-       READWRITE(nNonce256);
-       READWRITE(nSolution);
+     if (vector_format) {
+       READWRITE(this->vector_rep);
      }
      else {
-       READWRITE(nNonce);
+       READWRITE(this->nVersion);
+       nVersion = this->nVersion;
+       READWRITE(hashPrevBlock);
+       READWRITE(hashMerkleRoot);
+       if ((!isParent && GetAlgo()==ALGO_EQUIHASH) || (isParent && algoParent==ALGO_EQUIHASH)) {
+	 READWRITE(hashReserved);
+       }
+       READWRITE(nTime);
+       READWRITE(nBits);
+       CBigNum nBits_bn;
+       nBits_bn.SetCompact(nBits);
+       if ((!isParent && GetAlgo()==ALGO_EQUIHASH) || (isParent && algoParent==ALGO_EQUIHASH)) {
+	 READWRITE(nNonce256);
+	 READWRITE(nSolution);
+       }
+       else {
+	 READWRITE(nNonce);
+       }
      }
      )
 
@@ -94,6 +101,8 @@ class CPureBlockHeader {
       nSolution.clear();
       isParent = false;
       algoParent = -1;
+      vector_format = false;
+      vector_rep.clear();
     }
 
   void SetAlgo(int algo)

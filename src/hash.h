@@ -15,6 +15,7 @@
 
 #include <openssl/ripemd.h>
 #include <openssl/sha.h>
+#include <cryptonight/c_keccak.h>
 
 #include "util.h"
 
@@ -27,6 +28,17 @@ inline uint256 Hash(const T1 pbegin, const T1 pend)
     uint256 hash2;
     SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
     return hash2;
+}
+
+template<typename T1>
+inline uint256 KeccakHash(const T1 pbegin, const T1 pend)
+{
+  static unsigned char pblank[1];
+  unsigned char md[200];
+  int ret = keccak((pbegin == pend ? pblank : (unsigned char*)&pbegin[0]),(pend - pbegin) * sizeof(pbegin[0]),md,200);
+  uint256 hash;
+  memcpy(&hash,md,32);
+  return hash;
 }
 
 class CHashWriter
@@ -83,6 +95,21 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
     uint256 hash2;
     SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
     return hash2;
+}
+
+template<typename T1, typename T2>
+  inline uint256 KeccakHash(const T1 p1begin, const T1 p1end, const T2 p2begin, const T2 p2end)
+{
+  static unsigned char pblank[1];
+  size_t input_size = (p1end - p1begin) * sizeof(p1begin[0]) + (p2end - p2begin) * sizeof(p2begin[0]);
+  unsigned char * input = (unsigned char *)malloc(input_size);
+  memcpy(input,(p1begin == p1end ? pblank : (unsigned char*)&p1begin[0]),(p1end - p1begin) * sizeof(p1begin[0]));
+  memcpy(input+(p1end - p1begin) * sizeof(p1begin[0]),(p2begin == p2end ? pblank : (unsigned char*)&p2begin[0]),(p2end - p2begin) * sizeof(p2begin[0]));
+  unsigned char md[200];
+  int ret = keccak(input,input_size,md,200);
+  uint256 hash;
+  memcpy(&hash,md,32);
+  return hash;
 }
 
 template<typename T1, typename T2, typename T3>

@@ -509,8 +509,10 @@ public:
 	if (this->IsAuxpow()) {
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
-	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
-	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
+	  int algo = CPureBlockHeader::GetAlgo();
+	  (*auxpow).parentBlock.algoParent = algo;
+	  if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
+	  if (algo == ALGO_CRYPTONIGHT) (*auxpow).parentBlock.vector_format = true;
 	  READWRITE(*auxpow);
 	}
         return nSerSize;                        \
@@ -529,8 +531,10 @@ public:
 	if (this->IsAuxpow()) {
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
-	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
-	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
+	  int algo = CPureBlockHeader::GetAlgo();
+	  (*auxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) (*auxpow).parentBlock.vector_format = true;
 	  READWRITE(*auxpow);
 	}
     }                                           \
@@ -549,8 +553,10 @@ public:
 	  auxpow.reset(new CAuxPow());
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
-	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
-	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
+	  int algo = CPureBlockHeader::GetAlgo();
+	  (*auxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) (*auxpow).parentBlock.vector_format = true;
 	  READWRITE(*auxpow);
 	}
 	else {
@@ -568,10 +574,15 @@ public:
     {
       if (apow)
 	{
-	  if (GetAlgo()==ALGO_EQUIHASH) {
+	  int algo = GetAlgo();
+	  if (algo==ALGO_EQUIHASH || algo==ALGO_CRYPTONIGHT) {
 	    apow->vector_format = true;
 	  }
-	  apow->parentBlock.algoParent = GetAlgo();
+	  apow->parentBlock.isParent = true;
+	  apow->parentBlock.algoParent = algo;
+	  if (algo==ALGO_CRYPTONIGHT) {
+	    apow->parentBlock.vector_format = true;
+	  }
 	  auxpow.reset(apow);
 	  CPureBlockHeader::SetAuxpow(true);
 	} else
@@ -1085,8 +1096,10 @@ public:
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
-          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
-          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
+	  int algo = CBlockIndex::GetAlgo();
+	  (*pauxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) (*pauxpow).parentBlock.vector_format = true;
 	  READWRITE(*pauxpow);
 	}
         return nSerSize;                        \
@@ -1124,8 +1137,10 @@ public:
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
-          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
-          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
+	  int algo = CBlockIndex::GetAlgo();
+	  (*pauxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) (*pauxpow).parentBlock.vector_format = true;
 	  READWRITE(*pauxpow);
 	}
     }                                           \
@@ -1163,8 +1178,10 @@ public:
 	  pauxpow.reset(new CAuxPow());
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
-          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
-          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
+	  int algo = CBlockIndex::GetAlgo();
+	  (*pauxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) (*pauxpow).parentBlock.vector_format = true;
 	  READWRITE(*pauxpow);
 	} else {
 	  pauxpow.reset();

@@ -203,10 +203,10 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
     }
     return GetMoneySupply(blockindex,0)+GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5)+GetMoneySupply(blockindex,6)+GetMoneySupply(blockindex,7);
   }
-  /*if (!blockindex) {
+  if (!blockindex) {
     if (RegTest()) return 2.5;
     return ((double)(nForkHeight*20))/8.;
-    }*/
+  }
   if (blockindex->nMoneySupply == 0) return 2.5;
   //if (blockindex->nHeight == 0) return 4.;
   return ((double)blockindex->nMoneySupply)/100000000.;

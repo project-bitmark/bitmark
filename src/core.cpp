@@ -358,7 +358,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
         return error("AuxPow is not a generate");
   }
 
-  if (params.StrictChainId() && parentBlock.GetChainId() == nChainId) {
+  if (params.StrictChainId() && !parentBlock.vector_format && parentBlock.GetChainId() == nChainId) {
     LogPrintf("check auxpow err 2\n");
     return error("Aux POW parent has our chain ID");
   }
@@ -380,14 +380,25 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     LogPrintf("transaction_hash = %s\n",transaction_hash.GetHex().c_str());
     LogPrintf("hashBlock = %s\n",hashBlock.GetHex().c_str());
     LogPrintf("get merklebranch_hash\n");
-    uint256 merklebranch_hash = CBlock::CheckMerkleBranch(transaction_hash, vMerkleBranch, nIndex);
+    const uint256 merklebranch_hash = CBlock::CheckMerkleBranch(transaction_hash, vMerkleBranch, nIndex);
     //LogPrintf("auxpow transaction = %s\n",ToString().c_str());
     //LogPrintf("auxpow transaction_hash = %s\n",transaction_hash.ToString().c_str());
-    LogPrintf("parentBlock.nVersion = %u\n",parentBlock.nVersion);
-    LogPrintf("parentBlock.hashPrevBlock = %s\n",parentBlock.hashPrevBlock.ToString().c_str());
-    LogPrintf("parentBlock.hashMerkleRoot = %s\n",parentBlock.hashMerkleRoot.ToString().c_str());
-    LogPrintf("parentBlock.nTime = %lu\n",parentBlock.nTime);
-    LogPrintf("parentBlock.solution size = %lu\n",parentBlock.nSolution.size());
+    if (parentBlock.vector_format) {
+      int len = parentBlock.vector_rep.size();
+      if (len > 1000) return error("parentBlock header too big");
+      LogPrintf("parentBlock vector (%d) = \n",len);
+      for (int i=0; i<len; i++) {
+	LogPrintf("%02x",parentBlock.vector_rep[i]);
+      }
+      LogPrintf("\n");
+    }
+    else {
+      LogPrintf("parentBlock.nVersion = %u\n",parentBlock.nVersion);
+      LogPrintf("parentBlock.hashPrevBlock = %s\n",parentBlock.hashPrevBlock.ToString().c_str());
+      LogPrintf("parentBlock.hashMerkleRoot = %s\n",parentBlock.hashMerkleRoot.ToString().c_str());
+      LogPrintf("parentBlock.nTime = %lu\n",parentBlock.nTime);
+      LogPrintf("parentBlock.solution size = %lu\n",parentBlock.nSolution.size());
+    }
     //LogPrintf("merklebranch_hash = %s\n",merklebranch_hash.ToString().c_str());
     BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
       {
@@ -396,14 +407,27 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     
     
     // Check that we are in the parent block merkle tree
-    if (merklebranch_hash != parentBlock.hashMerkleRoot) {
-      LogPrintf("check auxpow err 4: \n");
+    if (parentBlock.vector_format) {
+      std::vector<unsigned char> vchMerkleBranchHash(merklebranch_hash.begin(),merklebranch_hash.end());
+      std::reverse(vchRootHash.begin(), vchRootHash.end());
+      std::vector<unsigned char> vector_rep_block = parentBlock.vector_rep;
+      std::vector<unsigned char>::iterator pc_block = std::search(vector_rep_block.begin(),vector_rep_block.end(), vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
+      if (pc_block == vector_rep_block.end()) {
+	LogPrintf("check auxpow err 4: \n");
+	return error("Aux POW merkle root incorrect");
+      }
+    }
+    else {
+      if (merklebranch_hash != parentBlock.hashMerkleRoot) {
+	LogPrintf("check auxpow err 4: \n");
         return error("Aux POW merkle root incorrect");
+      }
     }
     LogPrintf("check scriptsig\n");
     std::vector<unsigned char> script;
     if (vector_format) {
       script = vector_rep;
+      if (script.size()>1000) return error("script sig too big\n");
     }
     else {
       script = vin[0].scriptSig;
@@ -461,7 +485,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     pc += vchRootHash.size();
     if (script.end() - pc < 8) {
       LogPrintf("check auxpow err 9\n");
-        return error("Aux POW missing chain merkle tree size and nonce in parent coinbase");
+      return error("Aux POW missing chain merkle tree size and nonce in parent coinbase");
     }
 
     int nSize;

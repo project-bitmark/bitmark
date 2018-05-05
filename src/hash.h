@@ -102,7 +102,7 @@ template<typename T1, typename T2>
 {
   static unsigned char pblank[1];
   size_t input_size = (p1end - p1begin) * sizeof(p1begin[0]) + (p2end - p2begin) * sizeof(p2begin[0]);
-  unsigned char * input = malloc(input_size);
+  unsigned char * input = (unsigned char *)malloc(input_size);
   memcpy(input,(p1begin == p1end ? pblank : (unsigned char*)&p1begin[0]),(p1end - p1begin) * sizeof(p1begin[0]));
   memcpy(input+(p1end - p1begin) * sizeof(p1begin[0]),(p2begin == p2end ? pblank : (unsigned char*)&p2begin[0]),(p2end - p2begin) * sizeof(p2begin[0]));
   unsigned char md[200];

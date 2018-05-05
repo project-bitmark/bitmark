@@ -844,6 +844,7 @@ Value getauxblock(const Array& params, bool fHelp)
   }
   if (block.GetAlgo()==ALGO_CRYPTONIGHT) {
     pow.parentBlock.vector_format = true;
+    pow.keccak_hash = true;
   }
   pow.parentBlock.algoParent = block.GetAlgo();
   pow.parentBlock.isParent = true;

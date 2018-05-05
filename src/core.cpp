@@ -100,7 +100,12 @@ uint256 CTransaction::GetCachedHash() const
 void CTransaction::UpdateHash() const
 {
   if (this->vector_format) {
-    *const_cast<uint256*>(&hash) = Hash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
+    if (this->keccak_hash) {
+      *const_cast<uint256*>(&hash) = KeccakHash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
+    }
+    else {
+      *const_cast<uint256*>(&hash) = Hash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
+    }
   }
   else {
     *const_cast<uint256*>(&hash) = SerializeHash(*this);
@@ -289,6 +294,23 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMer
             hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
         else
             hash = Hash(BEGIN(hash), END(hash), BEGIN(otherside), END(otherside));
+        nIndex >>= 1;
+    }
+    return hash;
+}
+
+uint256 CBlock::CheckMerkleBranchKeccak(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex)
+{
+  LogPrintf("in checkmerklebranchkeccak nIndex=%d\n",nIndex);
+    if (nIndex == -1)
+        return 0;
+    BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
+    {
+      LogPrintf("otherside\n");
+        if (nIndex & 1)
+            hash = KeccakHash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
+        else
+            hash = KeccakHash(BEGIN(hash), END(hash), BEGIN(otherside), END(otherside));
         nIndex >>= 1;
     }
     return hash;

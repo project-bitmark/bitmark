@@ -210,6 +210,7 @@ public:
 
     bool vector_format;
     std::vector<unsigned char> vector_rep;
+    bool keccak_hash;
 
     CTransaction()
     {
@@ -240,6 +241,7 @@ public:
 	*const_cast<uint256*>(&hash) = uint256(0);
 	vector_format = false;
 	vector_rep.clear();
+	keccak_hash = false;
     }
 
     bool IsNull() const
@@ -512,7 +514,10 @@ public:
 	  int algo = CPureBlockHeader::GetAlgo();
 	  (*auxpow).parentBlock.algoParent = algo;
 	  if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
-	  if (algo == ALGO_CRYPTONIGHT) (*auxpow).parentBlock.vector_format = true;
+	  if (algo == ALGO_CRYPTONIGHT) {
+	    (*auxpow).parentBlock.vector_format = true;
+	    (*auxpow).keccak_hash = true;
+	  }
 	  READWRITE(*auxpow);
 	}
         return nSerSize;                        \
@@ -534,7 +539,10 @@ public:
 	  int algo = CPureBlockHeader::GetAlgo();
 	  (*auxpow).parentBlock.algoParent = algo;
           if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
-          if (algo == ALGO_CRYPTONIGHT) (*auxpow).parentBlock.vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*auxpow).parentBlock.vector_format = true;
+	    (*auxpow).keccak_hash = true;
+	  }
 	  READWRITE(*auxpow);
 	}
     }                                           \
@@ -556,7 +564,10 @@ public:
 	  int algo = CPureBlockHeader::GetAlgo();
 	  (*auxpow).parentBlock.algoParent = algo;
           if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
-          if (algo == ALGO_CRYPTONIGHT) (*auxpow).parentBlock.vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*auxpow).parentBlock.vector_format = true;
+	    (*auxpow).keccak_hash = true;
+	  }
 	  READWRITE(*auxpow);
 	}
 	else {
@@ -582,6 +593,7 @@ public:
 	  apow->parentBlock.algoParent = algo;
 	  if (algo==ALGO_CRYPTONIGHT) {
 	    apow->parentBlock.vector_format = true;
+	    apow->keccak_hash = true;
 	  }
 	  auxpow.reset(apow);
 	  CPureBlockHeader::SetAuxpow(true);
@@ -757,6 +769,7 @@ public:
 
     std::vector<uint256> GetMerkleBranch(int nIndex) const;
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
+    static uint256 CheckMerkleBranchKeccak(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
     void print() const;
 };
 
@@ -1099,7 +1112,10 @@ public:
 	  int algo = CBlockIndex::GetAlgo();
 	  (*pauxpow).parentBlock.algoParent = algo;
           if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
-          if (algo == ALGO_CRYPTONIGHT) (*pauxpow).parentBlock.vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*pauxpow).parentBlock.vector_format = true;
+	    (*pauxpow).keccak_hash = true;
+	  }
 	  READWRITE(*pauxpow);
 	}
         return nSerSize;                        \
@@ -1140,7 +1156,10 @@ public:
 	  int algo = CBlockIndex::GetAlgo();
 	  (*pauxpow).parentBlock.algoParent = algo;
           if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
-          if (algo == ALGO_CRYPTONIGHT) (*pauxpow).parentBlock.vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*pauxpow).parentBlock.vector_format = true;
+	    (*pauxpow).keccak_hash = true;
+	  }
 	  READWRITE(*pauxpow);
 	}
     }                                           \
@@ -1181,7 +1200,10 @@ public:
 	  int algo = CBlockIndex::GetAlgo();
 	  (*pauxpow).parentBlock.algoParent = algo;
           if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
-          if (algo == ALGO_CRYPTONIGHT) (*pauxpow).parentBlock.vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*pauxpow).parentBlock.vector_format = true;
+	    (*pauxpow).keccak_hash = true;
+	  }
 	  READWRITE(*pauxpow);
 	} else {
 	  pauxpow.reset();

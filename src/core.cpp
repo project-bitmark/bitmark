@@ -431,7 +431,12 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     if (parentBlock.vector_format) {
       const uint256 merklebranch_hash = CBlock::CheckMerkleBranchKeccak(transaction_hash, vMerkleBranch, nIndex);
       std::vector<unsigned char> vchMerkleBranchHash(merklebranch_hash.begin(),merklebranch_hash.end());
-      std::reverse(vchRootHash.begin(), vchRootHash.end());
+      //std::reverse(vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
+      LogPrintf("search for ");
+      for (int i=0; i<32; i++) {
+	LogPrintf("%02x",vchMerkleBranchHash[i]);
+      }
+      LogPrintf("\n");
       std::vector<unsigned char> vector_rep_block = parentBlock.vector_rep;
       std::vector<unsigned char>::iterator pc_block = std::search(vector_rep_block.begin(),vector_rep_block.end(), vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
       if (pc_block == vector_rep_block.end()) {

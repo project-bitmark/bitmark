@@ -402,8 +402,8 @@ Value getwork(const Array& params, bool fHelp)
         }
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
-	if (pindexPrev->nHeight >= nForkHeight - 1 || RegTest()) {
-	  pblock->nVersion = 3;
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) || RegTest()) {
+	  //pblock->nVersion = 3;
 	  pblock->SetAlgo(miningAlgo);
 	}
 
@@ -841,8 +841,12 @@ Value getauxblock(const Array& params, bool fHelp)
   CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
   LogPrintf("create cdatastream\n");
   CAuxPow pow;
-  if (block.GetAlgo()==ALGO_EQUIHASH) {
+  if (block.GetAlgo()==ALGO_EQUIHASH || block.GetAlgo()==ALGO_CRYPTONIGHT) {
     pow.vector_format = true;
+  }
+  if (block.GetAlgo()==ALGO_CRYPTONIGHT) {
+    pow.parentBlock.vector_format = true;
+    pow.keccak_hash = true;
   }
   pow.parentBlock.algoParent = block.GetAlgo();
   pow.parentBlock.isParent = true;

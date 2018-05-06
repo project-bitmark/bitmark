@@ -69,7 +69,7 @@ void xor_blocks_dst(const uint8_t * a, const uint8_t * b, uint8_t * dst);
 int cryptonight_hash_ctx(void* output, const void* input, int inlen, struct cryptonight_ctx* ctx, int variant);
 int cryptonight_hash(void* output, const void* input, size_t len);
 
-void keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen);
+int keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen);
 void keccakf(uint64_t st[25], int rounds);
 extern void (* const extra_hashes[4])(const void *, size_t, char *);
 

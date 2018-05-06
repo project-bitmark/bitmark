@@ -32,6 +32,7 @@ class CTransaction;
 // todo cap this after taxation is accounted for, block reward dies after 36 changes
 static const int64_t MAX_MONEY = 28000000 * COIN;
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+static const int64_t nForkHeightForce = 447120;
 
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
 class COutPoint
@@ -208,7 +209,8 @@ public:
     unsigned int nLockTime;
 
     bool vector_format;
-    std::vector<unsigned char> vector_representation;
+    std::vector<unsigned char> vector_rep;
+    bool keccak_hash;
 
     CTransaction()
     {
@@ -218,13 +220,10 @@ public:
     IMPLEMENT_SERIALIZE
     (
      if (vector_format) {
-       LogPrintf("transaction rw vector rep\n");
-       READWRITE(this->vector_representation);
+       READWRITE(this->vector_rep);
      }
      else {
-       LogPrintf("transaction rw normal\n");
        READWRITE(this->nVersion);
-       LogPrintf("got nVersion\n");
        nVersion = this->nVersion;
        READWRITE(vin);
        READWRITE(vout);
@@ -241,7 +240,8 @@ public:
         nLockTime = 0;
 	*const_cast<uint256*>(&hash) = uint256(0);
 	vector_format = false;
-	vector_representation.clear();
+	vector_rep.clear();
+	keccak_hash = false;
     }
 
     bool IsNull() const
@@ -359,17 +359,11 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-     LogPrintf("rw cmerkletx\n");
 	READWRITE(*(CTransaction*)this);
         nVersion = this->nVersion;
-     LogPrintf("rw cmerkletx hashBlock\n");
         READWRITE(hashBlock);
-     LogPrintf("hashBlock = %s\n",hashBlock.GetHex().c_str());
-     LogPrintf("rw cmerkletx vMerkleBranch\n");
         READWRITE(vMerkleBranch);
-     LogPrintf("rw cmerkletx nIndex\n");
         READWRITE(nIndex);
-     LogPrintf("finished rw cmerkletx\n");
     )
 
 
@@ -427,9 +421,7 @@ public:
 
     IMPLEMENT_SERIALIZE
       (
-       LogPrintf("serialize aux pow read=%d write=%d getsize=%d\n",fRead,fWrite,fGetSize);
        READWRITE(*(CMerkleTx*)this);
-       LogPrintf("serialize aux pow rw vChain...\n");
        nVersion = this->nVersion;
        READWRITE(vChainMerkleBranch);
        READWRITE(nChainIndex);
@@ -517,11 +509,15 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("getserializesize blockheader isauxpow\n");
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
-	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
-	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
+	  int algo = CPureBlockHeader::GetAlgo();
+	  (*auxpow).parentBlock.algoParent = algo;
+	  if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
+	  if (algo == ALGO_CRYPTONIGHT) {
+	    (*auxpow).parentBlock.vector_format = true;
+	    (*auxpow).keccak_hash = true;
+	  }
 	  READWRITE(*auxpow);
 	}
         return nSerSize;                        \
@@ -538,11 +534,15 @@ public:
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("serialize blockheader isauxpow\n");
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
-	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
-	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
+	  int algo = CPureBlockHeader::GetAlgo();
+	  (*auxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*auxpow).parentBlock.vector_format = true;
+	    (*auxpow).keccak_hash = true;
+	  }
 	  READWRITE(*auxpow);
 	}
     }                                           \
@@ -555,16 +555,19 @@ public:
         const bool fRead = true;                \
         unsigned int nSerSize = 0;              \
         assert(fGetSize||fWrite||fRead); /* suppress warning */ \
-	LogPrintf("read pureblockheader\n");
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
 	if (this->IsAuxpow()) {
-	  LogPrintf("unserialize blockheader isauxpow\n");
 	  auxpow.reset(new CAuxPow());
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
-	  (*auxpow).parentBlock.algoParent = CPureBlockHeader::GetAlgo();
-	  if ((*auxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*auxpow).vector_format = true;
+	  int algo = CPureBlockHeader::GetAlgo();
+	  (*auxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*auxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*auxpow).parentBlock.vector_format = true;
+	    (*auxpow).keccak_hash = true;
+	  }
 	  READWRITE(*auxpow);
 	}
 	else {
@@ -582,10 +585,16 @@ public:
     {
       if (apow)
 	{
-	  if (GetAlgo()==ALGO_EQUIHASH) {
+	  int algo = GetAlgo();
+	  if (algo==ALGO_EQUIHASH || algo==ALGO_CRYPTONIGHT) {
 	    apow->vector_format = true;
 	  }
-	  apow->parentBlock.algoParent = GetAlgo();
+	  apow->parentBlock.isParent = true;
+	  apow->parentBlock.algoParent = algo;
+	  if (algo==ALGO_CRYPTONIGHT) {
+	    apow->parentBlock.vector_format = true;
+	    apow->keccak_hash = true;
+	  }
 	  auxpow.reset(apow);
 	  CPureBlockHeader::SetAuxpow(true);
 	} else
@@ -760,6 +769,7 @@ public:
 
     std::vector<uint256> GetMerkleBranch(int nIndex) const;
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
+    static uint256 CheckMerkleBranchKeccak(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
     void print() const;
 };
 
@@ -1099,8 +1109,13 @@ public:
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
-          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
-          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
+	  int algo = CBlockIndex::GetAlgo();
+	  (*pauxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*pauxpow).parentBlock.vector_format = true;
+	    (*pauxpow).keccak_hash = true;
+	  }
 	  READWRITE(*pauxpow);
 	}
         return nSerSize;                        \
@@ -1138,8 +1153,13 @@ public:
 	if (this->IsAuxpow()) {
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
-          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
-          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
+	  int algo = CBlockIndex::GetAlgo();
+	  (*pauxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*pauxpow).parentBlock.vector_format = true;
+	    (*pauxpow).keccak_hash = true;
+	  }
 	  READWRITE(*pauxpow);
 	}
     }                                           \
@@ -1177,8 +1197,13 @@ public:
 	  pauxpow.reset(new CAuxPow());
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
-          (*pauxpow).parentBlock.algoParent = CBlockIndex::GetAlgo();
-          if ((*pauxpow).parentBlock.algoParent == ALGO_EQUIHASH) (*pauxpow).vector_format = true;
+	  int algo = CBlockIndex::GetAlgo();
+	  (*pauxpow).parentBlock.algoParent = algo;
+          if (algo == ALGO_EQUIHASH || algo == ALGO_CRYPTONIGHT) (*pauxpow).vector_format = true;
+          if (algo == ALGO_CRYPTONIGHT) {
+	    (*pauxpow).parentBlock.vector_format = true;
+	    (*pauxpow).keccak_hash = true;
+	  }
 	  READWRITE(*pauxpow);
 	} else {
 	  pauxpow.reset();
@@ -1312,6 +1337,9 @@ public:
 
 /** The currently-connected chain of blocks. */
 extern CChain chainActive;
+
+/* Get base version number */
+int GetBlockVersion (const int nVersion);
 
 //#include "coins.h"
 

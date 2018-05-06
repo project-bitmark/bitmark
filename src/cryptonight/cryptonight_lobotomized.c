@@ -208,10 +208,15 @@ static inline void xor_blocks(uint8_t *restrict a, const uint8_t *restrict b) {
 
 int cryptonight_hash_ctx(void *restrict output, const void *restrict input, int inlen, struct cryptonight_ctx *restrict ctx, int variant) {
 
-  printf("in cryptonight_hash_ctx variant %d\n",variant);
+  printf("in cryptonight hash ctx variant %d inlen %d\n",variant,inlen);
+  for (int i=0; i< inlen; i++) {
+    printf("%02x",((unsigned char *)input)[i]);
+  }
+  printf("\n");
     
     ctx->aes_ctx = (oaes_ctx*) oaes_alloc();
     size_t i, j;
+
     //hash_process(&ctx->state.hs, (const uint8_t*) input, 76);
 
     printf("hash state 1\n");
@@ -351,6 +356,11 @@ int cryptonight_hash_ctx(void *restrict output, const void *restrict input, int 
     }
     printf("\n");
     extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, output);
+    printf("output\n");
+    for (int i=0; i<200; i++) {
+      printf("%02x",((unsigned char *)output)[i]);
+    }
+    printf("\n");
     oaes_free((OAES_CTX **) &ctx->aes_ctx);
     return 1;
 }

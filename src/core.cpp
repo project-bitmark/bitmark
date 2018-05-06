@@ -101,7 +101,7 @@ void CTransaction::UpdateHash() const
 {
   if (this->vector_format) {
     if (this->keccak_hash) {
-      *const_cast<uint256*>(&hash) = KeccakHash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
+      *const_cast<uint256*>(&hash) = KeccakHashCBTX((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
     }
     else {
       *const_cast<uint256*>(&hash) = Hash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);

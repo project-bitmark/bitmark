@@ -41,6 +41,24 @@ inline uint256 KeccakHash(const T1 pbegin, const T1 pend)
   return hash;
 }
 
+template<typename T1>
+inline uint256 KeccakHashCBTX(const T1 pbegin, const T1 pend)
+{
+  static unsigned char pblank[1];
+  unsigned char md[200];
+  int ret = keccak((pbegin == pend ? pblank : (unsigned char*)&pbegin[0]),(pend - pbegin) * sizeof(pbegin[0]),md,200);
+  const char * hash2 = "bc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a";
+  const char * hash3 = "0000000000000000000000000000000000000000000000000000000000000000";
+  for (int i=0; i<32; i++) {
+    ret = sscanf(hash2,"%2hhx",md+32+i);
+    ret = sscanf(hash3,"%2hhx",md+64+i);
+  }
+  ret = keccak(md,96,md,200);
+  uint256 hash;
+  memcpy(&hash,md,32);
+  return hash;
+}
+
 class CHashWriter
 {
 private:

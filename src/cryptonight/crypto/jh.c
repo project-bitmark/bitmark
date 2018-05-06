@@ -13,7 +13,7 @@
    Last Modified: January 16, 2011
 */
 
-#include "c_jh.h"
+#include "jh.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -260,16 +260,17 @@ static HashReturn Update(hashState *state, const BitSequence *data, DataLength d
 
       /*There is data in the buffer, but the incoming data is insufficient for a full block*/
       if ( (state->datasize_in_buffer > 0 ) && (( state->datasize_in_buffer + databitlen) < 512)  ) {
-            if ( (databitlen & 7) == 0 )
-                 memcpy(state->buffer + (state->datasize_in_buffer >> 3), data, (size_t) (64-(state->datasize_in_buffer >> 3)) );
-            else memcpy(state->buffer + (state->datasize_in_buffer >> 3), data, (size_t) (64 - (state->datasize_in_buffer >> 3) + 1) );
+            if ( (databitlen & 7) == 0 ) {
+                 memcpy(state->buffer + (state->datasize_in_buffer >> 3), data, 64-(state->datasize_in_buffer >> 3)) ;
+		    }
+            else memcpy(state->buffer + (state->datasize_in_buffer >> 3), data, 64-(state->datasize_in_buffer >> 3)+1) ;
             state->datasize_in_buffer += databitlen;
             databitlen = 0;
       }
 
       /*There is data in the buffer, and the incoming data is sufficient for a full block*/
       if ( (state->datasize_in_buffer > 0 ) && (( state->datasize_in_buffer + databitlen) >= 512)  ) {
-	        memcpy(state->buffer + (state->datasize_in_buffer >> 3), data, (size_t) (64-(state->datasize_in_buffer >> 3)) );
+	        memcpy( state->buffer + (state->datasize_in_buffer >> 3), data, 64-(state->datasize_in_buffer >> 3) ) ;
 	        index = 64-(state->datasize_in_buffer >> 3);
 	        databitlen = databitlen - (512 - state->datasize_in_buffer);
 	        F8(state);

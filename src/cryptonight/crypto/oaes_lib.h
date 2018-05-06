@@ -32,7 +32,7 @@
 #define _OAES_LIB_H
 
 #include <stdint.h>
-#include "cryptonight/compat.h"
+#include <stdlib.h>
 
 #ifdef __cplusplus 
 extern "C" {

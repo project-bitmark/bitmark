@@ -8,7 +8,8 @@
  *
  */
 
-#include "c_groestl.h"
+#include <stddef.h>
+#include "groestl.h"
 #include "groestl_tables.h"
 
 #define P_TYPE 0
@@ -160,7 +161,7 @@ static void F512(uint32_t *h, const uint32_t *m) {
 
 
 /* digest up to msglen bytes of input (full blocks only) */
-static void Transform(groestlHashState *ctx,
+static void Transform(hashState *ctx, 
 	       const uint8_t *input, 
 	       int msglen) {
 
@@ -176,7 +177,7 @@ static void Transform(groestlHashState *ctx,
 }
 
 /* given state h, do h <- P(h)+h */
-static void OutputTransformation(groestlHashState *ctx) {
+static void OutputTransformation(hashState *ctx) {
   int j;
   uint32_t temp[2*COLS512];
   uint32_t y[2*COLS512];
@@ -203,11 +204,10 @@ static void OutputTransformation(groestlHashState *ctx) {
 }
 
 /* initialise context */
-static void Init(groestlHashState* ctx) {
-  int i = 0;
+static void Init(hashState* ctx) {
   /* allocate memory for state and data buffer */
 
-  for(;i<(SIZE512/sizeof(uint32_t));i++)
+  for(size_t i = 0; i < (SIZE512/sizeof(uint32_t)); i++)
   {
 	ctx->chaining[i] = 0;
   }
@@ -223,7 +223,7 @@ static void Init(groestlHashState* ctx) {
 }
 
 /* update state with databitlen bits of input */
-static void Update(groestlHashState* ctx,
+static void Update(hashState* ctx,
 		  const BitSequence* input,
 		  DataLength databitlen) {
   int index = 0;
@@ -272,7 +272,7 @@ static void Update(groestlHashState* ctx,
 
 /* finalise: process remaining data (including padding), perform
    output transformation, and write hash result to 'output' */
-static void Final(groestlHashState* ctx,
+static void Final(hashState* ctx,
 		 BitSequence* output) {
   int i, j = 0, hashbytelen = HASH_BIT_LEN/8;
   uint8_t *s = (BitSequence*)ctx->chaining;
@@ -336,7 +336,7 @@ void groestl(const BitSequence* data,
 		DataLength databitlen,
 		BitSequence* hashval) {
 
-  groestlHashState context;
+  hashState context;
 
   /* initialise */
     Init(&context);

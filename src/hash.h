@@ -15,7 +15,7 @@
 
 #include <openssl/ripemd.h>
 #include <openssl/sha.h>
-#include <cryptonight/c_keccak.h>
+#include <cryptonight/common/c_keccak.h>
 
 #include "util.h"
 

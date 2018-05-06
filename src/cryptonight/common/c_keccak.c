@@ -4,6 +4,7 @@
 
 //#include "hash-ops.h"
 #include "c_keccak.h"
+#include "cryptonight/crypto/hash-ops.h"
 
 const uint64_t keccakf_rndc[24] = 
 {
@@ -86,17 +87,11 @@ typedef uint64_t state_t[25];
 
 int keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
 {
-  printf("do keccak on\n");
-  for (int i=0; i<inlen; i++) {
-    printf("%02x",in[i]);
-  }
-  printf("\n");
     state_t st;
     uint8_t temp[144];
     int i, rsiz, rsizw;
 
     rsiz = sizeof(state_t) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;
-    printf("rsiz=%d\n",rsiz);
     rsizw = rsiz / 8;
     
     memset(st, 0, sizeof(st));

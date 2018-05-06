@@ -12,7 +12,7 @@
 
 #include <stddef.h>                          /* get size_t definition */
 #include <string.h>      /* get the memcpy/memset functions */
-#include "c_skein.h"       /* get the Skein API definitions   */
+#include "skein.h"       /* get the Skein API definitions   */
 
 #define DISABLE_UNUSED 0
 
@@ -77,7 +77,7 @@ typedef struct                               /* 1024-bit Skein hash context stru
 } Skein1024_Ctxt_t;
 
 /*   Skein APIs for (incremental) "straight hashing" */
-#if SKEIN_256_NIST_MAX_HASH_BITS
+#if SKEIN_256_NIST_MAX_HASHBITS
 static int  Skein_256_Init  (Skein_256_Ctxt_t *ctx, size_t hashBitLen);
 #endif
 static int  Skein_512_Init  (Skein_512_Ctxt_t *ctx, size_t hashBitLen);
@@ -1355,15 +1355,15 @@ static int Skein_256_Final(Skein_256_Ctxt_t *ctx, u08b_t *hashVal)
     /* run Threefish in "counter mode" to generate output */
     memset(ctx->b,0,sizeof(ctx->b));  /* zero out b[], so it can hold the counter */
     memcpy(X,ctx->X,sizeof(X));       /* keep a local copy of counter mode "key" */
-    for (i=0;i < byteCnt;i += SKEIN_256_BLOCK_BYTES)
+    for (i=0;i*SKEIN_256_BLOCK_BYTES < byteCnt;i++)
         {
         ((u64b_t *)ctx->b)[0]= Skein_Swap64((u64b_t) i); /* build the counter block */
         Skein_Start_New_Type(ctx,OUT_FINAL);
         Skein_256_Process_Block(ctx,ctx->b,1,sizeof(u64b_t)); /* run "counter mode" */
-        n = byteCnt - i;   /* number of output bytes left to go */
+        n = byteCnt - i*SKEIN_256_BLOCK_BYTES;   /* number of output bytes left to go */
         if (n >= SKEIN_256_BLOCK_BYTES)
             n  = SKEIN_256_BLOCK_BYTES;
-        Skein_Put64_LSB_First(hashVal+i,ctx->X,n);   /* "output" the ctr mode bytes */
+        Skein_Put64_LSB_First(hashVal+i*SKEIN_256_BLOCK_BYTES,ctx->X,n);   /* "output" the ctr mode bytes */
         Skein_Show_Final(256,&ctx->h,n,hashVal+i*SKEIN_256_BLOCK_BYTES);
         memcpy(ctx->X,X,sizeof(X));   /* restore the counter mode key for next time */
         }
@@ -1933,15 +1933,15 @@ typedef struct
 hashState;
 
 /* "incremental" hashing API */
-static SkeinHashReturn Init  (hashState *state, int hashbitlen);
-static SkeinHashReturn Update(hashState *state, const SkeinBitSequence *data, SkeinDataLength databitlen);
-static SkeinHashReturn Final (hashState *state,       SkeinBitSequence *hashval);
+static HashReturn Init  (hashState *state, int hashbitlen);
+static HashReturn Update(hashState *state, const BitSequence *data, DataLength databitlen);
+static HashReturn Final (hashState *state,       BitSequence *hashval);
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* select the context size and init the context */
-static SkeinHashReturn Init(hashState *state, int hashbitlen)
+static HashReturn Init(hashState *state, int hashbitlen)
 {
-#if SKEIN_256_NIST_MAX_HASH_BITS
+#if SKEIN_256_NIST_MAX_HASHBITS
   if (hashbitlen <= SKEIN_256_NIST_MAX_HASHBITS)
   {
     Skein_Assert(hashbitlen > 0,BAD_HASHLEN);
@@ -1963,7 +1963,7 @@ static SkeinHashReturn Init(hashState *state, int hashbitlen)
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* process data to be hashed */
-static SkeinHashReturn Update(hashState *state, const SkeinBitSequence *data, SkeinDataLength databitlen)
+static HashReturn Update(hashState *state, const BitSequence *data, DataLength databitlen)
 {
   /* only the final Update() call is allowed do partial bytes, else assert an error */
   Skein_Assert((state->u.h.T[1] & SKEIN_T1_FLAG_BIT_PAD) == 0 || databitlen == 0, SKEIN_FAIL);
@@ -2008,7 +2008,7 @@ static SkeinHashReturn Update(hashState *state, const SkeinBitSequence *data, Sk
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* finalize hash computation and output the result (hashbitlen bits) */
-static SkeinHashReturn Final(hashState *state, SkeinBitSequence *hashval)
+static HashReturn Final(hashState *state, BitSequence *hashval)
 {
   Skein_Assert(state->statebits % 256 == 0 && (state->statebits-256) < 1024,FAIL);
   switch ((state->statebits >> 8) & 3)
@@ -2022,11 +2022,11 @@ static SkeinHashReturn Final(hashState *state, SkeinBitSequence *hashval)
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* all-in-one hash function */
-SkeinHashReturn skein_hash(int hashbitlen, const SkeinBitSequence *data, /* all-in-one call */
-                SkeinDataLength databitlen,SkeinBitSequence *hashval)
+HashReturn skein_hash(int hashbitlen, const BitSequence *data, /* all-in-one call */
+                DataLength databitlen,BitSequence *hashval)
 {
   hashState  state;
-  SkeinHashReturn r = Init(&state,hashbitlen);
+  HashReturn r = Init(&state,hashbitlen);
   if (r == SKEIN_SUCCESS)
   { /* these calls do not fail when called properly */
     r = Update(&state,data,databitlen);

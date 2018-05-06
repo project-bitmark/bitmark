@@ -3,7 +3,7 @@
 #include "argon2.h"
 #include "hashx17.h"
 #include "Lyra2RE.h"
-#include "cryptonight.h"
+#include "cryptonight/crypto/hash-ops.h"
 #include "yescrypt/yescrypt.h"
 
 inline uint32_t MROTL32 ( uint32_t x, int8_t r )
@@ -125,17 +125,7 @@ void hash_equihash(const char * input, char * output) {
 }
 
 void hash_cryptonight(const char * input, char * output, int len) {
-  LogPrintf("do cryptonight hash on input %d\n",len);
-  for (int i=0; i<len; i++) {
-    LogPrintf("%02x",((unsigned char *)input)[i]);
-  }
-  LogPrintf("\n");
-  cryptonight_hash((void *)output,(const void*)input,len);
-  LogPrintf("output\n");
-  for (int i=0; i<32; i++) {
-    LogPrintf("%02x",((unsigned char *)output)[i]);
-  }
-  LogPrintf("\n");
+  cn_slow_hash((const void*)input,len,(char*)output,1,0);
 }
 
 void hash_yescrypt(const char * input, char * output) {

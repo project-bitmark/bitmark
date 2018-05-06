@@ -223,7 +223,13 @@ class CPureBlockHeader {
     case ALGO_CRYPTONIGHT:
       {
 	uint256 thash;
-	hash_cryptonight(BEGIN(nVersion),BEGIN(thash));
+	if (vector_format) {
+	  LogPrintf("do vector format cryptonight\n");
+	  hash_cryptonight(BEGIN(vector_rep[0]),BEGIN(thash),vector_rep.size());
+	}
+	else {
+	  hash_cryptonight(BEGIN(nVersion),BEGIN(thash),80);
+	}
 	return thash;
       } 
     case ALGO_YESCRYPT:

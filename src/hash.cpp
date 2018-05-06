@@ -124,8 +124,18 @@ void hash_equihash(const char * input, char * output) {
   //lyra2re2_hash(input,output);
 }
 
-void hash_cryptonight(const char * input, char * output) {
-  cryptonight_hash((void *)output,(const void*)input,80);
+void hash_cryptonight(const char * input, char * output, int len) {
+  LogPrintf("do cryptonight hash on input %d\n",len);
+  for (int i=0; i<len; i++) {
+    LogPrintf("%02x",((unsigned char *)input)[i]);
+  }
+  LogPrintf("\n");
+  cryptonight_hash((void *)output,(const void*)input,len);
+  LogPrintf("output\n");
+  for (int i=0; i<32; i++) {
+    LogPrintf("%02x",((unsigned char *)output)[i]);
+  }
+  LogPrintf("\n");
 }
 
 void hash_yescrypt(const char * input, char * output) {

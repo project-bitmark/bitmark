@@ -28,14 +28,57 @@
  * ---------------------------------------------------------------------------
  */
 static const char _NR[] = {
-	0x4e,0x61,0x62,0x69,0x6c,0x20,0x53,0x2e,0x20,
-	0x41,0x6c,0x20,0x52,0x61,0x6d,0x6c,0x69,0x00 };
+  0x4e,0x61,0x62,0x69,0x6c,0x20,0x53,0x2e,0x20,
+  0x41,0x6c,0x20,0x52,0x61,0x6d,0x6c,0x69,0x00
+};
+
+#include <sys/types.h>
+#define NO_OLDNAMES /* timeb is still defined in mingw */
 
 //#include "miner.h"
 
 #include <stddef.h>
-#include <time.h> 
-#include <sys/timeb.h>
+#include <sys/time.h>
+#include <time.h>
+
+// Only used by ftime, which was removed from POSIX 2008.
+struct timeb {
+  time_t          time;
+  unsigned short  millitm;
+  short           timezone;
+  short           dstflag;
+};
+
+#ifdef _MSC_VER
+struct timezone {
+  int  tz_minuteswest; /* minutes W of Greenwich */
+  int  tz_dsttime;     /* type of dst correction */
+};
+#endif
+
+// This was removed from POSIX 2008.
+static int ftime(struct timeb* tb) {
+  struct timeval  tv;
+  struct timezone tz;
+
+  if (gettimeofday(&tv, &tz) < 0)
+    return -1;
+
+  tb->time    = tv.tv_sec;
+  tb->millitm = (unsigned short) ((tv.tv_usec + 500) / 1000);
+
+  if (tb->millitm == 1000) {
+    ++tb->time;
+    tb->millitm = 0;
+  }
+
+  tb->timezone = tz.tz_minuteswest;
+  tb->dstflag  = tz.tz_dsttime;
+
+  return 0;
+}
+
+
 #if !((defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__APPLE__))
 #include <malloc.h>
 #endif
@@ -45,6 +88,7 @@ static const char _NR[] = {
 
 #ifdef WIN32
 #include <process.h>
+#define getpid _getpid
 #else
 #include <sys/types.h>
 #include <unistd.h>
@@ -483,7 +527,7 @@ static uint32_t oaes_get_seed(void)
 	_test = (char *) calloc( sizeof( char ), timer.millitm );
 	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
 			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.millitm +
-			(uintptr_t) ( _test + timer.millitm ) + getpid();
+			(uint32_t) ( _test + timer.millitm ) + getpid();
 
 	if( _test )
 		free( _test );
@@ -523,41 +567,36 @@ static OAES_RET oaes_key_expand( OAES_CTX * ctx )
 {
 	size_t _i, _j;
 	oaes_ctx * _ctx = (oaes_ctx *) ctx;
-	// First, all these macros confuse me - so I'll make them simpler
-	//_ctx->key->key_base = _ctx->key->data_len / OAES_RKEY_LEN; 32 / 4
-	_ctx->key->key_base = 8;
-	//_ctx->key->num_keys =  _ctx->key->key_base + OAES_ROUND_BASE; 8 + 7
-	_ctx->key->num_keys = 15;
-					
-	//_ctx->key->exp_data_len = _ctx->key->num_keys * OAES_RKEY_LEN * OAES_COL_LEN; 15 * 4 * 4
-	_ctx->key->exp_data_len = 240;
 	
-	_ctx->key->exp_data = (uint8_t *)calloc( _ctx->key->exp_data_len, sizeof( uint8_t ));
+	_ctx->key->key_base = _ctx->key->data_len / OAES_RKEY_LEN;
+	_ctx->key->num_keys =  _ctx->key->key_base + OAES_ROUND_BASE;
+					
+	_ctx->key->exp_data_len = _ctx->key->num_keys * OAES_RKEY_LEN * OAES_COL_LEN;
+	_ctx->key->exp_data = (uint8_t *)
+			calloc( _ctx->key->exp_data_len, sizeof( uint8_t ));
 	
 	// the first _ctx->key->data_len are a direct copy
 	memcpy( _ctx->key->exp_data, _ctx->key->data, _ctx->key->data_len );
 
 	// apply ExpandKey algorithm for remainder
-	//for( _i = _ctx->key->key_base; _i < _ctx->key->num_keys * OAES_RKEY_LEN; _i++ )
-	for(_i = 8; _i < 60; _i++)
+	for( _i = _ctx->key->key_base; _i < _ctx->key->num_keys * OAES_RKEY_LEN; _i++ )
 	{
 		uint8_t _temp[OAES_COL_LEN];
 		
-		memcpy( _temp, _ctx->key->exp_data + ( _i - 1 ) * OAES_RKEY_LEN, OAES_COL_LEN );
+		memcpy( _temp,
+				_ctx->key->exp_data + ( _i - 1 ) * OAES_RKEY_LEN, OAES_COL_LEN );
 		
 		// transform key column
-		if( 0 == _i % 8 )
+		if( 0 == _i % _ctx->key->key_base )
 		{
-			//oaes_word_rot_left( _temp );
-			
-			__asm__("rorl %1, %0" : "=r" (*((uint32_t *)_temp)) : "nI" (8), "r" (*((uint32_t *)_temp)));
-			
+			oaes_word_rot_left( _temp );
+
 			for( _j = 0; _j < OAES_COL_LEN; _j++ )
 				oaes_sub_byte( _temp + _j );
 
 			_temp[0] = _temp[0] ^ oaes_gf_8[ _i / _ctx->key->key_base - 1 ];
 		}
-		else if( 4 == _i % _ctx->key->key_base )
+		else if( _ctx->key->key_base > 6 && 4 == _i % _ctx->key->key_base )
 		{
 			for( _j = 0; _j < OAES_COL_LEN; _j++ )
 				oaes_sub_byte( _temp + _j );
@@ -660,7 +699,7 @@ OAES_RET oaes_key_export( OAES_CTX * ctx,
 	// header
 	memcpy( data, oaes_header, OAES_BLOCK_SIZE );
 	data[5] = 0x01;
-	data[7] = _ctx->key->data_len;
+	data[7] = (uint8_t) _ctx->key->data_len;
 	memcpy( data + OAES_BLOCK_SIZE, _ctx->key->data, _ctx->key->data_len );
 	
 	return OAES_RET_SUCCESS;
@@ -789,12 +828,15 @@ OAES_RET oaes_key_import_data( OAES_CTX * ctx,
 		const uint8_t * data, size_t data_len )
 {
 	oaes_ctx * _ctx = (oaes_ctx *) ctx;
-	OAES_RET _rc = OAES_RET_SUCCESS;
+	
+	if( _ctx->key )
+		oaes_key_destroy( &(_ctx->key) );
 	
 	_ctx->key = (oaes_key *) calloc( sizeof( oaes_key ), 1 );
 	
 	_ctx->key->data_len = data_len;
-	_ctx->key->data = (uint8_t *)calloc( data_len, sizeof( uint8_t ));
+	_ctx->key->data = (uint8_t *)
+			calloc( data_len, sizeof( uint8_t ));
 
 	memcpy( _ctx->key->data, data, data_len );
 	oaes_key_expand( ctx );
@@ -1218,7 +1260,7 @@ OAES_RET oaes_encrypt( OAES_CTX * ctx,
 		
 		// insert pad
 		for( _j = 0; _j < OAES_BLOCK_SIZE - _block_size; _j++ )
-			_block[ _block_size + _j ] = _j + 1;
+			_block[_block_size + _j] = (uint8_t)_j + 1;
 	
 		// CBC
 		if( _ctx->options & OAES_OPTION_CBC )

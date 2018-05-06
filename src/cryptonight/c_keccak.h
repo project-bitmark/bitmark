@@ -15,6 +15,11 @@
 #define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
 #endif
 
+enum {
+  HASH_SIZE = 32,
+  HASH_DATA_AREA = 136
+};
+
 // compute a keccak hash (md) of given byte length from "in"
 int keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen);
 

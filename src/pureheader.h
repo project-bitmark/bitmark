@@ -213,6 +213,7 @@ class CPureBlockHeader {
       }
     case ALGO_CRYPTONIGHT:
       {
+	LogPrintf("case algo_cryptonight\n");
 	uint256 thash;
 	hash_cryptonight(BEGIN(nVersion),BEGIN(thash));
 	return thash;

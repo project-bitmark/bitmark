@@ -2730,6 +2730,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 			     REJECT_INVALID, "bad-equihash-solution");      
 	  }
 
+	  LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
 	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
 	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
 			 REJECT_INVALID, "high-hash");

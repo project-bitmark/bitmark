@@ -42,6 +42,11 @@ void xor_blocks_dst(const uint8_t *restrict a, const uint8_t *restrict b, uint8_
 void (* const extra_hashes[4])(const void *, size_t, char *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 int cryptonight_hash(void* output, const void* input, size_t len) {
+  printf("do cryptonight_hash len %d on\n",len);
+  for (int i=0; i<len; i++) {
+    printf("%02x",((unsigned char *)input)[i]);
+  }
+  printf("\n");
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
     int rc = cryptonight_hash_ctx(output, input, len, ctx, 1);
     free(ctx);

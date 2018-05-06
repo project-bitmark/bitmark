@@ -92,5 +92,5 @@ extern void (* const extra_hashes[4])(const void *, size_t, char *);
 #ifdef __cplusplus
 }
 #endif
-  
+
 #endif

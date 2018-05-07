@@ -317,7 +317,8 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 	char prev_id [65];
 	std::vector<unsigned char> vector_rep = block.auxpow->parentBlock.vector_rep;
 	for (int i=0; i<32; i++) {
-	  sprintf(prev_id+2*i,"%02x",vector_rep[i]);
+	  // 7 is the typical offset in monero, but not fully general
+	  sprintf(prev_id+2*i,"%02x",vector_rep[i+7]);
 	}
 	result.push_back(Pair("parentblockprevid",prev_id));
       }

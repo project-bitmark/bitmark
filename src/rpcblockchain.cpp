@@ -313,6 +313,15 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     if (auxpow) {
       result.push_back(Pair("parentblockhash",block.auxpow->parentBlock.GetHash().GetHex()));
       result.push_back(Pair("parentblockpowhash",block.auxpow->parentBlock.GetPoWHash().GetHex()));
+      if (algo==ALGO_CRYPTONIGHT) {
+	char prev_id [65];
+	std::vector<unsigned char> vector_rep = block.auxpow->parentBlock.vector_rep;
+	for (int i=0; i<32; i++) {
+	  sprintf(prev_id+2*i,"%02x",vector_rep[i]);
+	}
+	result.push_back(Pair("parentblockprevid",prev_id));
+      }
+      
     }
     result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
     result.push_back(Pair("SSF work",get_ssf_work(blockindex)));

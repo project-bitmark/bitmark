@@ -8,6 +8,9 @@ uint256 CPureBlockHeader::GetHash() const
   if (GetAlgo()==ALGO_EQUIHASH) {
     return GetHashE();
   }
+  else if (GetAlgo()==ALGO_CRYPTONIGHT && this->vector_format) {
+    return Hash(BEGIN(vector_rep[0]),END(vector_rep[vector_rep.size()-1]));
+  }
   return Hash(BEGIN(nVersion), END(nNonce));
 }
 

@@ -101,7 +101,7 @@ void CTransaction::UpdateHash() const
 {
   if (this->vector_format) {
     if (this->keccak_hash) {
-      *const_cast<uint256*>(&hash) = KeccakHash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
+      *const_cast<uint256*>(&hash) = KeccakHashCBTX((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
     }
     else {
       *const_cast<uint256*>(&hash) = Hash((unsigned char *)&vector_rep[0],(unsigned char *)&vector_rep[vector_rep.size()]);
@@ -344,7 +344,7 @@ int GetBlockVersion (const int nVersion) {
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
   /* force the fork after a certain height */
-  if (minVersion==4 && pstart->nHeight>=nForkHeightForce-1) return true;
+  //if (minVersion==4 && pstart->nHeight>=nForkHeightForce-1) return true;
   
   unsigned int nFound = 0;
   for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
@@ -431,7 +431,12 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     if (parentBlock.vector_format) {
       const uint256 merklebranch_hash = CBlock::CheckMerkleBranchKeccak(transaction_hash, vMerkleBranch, nIndex);
       std::vector<unsigned char> vchMerkleBranchHash(merklebranch_hash.begin(),merklebranch_hash.end());
-      std::reverse(vchRootHash.begin(), vchRootHash.end());
+      //std::reverse(vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
+      LogPrintf("search for ");
+      for (int i=0; i<32; i++) {
+	LogPrintf("%02x",vchMerkleBranchHash[i]);
+      }
+      LogPrintf("\n");
       std::vector<unsigned char> vector_rep_block = parentBlock.vector_rep;
       std::vector<unsigned char>::iterator pc_block = std::search(vector_rep_block.begin(),vector_rep_block.end(), vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
       if (pc_block == vector_rep_block.end()) {

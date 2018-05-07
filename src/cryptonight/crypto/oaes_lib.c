@@ -27,27 +27,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * ---------------------------------------------------------------------------
  */
-static const char _NR[] = {
-	0x4e,0x61,0x62,0x69,0x6c,0x20,0x53,0x2e,0x20,
-	0x41,0x6c,0x20,0x52,0x61,0x6d,0x6c,0x69,0x00 };
-
-//#include "miner.h"
-
 #include <stddef.h>
 #include <time.h> 
-#include <sys/timeb.h>
-#if !((defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__APPLE__))
-#include <malloc.h>
-#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+// OS X, FreeBSD, and OpenBSD don't need malloc.h
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__OpenBSD__) \
+  && !defined(__DragonFly__)
+ #include <malloc.h>
+#endif
+
+// ANDROID, FreeBSD, and OpenBSD also don't need timeb.h
+#if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
+ #include <sys/timeb.h>
+#else
+ #include <sys/time.h>
+#endif
 
 #ifdef WIN32
 #include <process.h>
 #else
 #include <sys/types.h>
 #include <unistd.h>
+#endif
+
+#ifdef _MSC_VER
+#define GETPID() _getpid()
+#else
+#define GETPID() getpid()
 #endif
 
 #include "oaes_config.h"
@@ -240,11 +249,13 @@ static OAES_RET oaes_sub_byte( uint8_t * byte )
 {
 	size_t _x, _y;
 	
-	if( unlikely(NULL == byte) )
+	if( NULL == byte )
 		return OAES_RET_ARG1;
 
-	_y = ((_x = *byte) >> 4) & 0x0f;
+	_x = _y = *byte;
 	_x &= 0x0f;
+	_y &= 0xf0;
+	_y >>= 4;
 	*byte = oaes_sub_byte_value[_y][_x];
 	
 	return OAES_RET_SUCCESS;
@@ -296,24 +307,29 @@ static OAES_RET oaes_word_rot_left( uint8_t word[OAES_COL_LEN] )
 
 static OAES_RET oaes_shift_rows( uint8_t block[OAES_BLOCK_SIZE] )
 {
-	if( unlikely(NULL == block) )
+	uint8_t _temp[OAES_BLOCK_SIZE];
+
+	if( NULL == block )
 		return OAES_RET_ARG1;
 
-	uint8_t _temp[] = { block[0x03], block[0x02], block[0x01], block[0x06], block[0x0b] };
-
-	block[0x0b] = block[0x07];
-	block[0x01] = block[0x05];
-	block[0x02] = block[0x0a];
-	block[0x03] = block[0x0f];
-	block[0x05] = block[0x09];
-	block[0x06] = block[0x0e];
-	block[0x07] = _temp[0];
-	block[0x09] = block[0x0d];
-	block[0x0a] = _temp[1];
-	block[0x0d] = _temp[2];
-	block[0x0e] = _temp[3];
-	block[0x0f] = _temp[4];
-
+	_temp[0x00] = block[0x00];
+	_temp[0x01] = block[0x05];
+	_temp[0x02] = block[0x0a];
+	_temp[0x03] = block[0x0f];
+	_temp[0x04] = block[0x04];
+	_temp[0x05] = block[0x09];
+	_temp[0x06] = block[0x0e];
+	_temp[0x07] = block[0x03];
+	_temp[0x08] = block[0x08];
+	_temp[0x09] = block[0x0d];
+	_temp[0x0a] = block[0x02];
+	_temp[0x0b] = block[0x07];
+	_temp[0x0c] = block[0x0c];
+	_temp[0x0d] = block[0x01];
+	_temp[0x0e] = block[0x06];
+	_temp[0x0f] = block[0x0b];
+	memcpy( block, _temp, OAES_BLOCK_SIZE );
+	
 	return OAES_RET_SUCCESS;
 }
 
@@ -348,9 +364,11 @@ static OAES_RET oaes_inv_shift_rows( uint8_t block[OAES_BLOCK_SIZE] )
 static uint8_t oaes_gf_mul(uint8_t left, uint8_t right)
 {
 	size_t _x, _y;
-
-	_y = ((_x = left) >> 4) & 0x0f;
+	
+	_x = _y = left;
 	_x &= 0x0f;
+	_y &= 0xf0;
+	_y >>= 4;
 	
 	switch( right )
 	{
@@ -382,7 +400,7 @@ static OAES_RET oaes_mix_cols( uint8_t word[OAES_COL_LEN] )
 {
 	uint8_t _temp[OAES_COL_LEN];
 
-	if( unlikely(NULL == word) )
+	if( NULL == word )
 		return OAES_RET_ARG1;
 	
 	_temp[0] = oaes_gf_mul(word[0], 0x02) ^ oaes_gf_mul( word[1], 0x03 ) ^
@@ -455,6 +473,7 @@ OAES_RET oaes_sprintf(
 #ifdef OAES_HAVE_ISAAC
 static void oaes_get_seed( char buf[RANDSIZ + 1] )
 {
+        #if !defined(__FreeBSD__) && !defined(__OpenBSD__)
 	struct timeb timer;
 	struct tm *gmTimer;
 	char * _test = NULL;
@@ -465,14 +484,28 @@ static void oaes_get_seed( char buf[RANDSIZ + 1] )
 	sprintf( buf, "%04d%02d%02d%02d%02d%02d%03d%p%d",
 		gmTimer->tm_year + 1900, gmTimer->tm_mon + 1, gmTimer->tm_mday,
 		gmTimer->tm_hour, gmTimer->tm_min, gmTimer->tm_sec, timer.millitm,
-		_test + timer.millitm, getpid() );
+		_test + timer.millitm, GETPID() );
+	#else
+	struct timeval timer;
+	struct tm *gmTimer;
+	char * _test = NULL;
 	
+	gettimeofday(&timer, NULL);
+	gmTimer = gmtime( &timer.tv_sec );
+	_test = (char *) calloc( sizeof( char ), timer.tv_usec/1000 );
+	sprintf( buf, "%04d%02d%02d%02d%02d%02d%03d%p%d",
+		gmTimer->tm_year + 1900, gmTimer->tm_mon + 1, gmTimer->tm_mday,
+		gmTimer->tm_hour, gmTimer->tm_min, gmTimer->tm_sec, timer.tv_usec/1000,
+		_test + timer.tv_usec/1000, GETPID() );
+	#endif
+		
 	if( _test )
 		free( _test );
 }
 #else
 static uint32_t oaes_get_seed(void)
 {
+        #if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
 	struct timeb timer;
 	struct tm *gmTimer;
 	char * _test = NULL;
@@ -483,7 +516,20 @@ static uint32_t oaes_get_seed(void)
 	_test = (char *) calloc( sizeof( char ), timer.millitm );
 	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
 			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.millitm +
-			(uintptr_t) ( _test + timer.millitm ) + getpid();
+			(uintptr_t) ( _test + timer.millitm ) + GETPID();
+	#else
+	struct timeval timer;
+	struct tm *gmTimer;
+	char * _test = NULL;
+	uint32_t _ret = 0;
+	
+	gettimeofday(&timer, NULL);
+	gmTimer = gmtime( &timer.tv_sec );
+	_test = (char *) calloc( sizeof( char ), timer.tv_usec/1000 );
+	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
+			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.tv_usec/1000 +
+			(uintptr_t) ( _test + timer.tv_usec/1000 ) + GETPID();
+	#endif
 
 	if( _test )
 		free( _test );
@@ -523,41 +569,45 @@ static OAES_RET oaes_key_expand( OAES_CTX * ctx )
 {
 	size_t _i, _j;
 	oaes_ctx * _ctx = (oaes_ctx *) ctx;
-	// First, all these macros confuse me - so I'll make them simpler
-	//_ctx->key->key_base = _ctx->key->data_len / OAES_RKEY_LEN; 32 / 4
-	_ctx->key->key_base = 8;
-	//_ctx->key->num_keys =  _ctx->key->key_base + OAES_ROUND_BASE; 8 + 7
-	_ctx->key->num_keys = 15;
-					
-	//_ctx->key->exp_data_len = _ctx->key->num_keys * OAES_RKEY_LEN * OAES_COL_LEN; 15 * 4 * 4
-	_ctx->key->exp_data_len = 240;
 	
-	_ctx->key->exp_data = (uint8_t *)calloc( _ctx->key->exp_data_len, sizeof( uint8_t ));
+	if( NULL == _ctx )
+		return OAES_RET_ARG1;
+	
+	if( NULL == _ctx->key )
+		return OAES_RET_NOKEY;
+	
+	_ctx->key->key_base = _ctx->key->data_len / OAES_RKEY_LEN;
+	_ctx->key->num_keys =  _ctx->key->key_base + OAES_ROUND_BASE;
+					
+	_ctx->key->exp_data_len = _ctx->key->num_keys * OAES_RKEY_LEN * OAES_COL_LEN;
+	_ctx->key->exp_data = (uint8_t *)
+			calloc( _ctx->key->exp_data_len, sizeof( uint8_t ));
+	
+	if( NULL == _ctx->key->exp_data )
+		return OAES_RET_MEM;
 	
 	// the first _ctx->key->data_len are a direct copy
 	memcpy( _ctx->key->exp_data, _ctx->key->data, _ctx->key->data_len );
 
 	// apply ExpandKey algorithm for remainder
-	//for( _i = _ctx->key->key_base; _i < _ctx->key->num_keys * OAES_RKEY_LEN; _i++ )
-	for(_i = 8; _i < 60; _i++)
+	for( _i = _ctx->key->key_base; _i < _ctx->key->num_keys * OAES_RKEY_LEN; _i++ )
 	{
 		uint8_t _temp[OAES_COL_LEN];
 		
-		memcpy( _temp, _ctx->key->exp_data + ( _i - 1 ) * OAES_RKEY_LEN, OAES_COL_LEN );
+		memcpy( _temp,
+				_ctx->key->exp_data + ( _i - 1 ) * OAES_RKEY_LEN, OAES_COL_LEN );
 		
 		// transform key column
-		if( 0 == _i % 8 )
+		if( 0 == _i % _ctx->key->key_base )
 		{
-			//oaes_word_rot_left( _temp );
-			
-			__asm__("rorl %1, %0" : "=r" (*((uint32_t *)_temp)) : "nI" (8), "r" (*((uint32_t *)_temp)));
-			
+			oaes_word_rot_left( _temp );
+
 			for( _j = 0; _j < OAES_COL_LEN; _j++ )
 				oaes_sub_byte( _temp + _j );
 
 			_temp[0] = _temp[0] ^ oaes_gf_8[ _i / _ctx->key->key_base - 1 ];
 		}
-		else if( 4 == _i % _ctx->key->key_base )
+		else if( _ctx->key->key_base > 6 && 4 == _i % _ctx->key->key_base )
 		{
 			for( _j = 0; _j < OAES_COL_LEN; _j++ )
 				oaes_sub_byte( _temp + _j );
@@ -596,7 +646,10 @@ static OAES_RET oaes_key_gen( OAES_CTX * ctx, size_t key_size )
 	_key->data = (uint8_t *) calloc( key_size, sizeof( uint8_t ));
 	
 	if( NULL == _key->data )
+	{
+		free( _key );
 		return OAES_RET_MEM;
+	}
 	
 	for( _i = 0; _i < key_size; _i++ )
 #ifdef OAES_HAVE_ISAAC
@@ -791,13 +844,48 @@ OAES_RET oaes_key_import_data( OAES_CTX * ctx,
 	oaes_ctx * _ctx = (oaes_ctx *) ctx;
 	OAES_RET _rc = OAES_RET_SUCCESS;
 	
+	if( NULL == _ctx )
+		return OAES_RET_ARG1;
+	
+	if( NULL == data )
+		return OAES_RET_ARG2;
+	
+	switch( data_len )
+	{
+		case 16:
+		case 24:
+		case 32:
+			break;
+		default:
+			return OAES_RET_ARG3;
+	}
+	
+	if( _ctx->key )
+		oaes_key_destroy( &(_ctx->key) );
+	
 	_ctx->key = (oaes_key *) calloc( sizeof( oaes_key ), 1 );
 	
+	if( NULL == _ctx->key )
+		return OAES_RET_MEM;
+	
 	_ctx->key->data_len = data_len;
-	_ctx->key->data = (uint8_t *)calloc( data_len, sizeof( uint8_t ));
+	_ctx->key->data = (uint8_t *)
+			calloc( data_len, sizeof( uint8_t ));
+	
+	if( NULL == _ctx->key->data )
+	{
+		oaes_key_destroy( &(_ctx->key) );
+		return OAES_RET_MEM;
+	}
 
 	memcpy( _ctx->key->data, data, data_len );
-	oaes_key_expand( ctx );
+	_rc = _rc || oaes_key_expand( ctx );
+	
+	if( _rc != OAES_RET_SUCCESS )
+	{
+		oaes_key_destroy( &(_ctx->key) );
+		return _rc;
+	}
 	
 	return OAES_RET_SUCCESS;
 }
@@ -1369,10 +1457,10 @@ OAES_API OAES_RET oaes_encryption_round( const uint8_t * key, uint8_t * c )
 {
   size_t _i;
 
-  if( unlikely(NULL == key) )
+  if( NULL == key )
     return OAES_RET_ARG1;
 
-  if( unlikely(NULL == c) )
+  if( NULL == c )
     return OAES_RET_ARG2;
 
   // SubBytes(state)
@@ -1400,13 +1488,13 @@ OAES_API OAES_RET oaes_pseudo_encrypt_ecb( OAES_CTX * ctx, uint8_t * c )
   size_t _i;
   oaes_ctx * _ctx = (oaes_ctx *) ctx;
 
-  if( unlikely(NULL == _ctx) )
+  if( NULL == _ctx )
     return OAES_RET_ARG1;
 
-  if( unlikely(NULL == c) )
+  if( NULL == c )
     return OAES_RET_ARG2;
 
-  if( unlikely(NULL == _ctx->key) )
+  if( NULL == _ctx->key )
     return OAES_RET_NOKEY;
 
   for ( _i = 0; _i < 10; ++_i )

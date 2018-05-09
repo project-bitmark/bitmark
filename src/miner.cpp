@@ -349,7 +349,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	  else {
 	    LogPrintf("check for update flag\n");
 	    char update = 1;
-	    for (int i=0; i<144; i++) {
+	    for (int i=0; i<nSSF; i++) {
 	      if (update_ssf(pprev_algo->nVersion)) {
 		LogPrintf("update ssf set on i=%d ago\n",i);
 		if (i!=nSSF-1) {

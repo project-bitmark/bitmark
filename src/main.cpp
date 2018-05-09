@@ -2045,7 +2045,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	  if (update_ssf(pprev_algo->nVersion)) {
 	    if (i != nSSF-1) {
 	      LogPrintf("marked with update ssf flag, but not at right time: i=%d\n",i);
-	      return false; //make sure the SSF update block happens every 144 blocks
+	      return false; //make sure the SSF update block happens every nSSF blocks
 	    }
 	  }
 	}
@@ -2055,9 +2055,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 	  if (!pprev_algo) break;
 	  if (update_ssf(pprev_algo->nVersion)) {
-	    if (i == nSSF) {
+	    if (i == nSSF-1) {
 	      LogPrintf("Should be marked with update ssf flag\n");
-	      return false; //make sure the SSF update block happens every 144 blocks
+	      return false; //make sure the SSF update block happens every nSSF blocks
 	    }
 	  }
 	}
@@ -4955,7 +4955,7 @@ double get_ssf (CBlockIndex * pindex) {
     CBigNum hashes_bn = pprev_algo->GetBlockWork();
     int time_f = pprev_algo->GetBlockTime();
     int time_i = 0;
-    for (int j=0; j<nSSF-1; j++) {  // 144 blocks = 24 hours, using only blocks from the same algo as the target block
+    for (int j=0; j<nSSF-1; j++) {  // nSSF blocks = 24 hours, using only blocks from the same algo as the target block
       pprev_algo = get_pprev_algo(pprev_algo,-1);
       if (!pprev_algo) {
 	hashes_bn = CBigNum(0);

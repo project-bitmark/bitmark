@@ -88,7 +88,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	int time_i = 0;
 	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	
-	for (int j=0; j<nSSF; j++) {
+	for (int j=0; j<nSSF-1; j++) {
 
 	  if (pprev_algo) {
 	    time_i = pprev_algo->GetBlockTime();
@@ -149,7 +149,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       CBigNum hashes_bn = pcur_algo->GetBlockWork();
       int time_i = 0;
       const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo,-1);
-      for (int j=0; j<nSSF; j++) {
+      for (int j=0; j<nSSF-1; j++) {
 	if (pprev_algo) {
 	  time_i = pprev_algo->GetBlockTime();
 	}
@@ -255,7 +255,7 @@ int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
   }
   if (!blockindex) return 0.;
   if (blockindex->nHeight == 0) return 0.;
-  int n = 144;
+  int n = nSSF;
   do {
     if (update_ssf(blockindex->nVersion)) {
       break;

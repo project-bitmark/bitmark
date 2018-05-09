@@ -108,26 +108,35 @@ done
 $bitmarkcli setgenerate true 1 1
 $bitmarkcli setgenerate true 3 5
 $bitmarkcli setgenerate true 1 1
-$bitmarkcli setgenerate true 2 5
+$bitmarkcli setgenerate true 7 5
 
-for i in {1..48}
+# now 5 is at ssf block 89
+# height 892
+
+for i in {1..30}
 do
     $bitmarkcli setgenerate true 1 1
     $bitmarkcli setgenerate true 3 5
 done
 
-# 929 blocks here
+# height 1012
 
-for i in {1..48}
+for i in {1..30}
 do
     $bitmarkcli setgenerate true 3 1
     $bitmarkcli setgenerate true 3 5
 done
 
-#1217 blocks
+# height 1192
+
+$bitmarkcli setgenerate true 1 5
+
+# 3/2 more time to generate algo 5
+
+# height 1193
 
 $bitmarkcli move "" "a1" 50
-$bitmarkcli sendfrom a1 ugDcD5iH4uTQFWBJxDiYJec75ijkYsn8w1 15
+$bitmarkcli sendfrom a1 ugDcD5iH4uTQFWBJxDiYJec75ijkYsn8w1 10
 $bitmarkcli setgenerate true 1 1
 $bitmarkcli setgenerate true 1 2
 

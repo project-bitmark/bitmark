@@ -571,9 +571,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
             pblocktemplate = NULL;
         }
         CScript scriptDummy = CScript() << OP_TRUE;
-	LogPrintf("gbt create new block\n");
         pblocktemplate = CreateNewBlock(scriptDummy);
-	LogPrintf("gbt block created\n");
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 

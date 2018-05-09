@@ -255,6 +255,7 @@ Value setgenerate(const Array& params, bool fHelp)
     {
         mapArgs["-gen"] = (fGenerate ? "1" : "0");
         mapArgs ["-genproclimit"] = itostr(nGenProcLimit);
+	LogPrintf("do generatebitmarks\n");
         GenerateBitmarks(fGenerate, pwalletMain, nGenProcLimit);
     }
 
@@ -402,7 +403,7 @@ Value getwork(const Array& params, bool fHelp)
         }
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
-	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) || RegTest()) {
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100))) {
 	  //pblock->nVersion = 3;
 	  pblock->SetAlgo(miningAlgo);
 	}

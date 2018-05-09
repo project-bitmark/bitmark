@@ -7,28 +7,54 @@ source assert.sh
 datadir="$(pwd)/.bitmark"
 bitmarkcli="bitmark-cli -datadir=$datadir"
 
-ms1=$($bitmarkcli getmoneysupply 1 730 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ms2=$($bitmarkcli getmoneysupply 2 730 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ms3=$($bitmarkcli getmoneysupply 3 730 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ms4=$($bitmarkcli getmoneysupply 4 730 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ms5=$($bitmarkcli getmoneysupply 5 730 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms0=$($bitmarkcli getmoneysupply 0 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms1=$($bitmarkcli getmoneysupply 1 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms2=$($bitmarkcli getmoneysupply 2 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms3=$($bitmarkcli getmoneysupply 3 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms4=$($bitmarkcli getmoneysupply 4 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms5=$($bitmarkcli getmoneysupply 5 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms6=$($bitmarkcli getmoneysupply 6 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms7=$($bitmarkcli getmoneysupply 7 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 
-ASSERT_EQUALS "$ms1" 2804.00000000
-ASSERT_EQUALS "$ms2" 3004.00000000
-ASSERT_EQUALS "$ms3" 2804.00000000
-ASSERT_EQUALS "$ms4" 3204.00000000
-ASSERT_EQUALS "$ms5" 2804.00000000
+ASSERT_EQUALS $ms0 1668.75000000
+ASSERT_EQUALS $ms1 1683.75000000
+ASSERT_EQUALS $ms2 1818.75000000
+ASSERT_EQUALS $ms3 1668.75000000
+ASSERT_EQUALS $ms4 1968.75000000
+ASSERT_EQUALS $ms5 1668.75000000
+ASSERT_EQUALS $ms6 1818.75000000
+ASSERT_EQUALS $ms7 1668.75000000
 
-prevblockhash="$($bitmarkcli getblockhash 730)"
+exit
+
+prevblockhash="$($bitmarkcli getblockhash 880)"
 prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"LYRA2REv2\"
+ASSERT_EQUALS "$prevblockalgo" \"CRYPTONIGHT\"
 prevblockssfheight=$($bitmarkcli getblock $prevblockhash | grep 'SSF height' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 ASSERT_EQUALS "$prevblockssfheight" 139
-prevblockreward=$($bitmarkcli getblockreward 5 730 | grep '"block reward' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockreward" 20.00000000
+prevblockreward=$($bitmarkcli getblockreward 7 730 | grep '"block reward' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ASSERT_EQUALS "$prevblockreward" 15.00000000
 prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
 
 prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
+ASSERT_EQUALS "$prevblockalgo" \"CRYPTONIGHT\"
+prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
+prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
+ASSERT_EQUALS "$prevblockalgo" \"CRYPTONIGHT\"
+prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
+prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
+ASSERT_EQUALS "$prevblockalgo" \"EQUIHASH\"
+prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
+prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
+ASSERT_EQUALS "$prevblockalgo" \"EQUIHASH\"
+prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
+prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
+ASSERT_EQUALS "$prevblockalgo" \"EQUIHASH\"
+prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
+prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
+ASSERT_EQUALS "$prevblockalgo" \"LYRA2REv2\"
+prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
+prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
 ASSERT_EQUALS "$prevblockalgo" \"LYRA2REv2\"
 prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
 prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
@@ -36,27 +62,11 @@ ASSERT_EQUALS "$prevblockalgo" \"LYRA2REv2\"
 prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
 prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
 ASSERT_EQUALS "$prevblockalgo" \"X17\"
-prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
-prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"X17\"
-prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
-prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"X17\"
-prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
-prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"ARGON2\"
-prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
-prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"ARGON2\"
-prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
-prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"ARGON2\"
-prevblockhash=$($bitmarkcli getblock $prevblockhash | grep previousblockhash | awk '{ print $3 }' | awk -F ',' '{print $1}' | awk -F '"' '{print $2}')
-prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockalgo" \"YESCRYPT\"
 
 prevblockssfheight=$($bitmarkcli getblock $prevblockhash | grep 'SSF height' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ASSERT_EQUALS "$prevblockssfheight" 5
+ASSERT_EQUALS "$prevblockssfheight" 15
+
+exit
 
 prevblockheight=$($bitmarkcli getblock $prevblockhash | grep '"height' | awk '{ print $3 }' | awk -F ',' '{print $1}')
 

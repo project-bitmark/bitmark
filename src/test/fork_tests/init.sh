@@ -7,6 +7,7 @@ bitmark-cli stop
 set -e
 
 datadir="$(pwd)/.bitmark"
+echo "Using datadir $datadir"
 rm -rf "$datadir"
 mkdir -p "$datadir"
 cp bitmark.conf "$datadir"
@@ -36,66 +37,103 @@ do
 done
 set -e
 
-bitmark_cli="bitmark-cli -datadir=$datadir"
+bitmarkcli="bitmark-cli -datadir=$datadir"
+
+# activate fork
+# Note: blocks 0 to 149 have subsidy 20, while the rest have subsidy 15
+for i in {1..199}
+do
+    $bitmarkcli setgenerate true 1 0
+done
+
+# pre fork money supply: 150*20+50*15=3750
+# so base ms for each algo is 468.75
+
+# make 1 the algo for the first block using fork rules
+$bitmarkcli setgenerate true 1 1
+
+# height 200
 
 for i in {1..10}
 do
-    $bitmark_cli setgenerate true 1 1
-    $bitmark_cli setgenerate true 1 2
-    $bitmark_cli setgenerate true 1 3
-    $bitmark_cli setgenerate true 1 4
-    $bitmark_cli setgenerate true 1 5
+    $bitmarkcli setgenerate true 1 0
+    $bitmarkcli setgenerate true 1 1
+    $bitmarkcli setgenerate true 1 2
+    $bitmarkcli setgenerate true 1 3
+    $bitmarkcli setgenerate true 1 4
+    $bitmarkcli setgenerate true 1 5
+    $bitmarkcli setgenerate true 1 6
+    $bitmarkcli setgenerate true 1 7
 done
+
+# height 280
 
 for i in {1..10}
 do
-    $bitmark_cli setgenerate true 1 1
-    $bitmark_cli setgenerate true 2 2
-    $bitmark_cli setgenerate true 1 3
-    $bitmark_cli setgenerate true 3 4
-    $bitmark_cli setgenerate true 1 5
+    $bitmarkcli setgenerate true 1 0
+    $bitmarkcli setgenerate true 1 1
+    $bitmarkcli setgenerate true 2 2
+    $bitmarkcli setgenerate true 1 3
+    $bitmarkcli setgenerate true 3 4
+    $bitmarkcli setgenerate true 1 5
+    $bitmarkcli setgenerate true 2 6
+    $bitmarkcli setgenerate true 1 7
 done
 
-for i in {1..40}
+# height 400
+
+for i in {1..20}
 do
-    $bitmark_cli setgenerate true 3 1
-    $bitmark_cli setgenerate true 3 2
-    $bitmark_cli setgenerate true 3 3
-    $bitmark_cli setgenerate true 3 4
-    $bitmark_cli setgenerate true 3 5
+    $bitmarkcli setgenerate true 3 0
+    $bitmarkcli setgenerate true 3 1
+    $bitmarkcli setgenerate true 3 2
+    $bitmarkcli setgenerate true 3 3
+    $bitmarkcli setgenerate true 3 4
+    $bitmarkcli setgenerate true 3 5
+    $bitmarkcli setgenerate true 3 6
+    $bitmarkcli setgenerate true 3 7
 done
 
-# 730 blocks here
+# height 880
+# Post fork blocks for algos
+# 0: 80
+# 1: 81
+# 2: 90
+# 3: 80
+# 4: 100
+# 5: 80
+# 6: 90
+# 7: 80
 
-$bitmark_cli setgenerate true 1 1
-$bitmark_cli setgenerate true 3 5
-$bitmark_cli setgenerate true 1 1
-$bitmark_cli setgenerate true 2 5
+$bitmarkcli setgenerate true 1 1
+$bitmarkcli setgenerate true 3 5
+$bitmarkcli setgenerate true 1 1
+$bitmarkcli setgenerate true 2 5
 
 for i in {1..48}
 do
-    $bitmark_cli setgenerate true 1 1
-    $bitmark_cli setgenerate true 3 5
+    $bitmarkcli setgenerate true 1 1
+    $bitmarkcli setgenerate true 3 5
 done
 
 # 929 blocks here
 
 for i in {1..48}
 do
-    $bitmark_cli setgenerate true 3 1
-    $bitmark_cli setgenerate true 3 5
+    $bitmarkcli setgenerate true 3 1
+    $bitmarkcli setgenerate true 3 5
 done
 
 #1217 blocks
 
-$bitmark_cli move "" "a1" 50
-$bitmark_cli sendfrom a1 ugDcD5iH4uTQFWBJxDiYJec75ijkYsn8w1 15
-$bitmark_cli setgenerate true 1 1
-$bitmark_cli setgenerate true 1 2
+$bitmarkcli move "" "a1" 50
+$bitmarkcli sendfrom a1 ugDcD5iH4uTQFWBJxDiYJec75ijkYsn8w1 15
+$bitmarkcli setgenerate true 1 1
+$bitmarkcli setgenerate true 1 2
 
-$bitmark_cli move "" "a2" 50
-$bitmark_cli sendfrom a2 uXDLegVzqHRrPRT5TFsxR5o8x7Tcbsz1zS 16.42
-$bitmark_cli setgenerate true 1 5
+$bitmarkcli move "" "a2" 50
+$bitmarkcli sendfrom a2 uXDLegVzqHRrPRT5TFsxR5o8x7Tcbsz1zS 16.42
+$bitmarkcli setgenerate true 1 5
 
 sleep 1
 

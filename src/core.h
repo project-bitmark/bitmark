@@ -17,6 +17,8 @@
 #include "chainparams.h"
 #include "pureheader.h"
 
+static const int nSSF = 720/NUM_ALGOS; //interval for ssf updates
+
 class CBlockHeader;
 
 #include "pow.h"

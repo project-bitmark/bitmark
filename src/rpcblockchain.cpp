@@ -88,7 +88,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	int time_i = 0;
 	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	
-	for (int j=0; j<143; j++) {
+	for (int j=0; j<nSSF; j++) {
 
 	  if (pprev_algo) {
 	    time_i = pprev_algo->GetBlockTime();
@@ -149,7 +149,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       CBigNum hashes_bn = pcur_algo->GetBlockWork();
       int time_i = 0;
       const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo,-1);
-      for (int j=0; j<143; j++) {
+      for (int j=0; j<nSSF; j++) {
 	if (pprev_algo) {
 	  time_i = pprev_algo->GetBlockTime();
 	}
@@ -193,19 +193,26 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   }
   if (algo>=0) {
     int algo_tip = GetAlgo(blockindex->nVersion);
+    LogPrintf("algo_tip = %d\n",algo_tip);
     if (algo_tip != algo) {
       blockindex = get_pprev_algo(blockindex,algo);
     }
   }
   else {
-    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(4,blockindex->pprev,75,100))&& !RegTest()) {
+    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(4,blockindex->pprev,75,100))) {
+      LogPrintf("return basic money supply\n");
       return ((double)blockindex->nMoneySupply)/100000000.;
     }
+    LogPrintf("return multialgo money supply\n");
     return GetMoneySupply(blockindex,0)+GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5)+GetMoneySupply(blockindex,6)+GetMoneySupply(blockindex,7);
   }
   if (!blockindex) {
-    if (RegTest()) return 2.5;
-    return ((double)(nForkHeight*20))/8.;
+    //return ((double)(nForkHeight*20))/8.;
+    blockindex = chainActive.Tip();
+    while (blockindex && blockindex->nHeight > nForkHeight-1) {
+      blockindex = blockindex->pprev;
+    }
+    return ((double)GetMoneySupply(blockindex,-1))/8.;
   }
   if (blockindex->nMoneySupply == 0) return 2.5;
   //if (blockindex->nHeight == 0) return 4.;

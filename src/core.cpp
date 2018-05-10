@@ -80,19 +80,15 @@ void CTxOut::print() const
 
 uint256 CTransaction::GetHash() const
 {
-  if (vin[0].prevout.IsNull())
-    LogPrintf("get coinbase transaction hash\n");
-    return SerializeHash(*this);
+  return SerializeHash(*this);
 }
 
 uint256 CTransaction::GetCachedHash() const
 {
   if (hash!=uint256(0)) {
-    LogPrintf("get cached hash");
     return hash;
   }
   else {
-    LogPrintf("generate cached hash");
     return SerializeHash(*this);
   }
 }
@@ -613,7 +609,6 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   }
 
   if (!block.auxpow) {
-    LogPrintf("don't have auxpow in block\n");
     if (block.IsAuxpow()) {
       LogPrintf("auxpow err 2\n");
       return error("%s : no auxpow on block with auxpow version",

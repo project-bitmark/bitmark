@@ -21,7 +21,7 @@ enum {
   ALGO_CRYPTONIGHT = 7
 };
 
-/* Use the rightmost 8 bits for standard version number, 9th bit for merge mining (todo), 10-12 th bits for POW algo, 13 th bit for update scaling factor flag */
+/* Use the rightmost 8 bits for standard version number, 9th bit for merge mining, 10-12 th bits for POW algo, 13 th bit for update scaling factor flag */
 enum
   {
     BLOCK_VERSION_AUXPOW = (1 << 8),

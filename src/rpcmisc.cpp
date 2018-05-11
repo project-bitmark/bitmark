@@ -495,7 +495,7 @@ Value getmoneysupply(const Array& params, bool fHelp) {
 	    "}\n"
 			);
 
-  int algo = 0;
+  int algo = -1;
   CBlockIndex * blockindex = NULL;
 
   if (params.size()>0) {

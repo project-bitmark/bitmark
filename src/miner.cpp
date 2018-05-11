@@ -110,7 +110,6 @@ public:
 
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 {
-  LogPrintf("in createnewblock\n");
     // Create new block
     auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if(!pblocktemplate.get())
@@ -120,7 +119,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     CBlockIndex* pindexPrev = chainActive.Tip();
     miningAlgo = GetArg("-miningalgo", miningAlgo);
     LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
-    if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100) || RegTest()) {
+    if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
       LogPrintf("algo set to %d\n",miningAlgo);
       //pblock->nVersion = 3;
       LogPrintf("pblock nVersion is %d\n",pblock->nVersion);
@@ -350,10 +349,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	  else {
 	    LogPrintf("check for update flag\n");
 	    char update = 1;
-	    for (int i=0; i<144; i++) {
+	    for (int i=0; i<nSSF; i++) {
 	      if (update_ssf(pprev_algo->nVersion)) {
 		LogPrintf("update ssf set on i=%d ago\n",i);
-		if (i!=143) {
+		if (i!=nSSF-1) {
 		  update = 0;
 		}
 		break;
@@ -703,7 +702,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	  else while(true) {
 	    
 	    uint256 thash = pblock->GetPoWHash(miningAlgo);
-	    if (pblock->nVersion<=2) thash = pblock->GetPoWHash(ALGO_SCRYPT);
+	    if (pblock->nVersion<=3) thash = pblock->GetPoWHash(ALGO_SCRYPT);
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;

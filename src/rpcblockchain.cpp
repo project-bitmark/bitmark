@@ -81,14 +81,13 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
       double hashes_peak = 0.;
       const CBlockIndex * pprev_algo = get_pprev_algo(blockindex,-1);
       for (int i=0; i<365; i++) {
-	LogPrintf("getpeak i=%d\n",i);
 	if (!pprev_algo) break;
 	int time_f = pprev_algo->GetBlockTime();
 	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int time_i = 0;
 	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	
-	for (int j=0; j<143; j++) {
+	for (int j=0; j<nSSF-1; j++) {
 
 	  if (pprev_algo) {
 	    time_i = pprev_algo->GetBlockTime();
@@ -115,9 +114,9 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	else {
 	  return 1./0.;
 	}
-	LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
+	//LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
 	double hashes = ((double)hashes_bn.getulong())/((double)time_f);
-	LogPrintf("hashes per sec = %f\n",hashes);
+	//LogPrintf("hashes per sec = %f\n",hashes);
 	if (hashes>hashes_peak) hashes_peak = hashes;
       }
       return hashes_peak;
@@ -149,7 +148,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       CBigNum hashes_bn = pcur_algo->GetBlockWork();
       int time_i = 0;
       const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo,-1);
-      for (int j=0; j<143; j++) {
+      for (int j=0; j<nSSF-1; j++) {
 	if (pprev_algo) {
 	  time_i = pprev_algo->GetBlockTime();
 	}
@@ -171,7 +170,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       else {
 	return 1./0.;
       }
-      LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
+      //LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
       return ((double)hashes_bn.getulong())/((double)time_f);
     }
     blockindex = get_pprev_algo(blockindex,-1);
@@ -198,17 +197,19 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
     }
   }
   else {
-    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(4,blockindex->pprev,75,100))&& !RegTest()) {
+    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(4,blockindex->pprev,75,100))) {
       return ((double)blockindex->nMoneySupply)/100000000.;
     }
     return GetMoneySupply(blockindex,0)+GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5)+GetMoneySupply(blockindex,6)+GetMoneySupply(blockindex,7);
   }
   if (!blockindex) {
-    if (RegTest()) return 2.5;
-    return ((double)(nForkHeight*20))/8.;
+    blockindex = chainActive.Tip();
+    while (blockindex && blockindex->nHeight > nForkHeight-1) {
+      blockindex = blockindex->pprev;
+    }
+    return ((double)GetMoneySupply(blockindex,-1))/8.;
   }
   if (blockindex->nMoneySupply == 0) return 2.5;
-  //if (blockindex->nHeight == 0) return 4.;
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
 
@@ -248,7 +249,7 @@ int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
   }
   if (!blockindex) return 0.;
   if (blockindex->nHeight == 0) return 0.;
-  int n = 144;
+  int n = nSSF;
   do {
     if (update_ssf(blockindex->nVersion)) {
       break;

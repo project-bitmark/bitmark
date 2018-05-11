@@ -150,13 +150,13 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1525534129;
+        genesis.nTime = 1525872745;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 2922864;
+	genesis.nNonce = 67743;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("426afe219ae8c8d26d899f217c9aa4cbef770dc079f0fcbce84e5de309647757"));
+        assert(hashGenesisBlock == uint256("c8fbad364285497e11dc868b3d5e8015ec62c5cb3195d4b4aeecd2b647f00eb2"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -185,7 +185,7 @@ public:
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
-        nSubsidyHalvingInterval = 150;
+        nSubsidyHalvingInterval = 300;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;
@@ -213,7 +213,7 @@ public:
 	nEquihashN = 200;
 	nEquihashK = 9;
 	fMineBlocksOnDemand = true;
-	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	//printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
         assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));
 

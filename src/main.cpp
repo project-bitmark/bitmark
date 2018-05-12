@@ -1500,7 +1500,18 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      bnNew.SetCompact(BlockReading->nBits/8*weight/weight_scrypt);
+      if (weight>8*weight_scrypt) {
+	unsigned int multiplier = weight/(8*weight_scrypt);
+	LogPrintf("for algo %d multiplier is %d\n",algo,multiplier);
+	bnNew.SetCompact(BlockReading->nBits);
+	bnNew *= multiplier;
+      }
+      else {
+	unsigned int divisor = (8*weight_scrypt)/weight;
+	LogPrintf("for algo %d divisor is %d\n",algo,divisor);
+	bnNew.SetCompact(BlockReading->nBits);
+	bnNew /= divisor;
+      }
     }
 
     if (bnNew > Params().ProofOfWorkLimit()){

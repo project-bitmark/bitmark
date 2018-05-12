@@ -1436,7 +1436,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
         return Params().ProofOfWorkLimit().GetCompact();
     }
 
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
 
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
       
@@ -1455,7 +1455,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	      if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	      //LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
 	    }
-            else { PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (CBigNum().SetCompact(BlockReading->nBits))) / (CountBlocks + 1); }
+            else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
             PastDifficultyAveragePrev = PastDifficultyAverage;
         }
 
@@ -1497,10 +1497,10 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     else {
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
       bnNew = Params().ProofOfWorkLimit();
-      if (algo == ALGO_SCRYPT) {
-	LogPrintf("setting nBits to keep continuity of scrypt chain\n");
-	bnNew.SetCompact(BlockReading->nBits/8);
-      }
+      LogPrintf("setting nBits to keep continuity of scrypt chain\n");
+      unsigned int weight = GetAlgoWeight(algo);
+      unsigned int weight_scrypt = GetAlgoWeight(0);
+      bnNew.SetCompact(BlockReading->nBits/8*weight/weight_scrypt);
     }
 
     if (bnNew > Params().ProofOfWorkLimit()){

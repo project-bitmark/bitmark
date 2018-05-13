@@ -1528,7 +1528,6 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (smultiply) bnNew *= smultiplier*3;
     }
     else {
-      bnNew.SetCompact(pindexLast->nBits);
       if (smultiply) bnNew *= smultiplier*3;
     }
     

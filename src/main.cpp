@@ -1435,7 +1435,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
         return Params().ProofOfWorkLimit().GetCompact();
     }
 
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight-1; i++) {
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
 
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
       

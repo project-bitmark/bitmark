@@ -1423,8 +1423,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     const CBlockIndex *BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = 24; // todo: maybe make this bigger since it can lead to inaccuracies with unsynced clocks
-    int64_t PastBlocksMax = 24;
+    int64_t PastBlocksMin = 25; // todo: maybe make this bigger since it can lead to inaccuracies with unsynced clocks
+    int64_t PastBlocksMax = 25;
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
     CBigNum PastDifficultyAveragePrev;
@@ -1439,7 +1439,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
 
-      if (!onFork(BlockReading)) break;
+      if (!onFork(BlockReading)) {
+	if(LastBlockTime > 0){
+	  int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+	  nActualTimespan += Diff;
+	}
+	CountBlocks++;
+	break;
+      }
       
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { /* Only consider blocks from same algo */
@@ -1458,7 +1465,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	}
 	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
 	PastDifficultyAveragePrev = PastDifficultyAverage;
-        }
+      }
  
       if(LastBlockTime > 0){
 	int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
@@ -1473,9 +1480,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     
     CBigNum bnNew(PastDifficultyAverage);
-    int64_t _nTargetTimespan = CountBlocks * 960; //16 min target
+    int64_t _nTargetTimespan = (CountBlocks-1) * 960; //16 min target
 
-    if (CountBlocks > 0) {
+    if (CountBlocks >= PastBlocksMin ) {
 
       int64_t multiplier = 1;
       // Retarget
@@ -1496,6 +1503,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
     }
     else {
+      LogPrintf("CountBlocks = %d\n",CountBlocks);
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
       bnNew = Params().ProofOfWorkLimit();
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");

@@ -1439,10 +1439,13 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
 
-      if (!onFork(BlockReading)) {
+      if (!onFork(BlockReading)) { /* last block before fork */
 	if(LastBlockTime > 0){
 	  int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
 	  nActualTimespan += Diff;
+	}
+	if (LastBlockTimeOtherAlgos > 0) {
+	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
 	break;
@@ -1450,7 +1453,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { /* Only consider blocks from same algo */
-	if (i==1) LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
+	if (!LastBlockTimeOtherAlgos) {
+	  LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
+	}
 	BlockReading = BlockReading->pprev;
 	continue;
       }
@@ -1482,27 +1487,25 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     CBigNum bnNew(PastDifficultyAverage);
     int64_t _nTargetTimespan = (CountBlocks-1) * 960; //16 min target
 
-    if (CountBlocks >= PastBlocksMin ) {
-
-      int64_t multiplier = 1;
-      // Retarget
-      if (time_since_last_algo > 9600 && nActualTimespan < 10*_nTargetTimespan) { //160 min for special retarget
-	multiplier = time_since_last_algo/9600;
-	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), multiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, multiplier);
-	nActualTimespan = 10*multiplier*_nTargetTimespan;
-      }
-      
+    int64_t smultiplier = 1;
+    bool smultiply = false;
+    if (time_since_last_algo > 9600) { //160 min for special retarget
+      smultiplier = time_since_last_algo/9600;
+      LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), smultiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, smultiplier);
+      nActualTimespan = 10*smultiplier*_nTargetTimespan;
+      smultiply = true;
+    }
     
-      if (nActualTimespan < _nTargetTimespan/3)
-        nActualTimespan = _nTargetTimespan/3;
-      if (nActualTimespan > _nTargetTimespan*3)
-        nActualTimespan = multiplier*_nTargetTimespan*3;
-
+    if (nActualTimespan < _nTargetTimespan/3)
+      nActualTimespan = _nTargetTimespan/3;
+    if (nActualTimespan > _nTargetTimespan*3)
+      nActualTimespan = smultiplier*_nTargetTimespan*3;
+    
+    if (CountBlocks >= PastBlocksMin ) {          
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
-
     }
-    else {
+    else if (CountBlocks==1) {
       LogPrintf("CountBlocks = %d\n",CountBlocks);
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
       bnNew = Params().ProofOfWorkLimit();
@@ -1522,8 +1525,13 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew.SetCompact(BlockReading->nBits);
 	bnNew /= divisor;
       }
+      if (smultiply) bnNew *= smultiplier*3;
     }
-
+    else {
+      bnNew.SetCompact(pindexLast->nBits);
+      if (smultiply) bnNew *= smultiplier*3;
+    }
+    
     if (bnNew > Params().ProofOfWorkLimit()){
       bnNew = Params().ProofOfWorkLimit();
     }

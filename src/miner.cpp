@@ -115,8 +115,9 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     if(!pblocktemplate.get())
         return NULL;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
-
     CBlockIndex* pindexPrev = chainActive.Tip();
+    // To simulate v3 blocks occuring after nForkHeight
+    if (TestNet() && pindexPrev->nHeight < 300) pblock->nVersion = 3;
     miningAlgo = GetArg("-miningalgo", miningAlgo);
     LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
     if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {

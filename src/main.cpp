@@ -1438,38 +1438,40 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
 
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
+
+      if (!onFork(BlockReading)) break;
       
-	int block_algo = GetAlgo(BlockReading->nVersion);
-	if (!onFork(BlockReading) || block_algo != algo) { /* Only consider blocks from same algo */
-	  if (i==1) LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
-	  BlockReading = BlockReading->pprev;
-	  continue;
-	}
+      int block_algo = GetAlgo(BlockReading->nVersion);
+      if (block_algo != algo) { /* Only consider blocks from same algo */
+	if (i==1) LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
+	BlockReading = BlockReading->pprev;
+	continue;
+      }
 	
-        CountBlocks++;
+      CountBlocks++;
 
-        if(CountBlocks <= PastBlocksMin) {
-            if (CountBlocks == 1) {
-	      PastDifficultyAverage.SetCompact(BlockReading->nBits);
-	      if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
-	      //LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
-	    }
-            else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
-            PastDifficultyAveragePrev = PastDifficultyAverage;
+      if(CountBlocks <= PastBlocksMin) {
+	if (CountBlocks == 1) {
+	  PastDifficultyAverage.SetCompact(BlockReading->nBits);
+	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
+	  //LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
+	}
+	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
+	PastDifficultyAveragePrev = PastDifficultyAverage;
         }
+ 
+      if(LastBlockTime > 0){
+	int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+	nActualTimespan += Diff;
+	//LogPrintf("Diff %d ",Diff);
+      }
+      LastBlockTime = BlockReading->GetBlockTime();
+      //LogPrintf("LastBlockTime = %d\n",LastBlockTime);
 
-        if(LastBlockTime > 0){
-            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
-            nActualTimespan += Diff;
-	    //LogPrintf("Diff %d ",Diff);
-        }
-        LastBlockTime = BlockReading->GetBlockTime();
-	//LogPrintf("LastBlockTime = %d\n",LastBlockTime);
-
-        if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
-        BlockReading = BlockReading->pprev;
+      if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
+      BlockReading = BlockReading->pprev;
     }
-
+    
     CBigNum bnNew(PastDifficultyAverage);
     int64_t _nTargetTimespan = CountBlocks * 960; //16 min target
 

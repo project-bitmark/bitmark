@@ -4935,20 +4935,14 @@ CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
 
 int64_t get_mpow_ms_correction (CBlockIndex * p) {
   CBlockIndex * pprev = p->pprev;
-  if (pprev && !onFork(pprev)) {
-    if (pprev->nHeight == 0) {
-      return 400000000;
-    }
-    return pprev->nMoneySupply/NUM_ALGOS;
-  }
   while (pprev) {
-    pprev = pprev->pprev;
-    if (pprev->nHeight<nForkHeight) {
+    if (!onFork(pprev)) {
       if (pprev->nHeight == 0) {
-	return 400000000;
+	return 2000000000/NUM_ALGOS;
       }
       return pprev->nMoneySupply/NUM_ALGOS;
     }
+    pprev = pprev->pprev;
   }
   //LogPrintf("just return 0 for correction\n");
   return 0;

@@ -197,14 +197,14 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
     }
   }
   else {
-    if ((blockindex->nHeight < nForkHeight || !CBlockIndex::IsSuperMajority(4,blockindex->pprev,75,100))) {
+    if (!onFork(blockindex)) {
       return ((double)blockindex->nMoneySupply)/100000000.;
     }
     return GetMoneySupply(blockindex,0)+GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5)+GetMoneySupply(blockindex,6)+GetMoneySupply(blockindex,7);
   }
   if (!blockindex) {
     blockindex = chainActive.Tip();
-    while (blockindex && blockindex->nHeight > nForkHeight-1) {
+    while (blockindex && onFork(blockindex)) {
       blockindex = blockindex->pprev;
     }
     return ((double)GetMoneySupply(blockindex,-1))/8.;

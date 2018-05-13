@@ -1143,7 +1143,6 @@ bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
 {
 
-  LogPrintf("In ReadBlockFromDisk\n");
     block.SetNull();
 
     // Open history file to read
@@ -1424,8 +1423,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     const CBlockIndex *BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = 24; // todo: maybe make this bigger since it can lead to inaccuracies with unsynced clocks
-    int64_t PastBlocksMax = 24;
+    int64_t PastBlocksMin = 25; // todo: maybe make this bigger since it can lead to inaccuracies with unsynced clocks
+    int64_t PastBlocksMax = 25;
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
     CBigNum PastDifficultyAveragePrev;
@@ -1439,70 +1438,99 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
 
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
-      
-	int block_algo = GetAlgo(BlockReading->nVersion);
-	if (block_algo != algo) { /* Only consider blocks from same algo */
-	  if (i==1) LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
-	  BlockReading = BlockReading->pprev;
-	  continue;
+
+      if (!onFork(BlockReading)) { /* last block before fork */
+	if(LastBlockTime > 0){
+	  int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+	  nActualTimespan += Diff;
 	}
-	
-        CountBlocks++;
-
-        if(CountBlocks <= PastBlocksMin) {
-            if (CountBlocks == 1) {
-	      PastDifficultyAverage.SetCompact(BlockReading->nBits);
-	      if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
-	      //LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
-	    }
-            else { PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (CBigNum().SetCompact(BlockReading->nBits))) / (CountBlocks + 1); }
-            PastDifficultyAveragePrev = PastDifficultyAverage;
-        }
-
-        if(LastBlockTime > 0){
-            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
-            nActualTimespan += Diff;
-	    //LogPrintf("Diff %d ",Diff);
-        }
-        LastBlockTime = BlockReading->GetBlockTime();
-	//LogPrintf("LastBlockTime = %d\n",LastBlockTime);
-
-        if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
-        BlockReading = BlockReading->pprev;
-    }
-
-    CBigNum bnNew(PastDifficultyAverage);
-    int64_t _nTargetTimespan = CountBlocks * 960; //16 min target
-
-    if (CountBlocks > 0) {
-
-      int64_t multiplier = 1;
-      // Retarget
-      if (time_since_last_algo > 9600 && nActualTimespan < 10*_nTargetTimespan) { //160 min for special retarget
-	multiplier = time_since_last_algo/9600;
-	LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), multiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, multiplier);
-	nActualTimespan = 10*multiplier*_nTargetTimespan;
+	if (LastBlockTimeOtherAlgos > 0) {
+	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
+	}
+	CountBlocks++;
+	break;
       }
       
-    
-      if (nActualTimespan < _nTargetTimespan/3)
-        nActualTimespan = _nTargetTimespan/3;
-      if (nActualTimespan > _nTargetTimespan*3)
-        nActualTimespan = multiplier*_nTargetTimespan*3;
+      int block_algo = GetAlgo(BlockReading->nVersion);
+      if (block_algo != algo) { /* Only consider blocks from same algo */
+	if (!LastBlockTimeOtherAlgos) {
+	  LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
+	}
+	BlockReading = BlockReading->pprev;
+	continue;
+      }
+	
+      CountBlocks++;
 
+      if(CountBlocks <= PastBlocksMin) {
+	if (CountBlocks == 1) {
+	  PastDifficultyAverage.SetCompact(BlockReading->nBits);
+	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
+	  //LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
+	}
+	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
+	PastDifficultyAveragePrev = PastDifficultyAverage;
+      }
+ 
+      if(LastBlockTime > 0){
+	int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+	nActualTimespan += Diff;
+	//LogPrintf("Diff %d ",Diff);
+      }
+      LastBlockTime = BlockReading->GetBlockTime();
+      //LogPrintf("LastBlockTime = %d\n",LastBlockTime);
+
+      if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
+      BlockReading = BlockReading->pprev;
+    }
+    
+    CBigNum bnNew(PastDifficultyAverage);
+    int64_t _nTargetTimespan = (CountBlocks-1) * 960; //16 min target
+
+    int64_t smultiplier = 1;
+    bool smultiply = false;
+    if (time_since_last_algo > 9600) { //160 min for special retarget
+      smultiplier = time_since_last_algo/9600;
+      LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), smultiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, smultiplier);
+      nActualTimespan = 10*smultiplier*_nTargetTimespan;
+      smultiply = true;
+    }
+    
+    if (nActualTimespan < _nTargetTimespan/3)
+      nActualTimespan = _nTargetTimespan/3;
+    if (nActualTimespan > _nTargetTimespan*3)
+      nActualTimespan = smultiplier*_nTargetTimespan*3;
+    
+    if (CountBlocks >= PastBlocksMin ) {          
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
-
     }
-    else {
+    else if (CountBlocks==1) {
+      LogPrintf("CountBlocks = %d\n",CountBlocks);
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
       bnNew = Params().ProofOfWorkLimit();
-      if (algo == ALGO_SCRYPT) {
-	LogPrintf("setting nBits to keep continuity of scrypt chain\n");
-	bnNew.SetCompact(BlockReading->nBits/8);
+      LogPrintf("setting nBits to keep continuity of scrypt chain\n");
+      LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
+      unsigned int weight = GetAlgoWeight(algo);
+      unsigned int weight_scrypt = GetAlgoWeight(0);
+      if (weight>8*weight_scrypt) {
+	unsigned int multiplier = weight/(8*weight_scrypt);
+	LogPrintf("for algo %d multiplier is %d\n",algo,multiplier);
+	bnNew.SetCompact(BlockReading->nBits);
+	bnNew *= multiplier;
       }
+      else {
+	unsigned int divisor = (8*weight_scrypt)/weight;
+	LogPrintf("for algo %d divisor is %d\n",algo,divisor);
+	bnNew.SetCompact(BlockReading->nBits);
+	bnNew /= divisor;
+      }
+      if (smultiply) bnNew *= smultiplier*3;
     }
-
+    else {
+      if (smultiply) bnNew *= smultiplier*3;
+    }
+    
     if (bnNew > Params().ProofOfWorkLimit()){
       bnNew = Params().ProofOfWorkLimit();
     }
@@ -1519,9 +1547,10 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     /// debug print
     LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
     LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
-    LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
-    LogPrintf("Avg from past %d: %08x  %s\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
-    LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+    LogPrintf("Before: %08x  %lu\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
+    LogPrintf("BlockReading: %08x %lu\n",BlockReading->nBits,CBigNum().SetCompact(BlockReading->nBits).getuint256().ToString());
+    LogPrintf("Avg from past %d: %08x %lu\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
+    LogPrintf("After:  %08x  %lu\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
 
     return bnNew.GetCompact();
 }
@@ -2029,7 +2058,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
     
-    // Force the fork to happen exactly at nForkHeight
+    // Force min version after fork
     if (onFork(pindex) && block.nVersion<CBlock::CURRENT_VERSION) {
       LogPrintf("nVersion<=2 and after fork\n");
       return false;
@@ -2706,7 +2735,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     // that can be verified before saving an orphan block.
 
   unsigned int block_size = ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-  LogPrintf("In checkblock with block size %d, %d\n",block_size,block.vtx.size());
+  //LogPrintf("In checkblock with block size %d, %d\n",block_size,block.vtx.size());
   
     // Size limits
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
@@ -2727,7 +2756,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 			     REJECT_INVALID, "bad-equihash-solution");      
 	  }
 
-	  LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
+	  //LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
 	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
 	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
 			 REJECT_INVALID, "high-hash");
@@ -2943,7 +2972,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (pblock->hashPrevBlock != 0 && !mapBlockIndex.count(pblock->hashPrevBlock))
     {
-        LogPrintf("ProcessBlock: ORPHAN BLOCK %lu, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
+      //LogPrintf("ProcessBlock: ORPHAN BLOCK %lu, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
 
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom) {
@@ -4905,20 +4934,14 @@ CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
 
 int64_t get_mpow_ms_correction (CBlockIndex * p) {
   CBlockIndex * pprev = p->pprev;
-  if (pprev && !onFork(pprev)) {
-    if (pprev->nHeight == 0) {
-      return 400000000;
-    }
-    return pprev->nMoneySupply/NUM_ALGOS;
-  }
   while (pprev) {
-    pprev = pprev->pprev;
-    if (pprev->nHeight<nForkHeight) {
+    if (!onFork(pprev)) {
       if (pprev->nHeight == 0) {
-	return 400000000;
+	return 2000000000/NUM_ALGOS;
       }
       return pprev->nMoneySupply/NUM_ALGOS;
     }
+    pprev = pprev->pprev;
   }
   //LogPrintf("just return 0 for correction\n");
   return 0;

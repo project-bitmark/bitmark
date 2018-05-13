@@ -280,12 +280,12 @@ std::vector<uint256> CBlock::GetMerkleBranch(int nIndex) const
 
 uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex)
 {
-  LogPrintf("in checkmerklebranch nIndex=%d\n",nIndex);
+  //LogPrintf("in checkmerklebranch nIndex=%d\n",nIndex);
     if (nIndex == -1)
         return 0;
     BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
     {
-      LogPrintf("otherside\n");
+      //LogPrintf("otherside\n");
         if (nIndex & 1)
             hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
         else
@@ -663,4 +663,30 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   LogPrintf("checkauxpowproofofwork passed\n");
   
   return true;
+}
+
+unsigned int GetAlgoWeight (const int algo) {
+  unsigned long weight = 1000;
+  switch (algo)
+    {
+    case ALGO_SHA256D:
+      weight = 2;
+      break;
+    case ALGO_ARGON2:
+      weight = 450000;
+      break;
+    case ALGO_LYRA2REv2:
+      weight = 350;
+      break;
+    case ALGO_EQUIHASH:
+      weight = 6500000;
+      break;
+    case ALGO_CRYPTONIGHT:
+      weight = 850000;
+      break;
+    case ALGO_YESCRYPT:
+      weight = 100000;
+      break;
+    }
+  return weight;
 }

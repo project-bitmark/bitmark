@@ -289,9 +289,6 @@ public:
 class CAuxPow;
 class CBlock;
 
-
-
-
 struct CDiskBlockPos
 {
     int nFile;
@@ -736,9 +733,7 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-     if (fRead) LogPrintf("read blockheader\n");
         READWRITE(*(CBlockHeader*)this);
-     if (fRead) LogPrintf("r vtx\n");
         READWRITE(vtx);
     )
 
@@ -798,6 +793,8 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
 bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& params);
+
+unsigned int GetAlgoWeight (const int algo);
 
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple
@@ -963,28 +960,7 @@ public:
         bnTarget.SetCompact(nBits);
         if (bnTarget <= 0)
             return 0;
-	CBigNum weight(1000);
-	switch (nVersion & BLOCK_VERSION_ALGO)
-	  {
-	  case BLOCK_VERSION_SHA256D:
-	    weight.setulong(2);
-	    break;
-	  case BLOCK_VERSION_ARGON2:
-	    weight.setulong(450000);
-	    break;
-	  case BLOCK_VERSION_LYRA2REv2:
-	    weight.setulong(350);
-	    break;
-	  case BLOCK_VERSION_EQUIHASH:
-	    weight.setulong(6500000);
-	    break;
-	  case BLOCK_VERSION_CRYPTONIGHT:
-	    weight.setulong(850000);
-	    break;
-	  case BLOCK_VERSION_YESCRYPT:
-	    weight.setulong(100000);
-	    break;
-	  }
+	CBigNum weight(GetAlgoWeight(this->GetAlgo()));
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget+1) * weight;
     }

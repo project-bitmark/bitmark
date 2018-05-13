@@ -1497,6 +1497,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
       bnNew = Params().ProofOfWorkLimit();
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");
+      LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
       if (weight>8*weight_scrypt) {
@@ -1529,9 +1530,10 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     /// debug print
     LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
     LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
-    LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
-    LogPrintf("Avg from past %d: %08x  %s\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
-    LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+    LogPrintf("Before: %08x  %lu\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
+    LogPrintf("BlockReading: %08x %lu\n",BlockReading->nBits,CBigNum().SetCompact(BlockReading->nBits).getuint256().ToString());
+    LogPrintf("Avg from past %d: %08x %lu\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
+    LogPrintf("After:  %08x  %lu\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
 
     return bnNew.GetCompact();
 }

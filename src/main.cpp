@@ -1143,7 +1143,6 @@ bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
 {
 
-  LogPrintf("In ReadBlockFromDisk\n");
     block.SetNull();
 
     // Open history file to read
@@ -1441,7 +1440,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
       
 	int block_algo = GetAlgo(BlockReading->nVersion);
-	if (block_algo != algo) { /* Only consider blocks from same algo */
+	if (!onFork(BlockReading) || block_algo != algo) { /* Only consider blocks from same algo */
 	  if (i==1) LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
 	  BlockReading = BlockReading->pprev;
 	  continue;
@@ -2040,7 +2039,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
     
-    // Force the fork to happen exactly at nForkHeight
+    // Force min version after fork
     if (onFork(pindex) && block.nVersion<CBlock::CURRENT_VERSION) {
       LogPrintf("nVersion<=2 and after fork\n");
       return false;

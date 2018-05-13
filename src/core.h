@@ -733,9 +733,7 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-     if (fRead) LogPrintf("read blockheader\n");
         READWRITE(*(CBlockHeader*)this);
-     if (fRead) LogPrintf("r vtx\n");
         READWRITE(vtx);
     )
 

@@ -2718,7 +2718,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     // that can be verified before saving an orphan block.
 
   unsigned int block_size = ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-  LogPrintf("In checkblock with block size %d, %d\n",block_size,block.vtx.size());
+  //LogPrintf("In checkblock with block size %d, %d\n",block_size,block.vtx.size());
   
     // Size limits
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
@@ -2739,7 +2739,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 			     REJECT_INVALID, "bad-equihash-solution");      
 	  }
 
-	  LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
+	  //LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
 	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
 	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
 			 REJECT_INVALID, "high-hash");
@@ -2955,7 +2955,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (pblock->hashPrevBlock != 0 && !mapBlockIndex.count(pblock->hashPrevBlock))
     {
-        LogPrintf("ProcessBlock: ORPHAN BLOCK %lu, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
+      //LogPrintf("ProcessBlock: ORPHAN BLOCK %lu, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
 
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom) {

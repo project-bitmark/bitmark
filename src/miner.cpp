@@ -117,8 +117,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
     CBlockIndex* pindexPrev = chainActive.Tip();
     // To simulate v3 blocks occuring after nForkHeight
-    if (TestNet() && pindexPrev->nHeight < 300) pblock->nVersion = 3;
     miningAlgo = GetArg("-miningalgo", miningAlgo);
+    if (TestNet() && pindexPrev->nHeight < 300 && miningAlgo==0) pblock->nVersion = 3;
     LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
     if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
       LogPrintf("algo set to %d\n",miningAlgo);
@@ -579,7 +579,7 @@ void static BitmarkMiner(CWallet *pwallet)
         //
         int64_t nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-	LogPrintf("hashTarget: %s\n",hashTarget.GetHex().c_str());
+	LogPrintf("miner hashTarget: %s\n",hashTarget.GetHex().c_str());
 
         while (true)
         {
@@ -708,7 +708,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;
-	      LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
+	      //LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
 	    }
 	  
 	    if (thash <= hashTarget)
@@ -726,7 +726,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	    }
 	  }
 
-	  LogPrintf("Calc hash per sec\n");
+	  //LogPrintf("Calc hash per sec\n");
 	  
 	  // Meter hashes/sec
 	  static int64_t nHashCounter;

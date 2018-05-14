@@ -63,6 +63,7 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
 }
 
 double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
+  LogPrintf("get peakhashrate algo %d\n",algo);
   if (blockindex == NULL)
     {
       if (chainActive.Tip() == NULL)
@@ -107,7 +108,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	else {
 	  const CBlockIndex * blockindex_time = pprev_algo;
 	  while (blockindex_time && onFork(blockindex_time)) {
-	    blockindex_time = blockindex->pprev;
+	    blockindex_time = blockindex_time->pprev;
 	  }
 	  if (blockindex_time) time_i = blockindex_time->GetBlockTime();
 	}

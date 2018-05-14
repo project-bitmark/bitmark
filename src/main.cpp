@@ -1558,6 +1558,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int miningAlgo)
 {
+  if (RegTest()) return Params().ProofOfWorkLimit().GetCompact();
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
     // Mainnet
@@ -4991,8 +4992,12 @@ double get_ssf (CBlockIndex * pindex) {
     if (pprev_algo_time) {
       time_i = pprev_algo_time->GetBlockTime();
     }
-    else {
-      time_i = Params().GenesisBlock().nTime;
+    else { // get prefork block time
+      CBlockIndex * blockindex = pprev_algo;
+      while (blockindex && onFork(blockindex)) {
+	blockindex = blockindex->pprev;
+      }
+      if (blockindex) time_i = blockindex->GetBlockTime();
     }
     if (time_f>time_i) {
       time_f -= time_i;
@@ -5055,7 +5060,11 @@ double get_ssf_time (const CBlockIndex * pindex) {
       time_i = pprev_algo->GetBlockTime();
     }
     else {
-      time_i = Params().GenesisBlock().nTime;
+      const CBlockIndex * blockindex = pindex;
+      while (blockindex && onFork(blockindex)) {
+	blockindex = blockindex->pprev;
+      }
+      if (blockindex) time_i = blockindex->GetBlockTime();
     }
     if (update_ssf(pcur_algo->nVersion)) {
       if (time_f>time_i) {

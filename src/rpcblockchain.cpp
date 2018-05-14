@@ -85,9 +85,10 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	int time_f = pprev_algo->GetBlockTime();
 	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int time_i = 0;
-	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	
 	for (int j=0; j<nSSF-1; j++) {
+
+	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 
 	  if (pprev_algo) {
 	    time_i = pprev_algo->GetBlockTime();
@@ -97,15 +98,18 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	    break;
 	  }
 
-	  hashes_bn += pprev_algo->GetBlockWork();
-	  pprev_algo = get_pprev_algo(pprev_algo,-1);
-	  
+	  hashes_bn += pprev_algo->GetBlockWork();	  
 	}
-	if (pprev_algo) {
-	  time_i = pprev_algo->GetBlockTime();
+	CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
+	if (pprev_algo_time) {
+	  time_i = pprev_algo_time->GetBlockTime();
 	}
 	else {
-	  time_i = Params().GenesisBlock().nTime;
+	  const CBlockIndex * blockindex_time = pprev_algo;
+	  while (blockindex_time && onFork(blockindex_time)) {
+	    blockindex_time = blockindex->pprev;
+	  }
+	  if (blockindex_time) time_i = blockindex_time->GetBlockTime();
 	}
 	
 	if (time_f>time_i) {
@@ -128,6 +132,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 }
 
 double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used for the scaling factor calc
+  LogPrintf("GetCurrentHashrate algo %d\n",algo);
   if (blockindex == NULL)
     {
       if (chainActive.Tip() == NULL)
@@ -139,7 +144,10 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
   if (algo_tip != algo) {
     blockindex = get_pprev_algo(blockindex,algo);
   }
-  if (!blockindex) return 0.;
+  if (!blockindex) {
+    LogPrintf("!blockindex ret 0\n");
+    return 0.;
+  }
   do {
     if (update_ssf(blockindex->nVersion)) {
       const CBlockIndex * pcur_algo = get_pprev_algo(blockindex,-1);
@@ -147,23 +155,30 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       int time_f = pcur_algo->GetBlockTime();
       CBigNum hashes_bn = pcur_algo->GetBlockWork();
       int time_i = 0;
-      const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo,-1);
+      const CBlockIndex * pprev_algo = pcur_algo;
       for (int j=0; j<nSSF-1; j++) {
+	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	if (pprev_algo) {
 	  time_i = pprev_algo->GetBlockTime();
 	}
 	else {
+	  LogPrintf("!pprev_algo ret 0\n");
 	  return 0.;
 	}
 	hashes_bn += pprev_algo->GetBlockWork();
-	pprev_algo = get_pprev_algo(pprev_algo,-1);
       }
-      if (pprev_algo) {
-	time_i = pprev_algo->GetBlockTime();
+      CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
+      if (pprev_algo_time) {
+	time_i = pprev_algo_time->GetBlockTime();
       }
       else {
-	time_i = Params().GenesisBlock().nTime;
+	const CBlockIndex * blockindex_time = pprev_algo;
+	while (blockindex_time && onFork(blockindex_time)) {
+	  blockindex_time = blockindex_time->pprev;
+	}
+	if (blockindex_time) time_i = blockindex_time->GetBlockTime();
       }
+
       if (time_f>time_i) {
 	time_f -= time_i;
       }
@@ -175,6 +190,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
     }
     blockindex = get_pprev_algo(blockindex,-1);
   } while (blockindex);
+  LogPrintf("default ret 0\n");
   return 0.;
 }  
 

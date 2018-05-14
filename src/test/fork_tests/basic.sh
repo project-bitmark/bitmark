@@ -150,4 +150,4 @@ res=$(echo $ms5b'-'$ms5a | bc -l)
 ASSERT_LESSTHAN "$res" "15.0"
 ASSERT_GREATERTHAN "$res" "0.0"
 
-echo "TESTS PASSED"
+echo "BASIC TESTS PASSED"

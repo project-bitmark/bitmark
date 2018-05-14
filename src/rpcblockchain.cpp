@@ -63,7 +63,6 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
 }
 
 double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
-  LogPrintf("tst get peakhashrate algo %d\n",algo);
   if (blockindex == NULL)
     {
       if (chainActive.Tip() == NULL)
@@ -82,10 +81,8 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
       double hashes_peak = 0.;
       const CBlockIndex * pprev_algo = get_pprev_algo(blockindex,-1);
       for (int i=0; i<365; i++) {
-	LogPrintf("i=%d\n",i);
 	if (!pprev_algo) break;
 	int time_f = pprev_algo->GetBlockTime();
-	LogPrintf("add block work of block %lu\n",pprev_algo->nHeight);
 	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int time_i = 0;
 	
@@ -113,7 +110,6 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	    blockindex_time = blockindex_time->pprev;
 	  }
 	  if (blockindex_time) {
-	    LogPrintf("time_i from prefork height %lu\n",blockindex_time->nHeight);
 	    time_i = blockindex_time->GetBlockTime();
 	  }
 	}
@@ -123,7 +119,6 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	  time_f -= time_i;
 	}
 	else {
-	  LogPrintf("peakhashrate return inf\n");
 	  return std::numeric_limits<double>::max();
 	}
 	//LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
@@ -140,7 +135,6 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 }
 
 double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used for the scaling factor calc
-  LogPrintf("GetCurrentHashrate algo %d\n",algo);
   if (blockindex == NULL)
     {
       if (chainActive.Tip() == NULL)
@@ -153,7 +147,6 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
     blockindex = get_pprev_algo(blockindex,algo);
   }
   if (!blockindex) {
-    LogPrintf("!blockindex ret 0\n");
     return 0.;
   }
   do {
@@ -170,7 +163,6 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
 	  time_i = pprev_algo->GetBlockTime();
 	}
 	else {
-	  LogPrintf("!pprev_algo ret 0\n");
 	  return 0.;
 	}
 	hashes_bn += pprev_algo->GetBlockWork();
@@ -191,7 +183,6 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
 	time_f -= time_i;
       }
       else {
-	LogPrintf("curhashrate return inf\n");
 	return std::numeric_limits<double>::max();
       }
       //LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
@@ -199,7 +190,6 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
     }
     blockindex = get_pprev_algo(blockindex,-1);
   } while (blockindex);
-  LogPrintf("default ret 0\n");
   return 0.;
 }  
 
@@ -262,7 +252,6 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
 }
   
 int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
-  LogPrintf("GetNBlocksUpdateSSF alogo %d\n",algo);
   if (blockindex == NULL) {
     if (chainActive.Tip() == NULL)
       return 0.;
@@ -287,8 +276,6 @@ int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
 }
 
 double GetAverageBlockSpacing (const CBlockIndex * blockindex, const int algo, const int averagingInterval) {
-
-  LogPrintf("GetAverageBlockSpacing algo %d\n",algo);
   
   if (averagingInterval <= 1) return 0.;
 

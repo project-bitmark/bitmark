@@ -222,10 +222,8 @@ class CPureBlockHeader {
       }
     case ALGO_CRYPTONIGHT:
       {
-	LogPrintf("case algo_cryptonight\n");
 	uint256 thash;
 	if (vector_format) {
-	  LogPrintf("do vector format cryptonight\n");
 	  hash_cryptonight(BEGIN(vector_rep[0]),BEGIN(thash),vector_rep.size());
 	}
 	else {

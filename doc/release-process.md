@@ -3,7 +3,6 @@ Release Process
 
 ###update (commit) version in sources
 
-	contrib/verifysfbinaries/verify.sh
 	doc/README*
 	share/setup.nsi
 	src/clientversion.h (change CLIENT_VERSION_IS_RELEASE to true)

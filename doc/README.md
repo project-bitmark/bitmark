@@ -1,12 +1,12 @@
-Bitmark 0.9.4 BETA
+Bitmark 0.9.5 BETA
 =====================
 
-Copyright (c) 2009-2015 Bitmark Developers
+Copyright (c) 2009-2018 Bitmark Developers
 
 
 Setup
 ---------------------
-[Bitmark Core](http://bitmark.org/en/download) is the original Bitmark client and it builds the backbone of the network. However, it downloads and stores the entire history of Bitmark transactions (which is currently several GBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more. Thankfully you only have to do this once. If you would like the process to go faster you can [download the blockchain directly](bootstrap.md).
+[Bitmark Core](http://bitmark.io/en/download) is the original Bitmark client and it builds the backbone of the network. It downloads and stores the entire history of Bitmark transactions (as of December 2017, less than 1 GiB of data); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more. Thankfully you only have to do this once. If you would like the process to go faster you can [download the blockchain directly](bootstrap.md).
 
 Running
 ---------------------
@@ -37,7 +37,6 @@ Drag Bitmark-Qt to your applications folder, and then run Bitmark-Qt.
 
 * See the documentation at the [Bitmark Wiki](https://en.bitmark.it/wiki/Main_Page)
 for help and more information.
-* Ask for help on [#bitmark](http://webchat.freenode.net?channels=bitmark) on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net?channels=bitmark).
 * Ask for help on the [bitcointalk](https://bitcointalk.org/) forums, in the [Technical Support board](https://bitcointalk.org/index.php?board=4.0).
 
 Building

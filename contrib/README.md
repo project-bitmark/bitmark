@@ -55,6 +55,3 @@ Utilities to generate test vectors for the data-driven Bitmark tests.
 ### [Test Patches](/contrib/test-patches) ###
 These patches are applied when the automated pull-tester
 tests each pull and when master is tested using jenkins.
-
-### [Verify SF Binaries](/contrib/verifysfbinaries) ###
-This script attempts to download and verify the signature file SHA256SUMS.asc from SourceForge.

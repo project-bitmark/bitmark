@@ -1,4 +1,16 @@
 
+*** Note (May 15, 2018) ***
+Active devlopment for the upcoming Bitmark v0.9.7 fork is taking place in the 0.9.7 branch
+
+https://github.com/project-bitmark/bitmark/tree/0.9.7
+
+'git checkout 0.9.7'
+
+Once the 0.9.7 branch is stable, we will merge back into master branch.
+
+Thanks for your patience and support.
+
+---------------------------------------------------------------------------------------------------------------
 
 Project Bitmark is a multi faceted project which aims to provide:
 

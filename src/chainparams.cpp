@@ -20,15 +20,19 @@ using namespace boost::assign;
 //
 
 // Hard-Coded (Fixed) Network Nodes
-// Verified on November 12, 2017
-// (1510514312 Sun Nov 12 19:18:32 UTC 2017)
-unsigned int pnSeed[] = {0x8BA2805C, // eu.bitmark.io IP = 139.162.128.92
-			 0x5E89B1E3, // ge.bitmark.io IP = 94.137.177.227
-			 0x8BA27A8A, // jp.bitmark.io IP = 139.162.122.138
-			 0x2D2141A1, // us.bitmark.io IP = 45.33.65.161
-			 0xCC447A12, // tx.bitmark.io IP = 204.68.122.18
-			 0xCC447A07, // seed.bitmark.mx IP = 204.68.122.7
-			 0xCC447A0B  // one.zmark.org IP = 204.68.122.11
+unsigned int pnSeed[] =
+{
+//      0xac1f1f0a,             // *** inoperative: historical IP with IBM / SoftLayer  ***
+//      0x253b1359,             // *** inoperative: historical IP with IBM / SoftLayer  *** 
+//      0xAE240982,             // *** inoperative: historical IP with IBM / SoftLayer  ***
+	0xADFFFC8C,		// seed.bitmark.co	IP = 173.255.252.140	sam
+        0x8BA2805C,             // eu.bitmark.io        IP = 139.162.128.92     frank
+        0x5E89B1E3,             // ge.bitmark.io        IP = 94.137.177.227     anton
+        0x8BA27A8A,             // jp.bitmark.io        IP = 139.162.122.138    akio
+        0x2D2141A1,             // us.bitmark.io        IP = 45.33.65.161       joe
+        0xCC447A12,             // tx.bitmark.io        IP = 204.68.122.18      tex
+        0xCC447A07,             // seed.bitmark.mx      IP = 204.68.122.7       jules
+        0xCC447A0B              // one.zmark.org        IP = 204.68.122.11      per
 };
 
 class CMainParams : public CChainParams {
@@ -74,14 +78,22 @@ public:
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
-        // todo add more dns seeders
-        vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
+        // DNS Seeders - Verified, December 15, 2017 - dBKeys
+        vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));
+        vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));
+        vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));
+        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));
+        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));
+        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));
+        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
-	base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,213);
-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+        base58Prefixes[SECRET_KEY] =    std::vector<unsigned char>(1,213);
+        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
         // Convert the pnSeeds array into usable address objects.
         for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
@@ -163,12 +175,11 @@ public:
 	vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
         vSeeds.push_back(CDNSSeedData("bitmark.co", "explorer.bitmark.co"));
 
-	base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // b
-	base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,258);
-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
-
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // u
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
+        base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1,258);
+        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };

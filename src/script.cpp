@@ -1623,23 +1623,33 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
                   unsigned int flags, int nHashType)
 {
     vector<vector<unsigned char> > stack, stackCopy;
-    if (!EvalScript(stack, scriptSig, txTo, nIn, flags, nHashType))
+    if (!EvalScript(stack, scriptSig, txTo, nIn, flags, nHashType)) {
+      LogPrintf("verify script err 1\n");
         return false;
+    }
     if (flags & SCRIPT_VERIFY_P2SH)
         stackCopy = stack;
-    if (!EvalScript(stack, scriptPubKey, txTo, nIn, flags, nHashType))
+    if (!EvalScript(stack, scriptPubKey, txTo, nIn, flags, nHashType)) {
+      LogPrintf("verify script err 2\n");
         return false;
-    if (stack.empty())
-        return false;
+    }
+    if (stack.empty()) {
+      LogPrintf("verify script err 3\n");
+      return false;
+    }
 
-    if (CastToBool(stack.back()) == false)
+    if (CastToBool(stack.back()) == false) {
+      LogPrintf("verify script err 4\n");
         return false;
+    }
 
     // Additional validation for spend-to-script-hash transactions:
     if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash())
     {
-        if (!scriptSig.IsPushOnly()) // scriptSig must be literals-only
-            return false;            // or validation fails
+      if (!scriptSig.IsPushOnly()) {// scriptSig must be literals-only
+	LogPrintf("verify script err 5\n");
+	return false;
+      }// or validation fails
 
         // stackCopy cannot be empty here, because if it was the
         // P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
@@ -1650,10 +1660,14 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
         popstack(stackCopy);
 
-        if (!EvalScript(stackCopy, pubKey2, txTo, nIn, flags, nHashType))
+        if (!EvalScript(stackCopy, pubKey2, txTo, nIn, flags, nHashType)) {
+	  LogPrintf("verify script err 6\n");
             return false;
-        if (stackCopy.empty())
-            return false;
+	}
+        if (stackCopy.empty()) {
+	  LogPrintf("verify script err 7\n");
+	  return false;
+	}
         return CastToBool(stackCopy.back());
     }
 

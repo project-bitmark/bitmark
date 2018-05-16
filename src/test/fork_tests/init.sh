@@ -119,6 +119,10 @@ do
     $bitmarkcli setgenerate true 3 5
 done
 
+curpeakhr=$($bitmarkcli chaindynamics | grep 'peak hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}')
+curhr=$($bitmarkcli chaindynamics | grep 'current hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}') #p1
+echo "p1 curhr = $curhr curpeakhr = $curpeakhr"
+
 # height 1012
 
 for i in {1..30}

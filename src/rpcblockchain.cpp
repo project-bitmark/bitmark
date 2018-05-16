@@ -85,9 +85,10 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	int time_f = pprev_algo->GetBlockTime();
 	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int time_i = 0;
-	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	
 	for (int j=0; j<nSSF-1; j++) {
+	 
+	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 
 	  if (pprev_algo) {
 	    time_i = pprev_algo->GetBlockTime();
@@ -96,23 +97,29 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	    hashes_bn = CBigNum(0);
 	    break;
 	  }
-
-	  hashes_bn += pprev_algo->GetBlockWork();
-	  pprev_algo = get_pprev_algo(pprev_algo,-1);
-	  
+	  LogPrintf("j=%d add block work of block %lu\n",j,pprev_algo->nHeight);
+	  hashes_bn += pprev_algo->GetBlockWork();	  
 	}
-	if (pprev_algo) {
-	  time_i = pprev_algo->GetBlockTime();
+	CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
+	if (pprev_algo_time) {
+	  time_i = pprev_algo_time->GetBlockTime();
 	}
 	else {
-	  time_i = Params().GenesisBlock().nTime;
+	  const CBlockIndex * blockindex_time = pprev_algo;
+	  while (blockindex_time && onFork(blockindex_time)) {
+	    blockindex_time = blockindex_time->pprev;
+	  }
+	  if (blockindex_time) {
+	    time_i = blockindex_time->GetBlockTime();
+	  }
 	}
+	pprev_algo = pprev_algo_time;
 	
 	if (time_f>time_i) {
 	  time_f -= time_i;
 	}
 	else {
-	  return 1./0.;
+	  return std::numeric_limits<double>::max();
 	}
 	//LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
 	double hashes = ((double)hashes_bn.getulong())/((double)time_f);
@@ -139,7 +146,9 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
   if (algo_tip != algo) {
     blockindex = get_pprev_algo(blockindex,algo);
   }
-  if (!blockindex) return 0.;
+  if (!blockindex) {
+    return 0.;
+  }
   do {
     if (update_ssf(blockindex->nVersion)) {
       const CBlockIndex * pcur_algo = get_pprev_algo(blockindex,-1);
@@ -147,8 +156,9 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       int time_f = pcur_algo->GetBlockTime();
       CBigNum hashes_bn = pcur_algo->GetBlockWork();
       int time_i = 0;
-      const CBlockIndex * pprev_algo = get_pprev_algo(pcur_algo,-1);
+      const CBlockIndex * pprev_algo = pcur_algo;
       for (int j=0; j<nSSF-1; j++) {
+	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	if (pprev_algo) {
 	  time_i = pprev_algo->GetBlockTime();
 	}
@@ -156,19 +166,24 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
 	  return 0.;
 	}
 	hashes_bn += pprev_algo->GetBlockWork();
-	pprev_algo = get_pprev_algo(pprev_algo,-1);
       }
-      if (pprev_algo) {
-	time_i = pprev_algo->GetBlockTime();
+      CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
+      if (pprev_algo_time) {
+	time_i = pprev_algo_time->GetBlockTime();
       }
       else {
-	time_i = Params().GenesisBlock().nTime;
+	const CBlockIndex * blockindex_time = pprev_algo;
+	while (blockindex_time && onFork(blockindex_time)) {
+	  blockindex_time = blockindex_time->pprev;
+	}
+	if (blockindex_time) time_i = blockindex_time->GetBlockTime();
       }
+
       if (time_f>time_i) {
 	time_f -= time_i;
       }
       else {
-	return 1./0.;
+	return std::numeric_limits<double>::max();
       }
       //LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
       return ((double)hashes_bn.getulong())/((double)time_f);

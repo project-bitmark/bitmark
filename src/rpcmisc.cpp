@@ -567,8 +567,11 @@ Value chaindynamics(const Array& params, bool fHelp)
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
+    LogPrintf("do chain dynamics\n");
+    
     Object obj;
-        obj.push_back(Pair("difficulty SCRYPT",    (double)GetDifficulty(NULL,ALGO_SCRYPT)));
+    obj.push_back(Pair("difficulty SCRYPT",    (double)GetDifficulty(NULL,ALGO_SCRYPT)));
+    LogPrintf("got diff scrypt\n");
     obj.push_back(Pair("difficulty SHA256D",    (double)GetDifficulty(NULL,ALGO_SHA256D)));
     obj.push_back(Pair("difficulty YESCRYPT",    (double)GetDifficulty(NULL,ALGO_YESCRYPT)));
     obj.push_back(Pair("difficulty ARGON2",    (double)GetDifficulty(NULL,ALGO_ARGON2)));
@@ -576,7 +579,7 @@ Value chaindynamics(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2)));
     obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH)));
     obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT)));
-    obj.push_back(Pair("peak hashrate SCRYPT",    (double)GetPeakHashrate(NULL,ALGO_SCRYPT)));    
+    obj.push_back(Pair("peak hashrate SCRYPT",    (double)GetPeakHashrate(NULL,ALGO_SCRYPT)));
     obj.push_back(Pair("peak hashrate SHA256D",    (double)GetPeakHashrate(NULL,ALGO_SHA256D)));
     obj.push_back(Pair("peak hashrate YESCRYPT",    (double)GetPeakHashrate(NULL,ALGO_YESCRYPT)));
     obj.push_back(Pair("peak hashrate ARGON2",    (double)GetPeakHashrate(NULL,ALGO_ARGON2)));

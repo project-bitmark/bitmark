@@ -41,7 +41,7 @@ All Bitmark software releases are published through the github release process, 
 
 ## mPOW Hard Fork (branch 0.9.7)
 
-We are now in the testing phase of the hard fork that allows for multiple proof-of-work algorithms (SHA256D, SCRYPT, ARGON2, LYRA2R2, X17). Each algorithm has its difficulty adjusted independently, with a target spacing of 10 min (so 2 min as before if we consider blocks mined by any algorithm). The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/5 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 144 blocks).
+We are now in the testing phase of the hard fork that allows for multiple proof-of-work algorithms (SHA256D, SCRYPT, ARGON2, LYRA2REv2, X17, EQUIHASH, CRYPTONIGHT). Each algorithm has its difficulty adjusted independently, with a target spacing of 10 min (so 2 min as before if we consider blocks mined by any algorithm). The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 720/8=90 blocks).
 
 To test, you can download the current version from this branch, and put the following settings in your bitmark.conf
 
@@ -55,15 +55,17 @@ You can mine all algorithms using our fork of cpuminer-multi (https://github.com
 
 `cpuminer -a <algo> -o http://localhost:19266 -u bitmarkrpc -p YoUrPaSsWoRd`
 
-`<algo>` is `sha256d`, `scrypt`, `ar2`, `x17`, or `lyra2REv2`
+`<algo>` is `sha256d`, `scrypt`, `ar2`, `x17`, `lyra2REV2`, `equihash`, or `cryptonight`.
 
-Note: The `miningAlgo` variable in src/rpcmining.cpp (choose one from `ALGO_SHA256D` (1), `ALGO_SCRYPT` (2), `ALGO_ARGON2` (3), `ALGO_X17` (4), `ALGO_LYRA2REv2` (5).
-
+Note: The `miningAlgo` variable in src/rpcmining.cpp (choose one from `ALGO_SCRYPT` (0), `ALGO_SHA256D` (1), `ALGO_YESCRYPT` (2), `ALGO_ARGON2` (3), `ALGO_X17` (4), `ALGO_LYRA2REv2` (5), `ALGO_EQUIHASH` (6), `ALGO_CRYPTONIGHT` (7).
+      
 You can also control the mining algo via the rpcommand `bitmark-cli setminingalgo <algo number>`.
 
 You can also use the bitmark-cli command to mine. The last parameter is the algorithm number as defined in core.h. For example, to mine argon2,
 
 `bitmark-cli setgenerate true <ncores> 3`
+
+For equihash, it is recommended to use the built in miner as the cpuminer is slow at the moment.
 
 There are currently 3 types of tests implemented.
 
@@ -75,4 +77,4 @@ There are currently 3 types of tests implemented.
 
 ## Merge Mining
 
-Also part of the hard fork is merge mining, a way to increase the hashpower security of the chain by allowing the mining of the chain simultaneously with another chain. All 5 algorithms are supported.
+Also part of the hard fork is merge mining, a way to increase the hashpower security of the chain by allowing the mining of the chain simultaneously with another chain. All 8 algorithms are supported.

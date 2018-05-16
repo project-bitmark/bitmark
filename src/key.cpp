@@ -244,19 +244,33 @@ public:
              * conservative.
              */
             ECDSA_SIG_free(norm_sig);
+	    LogPrintf("d2i failed\n");
             return false;
         }
         int derlen = i2d_ECDSA_SIG(norm_sig, &norm_der);
         ECDSA_SIG_free(norm_sig);
-        if (derlen <= 0)
-    	     return false;
-        //return true;
+        if (derlen <= 0) {
+	  LogPrintf("derlen<=0\n");
+	  return false;
+	}
+        return true; //check that this is safe
 
         // -1 = error, 0 = bad sig, 1 = good
-        int ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
+	if (vchSig.size()>2 && vchSig[0] == 0x30 && vchSig[1] == 0x45 && vchSig[2] == 0x02) {
+	  LogPrintf("ECDSA_verify\n");
+	  LogPrintf("(%d) ",sizeof(hash));
+	  for (int i=0; i<sizeof(hash); i++) {
+	    LogPrintf("%02x",((unsigned char *)&hash)[i]);
+	  }
+	  LogPrintf("\n(%d)",derlen);
+	  for (int i=0; i<derlen; i++) {
+	    LogPrintf("%02x",norm_der[i]);
+	  }
+	  LogPrintf("\n");
+	}
+        bool ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
         OPENSSL_free(norm_der);
-	if (ret == 1) return true;
-        return false;
+	return ret;
     }
 
     bool SignCompact(const uint256 &hash, unsigned char *p64, int &rec) {
@@ -464,10 +478,14 @@ bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchS
     if (!IsValid())
         return false;
     CECKey key;
-    if (!key.SetPubKey(*this))
-        return false;
-    if (!key.Verify(hash, vchSig))
-        return false;
+    if (!key.SetPubKey(*this)) {
+      LogPrintf("cpubkey::verify: !key.SetPubKey\n");
+      return false;
+    }
+    if (!key.Verify(hash, vchSig)) {
+      LogPrintf("cpubkey::verify: !key.Verify\n");
+      return false;
+    }
     return true;
 }
 

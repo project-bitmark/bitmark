@@ -882,6 +882,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
 
                     bool fSuccess = IsCanonicalSignature(vchSig, flags) && IsCanonicalPubKey(vchPubKey, flags) &&
                         CheckSig(vchSig, vchPubKey, scriptCode, txTo, nIn, nHashType, flags);
+		    if (!fSuccess) LogPrintf("bad sig 1\n");
 
                     popstack(stack);
                     popstack(stack);
@@ -943,6 +944,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         // Check signature
                         bool fOk = IsCanonicalSignature(vchSig, flags) && IsCanonicalPubKey(vchPubKey, flags) &&
                             CheckSig(vchSig, vchPubKey, scriptCode, txTo, nIn, nHashType, flags);
+			if (!fOk) LogPrintf("bad sig 2\n");
 
                         if (fOk) {
                             isig++;
@@ -1180,25 +1182,38 @@ bool CheckSig(vector<unsigned char> vchSig, const vector<unsigned char> &vchPubK
     static CSignatureCache signatureCache;
 
     CPubKey pubkey(vchPubKey);
-    if (!pubkey.IsValid())
-        return false;
+    if (!pubkey.IsValid()) {
+      LogPrintf("checksig: pubkey not valid\n");
+      return false;
+    }
 
     // Hash type is one byte tacked on to the end of the signature
-    if (vchSig.empty())
-        return false;
-    if (nHashType == 0)
+    if (vchSig.empty()) {
+      LogPrintf("checksig: sig empty\n");
+      return false;
+    }
+    if (nHashType == 0) {
         nHashType = vchSig.back();
-    else if (nHashType != vchSig.back())
-        return false;
+    }
+    else if (nHashType != vchSig.back()) {
+      LogPrintf("checksig nHashType != vchSig.back()\n");
+      return false;
+    }
     vchSig.pop_back();
 
     uint256 sighash = SignatureHash(scriptCode, txTo, nIn, nHashType);
 
     if (signatureCache.Get(sighash, vchSig, pubkey))
-        return true;
+      return true;
 
-    if (!pubkey.Verify(sighash, vchSig))
-        return false;
+    if (!pubkey.Verify(sighash, vchSig)) {
+      LogPrintf("checksig !pubkey.Verify, sig is\n");
+      for (int i=0; i<vchSig.size(); i++) {
+	LogPrintf("%02x",vchSig[i]);
+      }
+      LogPrintf("\n");
+      return false;
+    }
 
     if (!(flags & SCRIPT_VERIFY_NOCACHE))
         signatureCache.Set(sighash, vchSig, pubkey);
@@ -1763,6 +1778,9 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
                 sigs[pubkey] = sig;
                 break;
             }
+	    else {
+	      LogPrintf("bad sig 3\n");
+	    }
         }
     }
     // Now build a merged CScript:

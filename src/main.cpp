@@ -2151,10 +2151,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     //
     // However the block.nVersion=3 rule is not enforced until 750 of the last
     // 1,000 blocks are version 3 or greater (51/100 if testnet):
-    if (onFork(pindex))
-    {
-        flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
-    }
+    if (block.nVersion >= 3 &&
+	CBlockIndex::IsSuperMajority(3, pindex->pprev, 750, 1000))
+      {
+	flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
+      }
 
     CBlockUndo blockundo;
 
@@ -2328,7 +2329,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
 
     // Update best block in wallet (so we can detect restored wallets)
     bool fIsInitialDownload = IsInitialBlockDownload();
-    if ((chainActive.Height() % 20160) == 0 || (!fIsInitialDownload && (chainActive.Height() % nSSF) == 0))
+    if ((chainActive.Height() % 20160) == 0 || (!fIsInitialDownload && (chainActive.Height() % 144) == 0))
         g_signals.SetBestChain(chainActive.GetLocator());
 
     // New best block
@@ -2883,10 +2884,13 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 
         // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
 
-        if (block.nVersion < 3 && pindexPrev->nHeight >= nForkHeight-1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
-	  return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
-			       REJECT_OBSOLETE, "bad-version");
-	}
+	if (block.nVersion < 3 &&
+	    CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
+	  {
+	    return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
+				 REJECT_OBSOLETE, "bad-version");
+	  }
+	
     }
 
     // Write block to history file

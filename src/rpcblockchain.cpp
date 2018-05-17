@@ -206,7 +206,10 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
     return 20.;
   }
   if (algo>=0) {
-    int algo_tip = GetAlgo(blockindex->nVersion);
+    int algo_tip = -1;
+    if (onFork(blockindex)) {
+      algo_tip = GetAlgo(blockindex->nVersion);
+    }
     if (algo_tip != algo) {
       blockindex = get_pprev_algo(blockindex,algo);
     }

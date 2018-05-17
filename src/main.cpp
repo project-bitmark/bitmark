@@ -2119,7 +2119,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // (its coinbase is unspendable)
     if (block.GetHash() == Params().HashGenesisBlock()) {
       //pindex->nMoneySupply = block.vtx[0].GetValueOut();
-      pindex->nMoneySupply = 0;
+      pindex->nMoneySupply = 2000000000;
       view.SetBestBlock(pindex->GetBlockHash());
       return true;
     }
@@ -2265,7 +2265,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }
       else {
-	pindex->nMoneySupply = 0;
+	pindex->nMoneySupply = 2000000000;
       }
     }
     LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
@@ -4947,7 +4947,7 @@ int64_t get_mpow_ms_correction (CBlockIndex * p) {
   while (pprev) {
     if (!onFork(pprev)) {
       if (pprev->nHeight == 0) {
-	return 0;
+	return 2000000000/NUM_ALGOS;
       }
       return pprev->nMoneySupply/NUM_ALGOS;
     }

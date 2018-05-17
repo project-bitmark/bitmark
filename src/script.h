@@ -202,6 +202,8 @@ enum
     SCRIPT_VERIFY_EVEN_S    = (1U << 2), // enforce even S values in signatures (depends on STRICTENC)
     SCRIPT_VERIFY_NOCACHE   = (1U << 3), // do not store results in signature cache (but do query it)
     SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY = (1U << 5), // support CHECKLOCKTIMEVERIFY opcode
+    SCRIPT_VERIFY_DERSIG = (1U << 6), // Require DER format for signatures
+    SCRIPT_VERIFY_LOW_S = (1u << 7), // further requirement on DER signatures
 };
 
 enum txnouttype

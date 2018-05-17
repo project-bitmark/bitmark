@@ -1900,6 +1900,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
         // before the last block chain checkpoint. This is safe because block merkle hashes are
         // still computed and checked, and any change will be caught at the next checkpoint.
         if (fScriptChecks) {
+	  LogPrintf("fScriptChecks true\n");
             for (unsigned int i = 0; i < tx.vin.size(); i++) {
                 const COutPoint &prevout = tx.vin[i].prevout;
                 const CCoins &coins = inputs.GetCoins(prevout.hash);
@@ -2118,9 +2119,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // (its coinbase is unspendable)
     if (block.GetHash() == Params().HashGenesisBlock()) {
       //pindex->nMoneySupply = block.vtx[0].GetValueOut();
-      pindex->nMoneySupply = 2000000000;
-        view.SetBestBlock(pindex->GetBlockHash());
-        return true;
+      pindex->nMoneySupply = 0;
+      view.SetBestBlock(pindex->GetBlockHash());
+      return true;
     }
 
     bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
@@ -2156,6 +2157,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       {
 	flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
       }
+
+    if (onFork(pindex)) {
+      flags |= SCRIPT_VERIFY_DERSIG;
+    }
 
     CBlockUndo blockundo;
 
@@ -2260,7 +2265,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	pindex->nMoneySupply = pindex->pprev->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }
       else {
-	pindex->nMoneySupply = 2000000000;
+	pindex->nMoneySupply = 0;
       }
     }
     LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
@@ -4942,7 +4947,7 @@ int64_t get_mpow_ms_correction (CBlockIndex * p) {
   while (pprev) {
     if (!onFork(pprev)) {
       if (pprev->nHeight == 0) {
-	return 2000000000/NUM_ALGOS;
+	return 0;
       }
       return pprev->nMoneySupply/NUM_ALGOS;
     }

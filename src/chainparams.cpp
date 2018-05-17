@@ -38,7 +38,6 @@ unsigned int pnSeed[] =
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
-      LogPrintf("mainnet params\n");
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
@@ -245,7 +244,6 @@ const CChainParams &Params() {
 void SelectParams(CChainParams::Network network) {
     switch (network) {
         case CChainParams::MAIN:
-	  LogPrintf("network is mainnet\n");
 	  pCurrentParams = &mainParams;
 	  break;
         case CChainParams::TESTNET:

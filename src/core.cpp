@@ -679,10 +679,10 @@ unsigned int GetAlgoWeight (const int algo) {
       weight = 350;
       break;
     case ALGO_EQUIHASH:
-      weight = 6500000;
+      weight = 1000000;
       break;
     case ALGO_CRYPTONIGHT:
-      weight = 850000;
+      weight = 1000000;
       break;
     case ALGO_YESCRYPT:
       weight = 100000;

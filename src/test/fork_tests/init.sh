@@ -46,8 +46,8 @@ do
     $bitmarkcli setgenerate true 1 0
 done
 
-# pre fork money supply: 150*20+50*15=3750
-# so base ms for each algo is 468.75
+# pre fork money supply: 149*20+50*15=3730
+# so base ms for each algo is 468.75 466.25
 
 # make 1 the algo for the first block using fork rules
 $bitmarkcli setgenerate true 1 1

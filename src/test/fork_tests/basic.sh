@@ -16,14 +16,14 @@ ms5=$($bitmarkcli getmoneysupply 5 880 | grep '"money supply' | awk '{ print $4 
 ms6=$($bitmarkcli getmoneysupply 6 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 ms7=$($bitmarkcli getmoneysupply 7 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 
-ASSERT_EQUALS $ms0 1668.75000000
-ASSERT_EQUALS $ms1 1683.75000000
-ASSERT_EQUALS $ms2 1818.75000000
-ASSERT_EQUALS $ms3 1668.75000000
-ASSERT_EQUALS $ms4 1968.75000000
-ASSERT_EQUALS $ms5 1668.75000000
-ASSERT_EQUALS $ms6 1818.75000000
-ASSERT_EQUALS $ms7 1668.75000000
+ASSERT_EQUALS $ms0 1666.25000000
+ASSERT_EQUALS $ms1 1681.25000000
+ASSERT_EQUALS $ms2 1816.25000000
+ASSERT_EQUALS $ms3 1666.25000000
+ASSERT_EQUALS $ms4 1966.25000000
+ASSERT_EQUALS $ms5 1666.25000000
+ASSERT_EQUALS $ms6 1816.25000000
+ASSERT_EQUALS $ms7 1666.25000000
 
 prevblockhash="$($bitmarkcli getblockhash 880)"
 prevblockalgo=$($bitmarkcli getblock $prevblockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')

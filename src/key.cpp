@@ -228,8 +228,8 @@ public:
     }
 
     bool Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) {
-    	if (vchSig.empty())
-            return false;
+      if (vchSig.empty())
+	return false;
         // New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
         unsigned char *norm_der = NULL;
         ECDSA_SIG *norm_sig = ECDSA_SIG_new();
@@ -253,10 +253,10 @@ public:
 	  LogPrintf("derlen<=0\n");
 	  return false;
 	}
-        return true; //check that this is safe
+        //return true; //check that this is safe
 
         // -1 = error, 0 = bad sig, 1 = good
-	if (vchSig.size()>2 && vchSig[0] == 0x30 && vchSig[1] == 0x45 && vchSig[2] == 0x02) {
+	/*if (vchSig.size()>2 && vchSig[0] == 0x30 && vchSig[1] == 0x45 && vchSig[2] == 0x02) {
 	  LogPrintf("ECDSA_verify\n");
 	  LogPrintf("(%d) ",sizeof(hash));
 	  for (int i=0; i<sizeof(hash); i++) {
@@ -267,7 +267,7 @@ public:
 	    LogPrintf("%02x",norm_der[i]);
 	  }
 	  LogPrintf("\n");
-	}
+	  }*/
         bool ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
         OPENSSL_free(norm_der);
 	return ret;

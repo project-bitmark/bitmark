@@ -605,7 +605,7 @@ public:
         MarkDirty();
     }
 
-    int64_t CWalletTx::GetDebit(const isminefilter& filter) const
+    int64_t GetDebit(const isminefilter& filter) const
     {
         if (vin.empty())
             return 0;
@@ -746,13 +746,13 @@ public:
         return nChangeCached;
     }
 
-    void CWalletTx::GetAmounts(std::list<std::pair<CTxDestination, int64_t> >& listReceived,
+    void GetAmounts(std::list<std::pair<CTxDestination, int64_t> >& listReceived,
                     std::list<std::pair<CTxDestination, int64_t> >& listSent, int64_t& nFee, std::string& strSentAccount, const isminefilter& filter) const;
 
-    void CWalletTx::GetAccountAmounts(const std::string& strAccount, int64_t& nReceived,
+    void GetAccountAmounts(const std::string& strAccount, int64_t& nReceived,
                            int64_t& nSent, int64_t& nFee, const isminefilter& filter) const;
 
-    bool CWalletTx::IsFromMe(const isminefilter& filter) const
+    bool IsFromMe(const isminefilter& filter) const
     {
         return (GetDebit(filter) > 0);
     }

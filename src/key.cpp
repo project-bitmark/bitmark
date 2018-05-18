@@ -230,7 +230,7 @@ public:
     bool Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) {
       //if (ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), &vchSig[0], vchSig.size(), pkey) != 1)
       //return false;
-      return true;
+      //return true;
       if (vchSig.empty())
 	return false;
         // New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.

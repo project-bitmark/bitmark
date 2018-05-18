@@ -261,8 +261,11 @@ int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
     else
       blockindex = chainActive.Tip();
   }
-  int algo_tip = GetAlgo(blockindex->nVersion);
-  if (algo_tip != algo) {
+  int algo_tip = -1;
+  if (onFork(blockindex)) {
+    algo_tip = GetAlgo(blockindex->nVersion);
+  }
+  if (algo>=0 && algo_tip != algo) {
     blockindex = get_pprev_algo(blockindex,algo);
   }
   if (!blockindex) return 0.;
@@ -296,7 +299,10 @@ double GetAverageBlockSpacing (const CBlockIndex * blockindex, const int algo, c
   
   for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
     if (CountBlocks >= averagingInterval) { break; }
-    int block_algo = GetAlgo(BlockReading->nVersion);
+    int block_algo = -1;
+    if (onFork(BlockReading)) {
+      block_algo = GetAlgo(BlockReading->nVersion);
+    }
     if (algo >=0 && block_algo != algo) {
       BlockReading = BlockReading->pprev;
       continue;

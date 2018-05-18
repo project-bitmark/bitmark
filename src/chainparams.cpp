@@ -50,7 +50,7 @@ public:
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
         nSubsidyHalvingInterval = 788000;
-	fStrictChainId = false;
+	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
 	nEquihashN = 200;
 	nEquihashK = 9;
@@ -144,7 +144,7 @@ public:
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
         strDataDir = "testnet4";
-	fStrictChainId = false;
+	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
 	nEquihashN = 200;
 	nEquihashK = 9;
@@ -218,7 +218,7 @@ public:
 	genesis.nNonce = 3;
         nDefaultPort = 18444;
         strDataDir = "regtest";
-	fStrictChainId = false;
+	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
 	nEquihashN = 200;
 	nEquihashK = 9;

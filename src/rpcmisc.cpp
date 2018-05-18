@@ -129,8 +129,8 @@ public:
             obj.push_back(Pair("script", GetTxnOutputType(whichType)));
             obj.push_back(Pair("hex", HexStr(subscript.begin(), subscript.end())));
             Array a;
-            BOOST_FOREACH(const CTxDestination& addr, addresses)
-                a.push_back(CTxDestination(addr).ToString());
+            // BOOST_FOREACH(const CTxDestination& addr, addresses)
+            //     a.push_back(CTxDestination(addr).ToString());
             obj.push_back(Pair("addresses", a));
             if (whichType == TX_MULTISIG)
                 obj.push_back(Pair("sigsrequired", nRequired));

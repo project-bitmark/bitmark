@@ -605,7 +605,7 @@ public:
         MarkDirty();
     }
 
-    int64_t GetDebit() const
+    int64_t GetDebit(const isminefilter& filter) const
     {
         if (vin.empty())
             return 0;

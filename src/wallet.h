@@ -394,7 +394,7 @@ public:
     int GetVersion() { LOCK(cs_wallet); return nWalletVersion; }
 
     // Get wallet transactions that conflict with given transaction (spend same outputs)
-    std::set<uint256> GetConflicts(const uint256& txid) const;
+    std::set<uint256> GetConflicts(const uint256& txid, bool includeEquivalent) const;
 
     /** Address book entry changed.
      * @note called with lock cs_wallet held.
@@ -798,7 +798,7 @@ public:
 
     void RelayWalletTransaction();
 
-    std::set<uint256> GetConflicts() const;
+    std::set<uint256> GetConflicts(bool includeEquivalent=true) const;
 };
 
 

@@ -611,7 +611,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
                 NotifyTransactionChanged(this, conflictHash, CT_UPDATED); //Updates UI table
                 if (IsFromMe(txConflict) || IsMine(txConflict))
                 {
-                    NotifyTransactionChanged(this, conflictHash, CT_GOT_CONFLICT);  //Throws dialog
+                    // NotifyTransactionChanged(this, conflictHash, CT_GOT_CONFLICT);  //Throws dialog
                     // external respend notify
                     std::string strCmd = GetArg("-respendnotify", "");
                     if (!strCmd.empty())

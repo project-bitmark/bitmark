@@ -271,7 +271,7 @@ bool CWallet::SetMaxVersion(int nVersion)
     return true;
 }
 
-set<uint256> CWallet::GetConflicts(const uint256& txid) const
+set<uint256> CWallet::GetConflicts(const uint256& txid, bool includeEquivalent) const
 {
     set<uint256> result;
     AssertLockHeld(cs_wallet);
@@ -961,7 +961,7 @@ void CWalletTx::RelayWalletTransaction()
     }
 }
 
-set<uint256> CWalletTx::GetConflicts() const
+set<uint256> CWalletTx::GetConflicts(bool includeEquivalent) const
 {
     set<uint256> result;
     if (pwallet != NULL)

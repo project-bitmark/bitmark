@@ -1900,6 +1900,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
         // before the last block chain checkpoint. This is safe because block merkle hashes are
         // still computed and checked, and any change will be caught at the next checkpoint.
         if (fScriptChecks) {
+	  LogPrintf("fScriptChecks true\n");
             for (unsigned int i = 0; i < tx.vin.size(); i++) {
                 const COutPoint &prevout = tx.vin[i].prevout;
                 const CCoins &coins = inputs.GetCoins(prevout.hash);
@@ -2119,8 +2120,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (block.GetHash() == Params().HashGenesisBlock()) {
       //pindex->nMoneySupply = block.vtx[0].GetValueOut();
       pindex->nMoneySupply = 2000000000;
-        view.SetBestBlock(pindex->GetBlockHash());
-        return true;
+      view.SetBestBlock(pindex->GetBlockHash());
+      return true;
     }
 
     bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
@@ -2156,6 +2157,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       {
 	flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
       }
+
+    if (onFork(pindex)) {
+      flags |= SCRIPT_VERIFY_DERSIG;
+    }
 
     CBlockUndo blockundo;
 

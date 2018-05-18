@@ -171,6 +171,12 @@ class CPureBlockHeader {
   int32_t GetChainId() const
   {
     //return nVersion & BLOCK_VERSION_CHAIN;
+    if (vector_format) {
+      if (vector_rep.size()<4) return 0;
+      for (int i=0; i<4; i++) {
+	((unsigned char *)nVersion)[i] = vector_rep[4-i];
+      }
+    }
     return nVersion >> 16;
   }
 
@@ -195,6 +201,10 @@ class CPureBlockHeader {
       return GetHash();
     case ALGO_SCRYPT:
       {
+	//special for testing
+	if (nTime > 1526581740 && nBits == 453187307) {
+	  LogPrintf("do special powhash\n");
+	}
 	uint256 thash;
 	hash_scrypt(BEGIN(nVersion),BEGIN(thash));
 	return thash;

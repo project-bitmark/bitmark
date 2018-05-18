@@ -376,7 +376,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
         return error("AuxPow is not a generate");
   }
 
-  if (params.StrictChainId() && !parentBlock.vector_format && parentBlock.GetChainId() == nChainId) {
+  if (params.StrictChainId() && parentBlock.GetChainId() == nChainId) {
     LogPrintf("check auxpow err 2\n");
     return error("Aux POW parent has our chain ID");
   }
@@ -461,44 +461,46 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     // Check that the same work is not submitted twice to our chain.
     //
 
-    /*
+
     LogPrintf("search pcHead\n");
     std::vector<unsigned char>::iterator pcHead =
-    std::search(script.begin(), script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader));*/
+    std::search(script.begin(), script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader));
       
     LogPrintf("script:\n");
     for (unsigned int i=0;i<script.size();i++) {
       LogPrintf("%02x",script[i]);
     }
     LogPrintf("\n");
-    std::vector<unsigned char>::iterator pc =
-      std::search(script.begin(), script.end(), vchRootHash.begin(), vchRootHash.end());
+    
+    std::vector<unsigned char>::iterator pc = std::search(script.begin(), script.end(), vchRootHash.begin(), vchRootHash.end());
+
+    if (pc == script.end()) {
+      return error("Aux hash not in parent coinbase");
+    }
 
     //LogPrintf("check if multiple headers in coinbase\n");
        
-    if (pc != script.end()) {
+    if (pcHead != script.end()) {
       // Enforce only one chain merkle root by checking that a single instance of the merged
       // mining header exists just before.
-      /*
+
       if (script.end() != std::search(pcHead + 1, script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader))) {
 	return error("Multiple merged mining headers in coinbase");
 	LogPrintf("check auxpow err 6\n");
-	}*/
-      /*
+      }
+
       if (pcHead + sizeof(pchMergedMiningHeader) != pc) {
 	LogPrintf("check auxpow err 7\n");
 	return error("Merged mining header is not just before chain merkle root");
-	}*/
+      }
     } else {
-      return error("Aux hash not in parent coinbase");
       // For backward compatibility.
       // Enforce only one chain merkle root by checking that it starts early in the coinbase.
       // 8-12 bytes are enough to encode extraNonce and nBits.
-      /*
-      if (pc - script.begin() > 256) {
+      if (pc - script.begin() > 2) {
 	LogPrintf("check auxpow err 8\n");
 	return error("Aux POW chain merkle root must start in the first 20 bytes of the parent coinbase");
-	}*/
+      }
     }
 
     LogPrintf("check deterministic point\n");
@@ -598,7 +600,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
     LogPrintf("chain id : %d\n",block.GetChainId());
   }
 
-  if (block.nVersion > 2 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
+  if (block.nVersion > 3 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
     LogPrintf("auxpow err 1\n");
     return error("%s : block does not have our chain ID"
 		 " (got %d, expected %d, full nVersion %d)",
@@ -679,10 +681,10 @@ unsigned int GetAlgoWeight (const int algo) {
       weight = 350;
       break;
     case ALGO_EQUIHASH:
-      weight = 6500000;
+      weight = 1000000;
       break;
     case ALGO_CRYPTONIGHT:
-      weight = 850000;
+      weight = 1000000;
       break;
     case ALGO_YESCRYPT:
       weight = 100000;

@@ -38,7 +38,6 @@ unsigned int pnSeed[] =
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
-      LogPrintf("mainnet params\n");
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
@@ -51,7 +50,7 @@ public:
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
         nSubsidyHalvingInterval = 788000;
-	fStrictChainId = false;
+	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
 	nEquihashN = 200;
 	nEquihashK = 9;
@@ -145,7 +144,7 @@ public:
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
         strDataDir = "testnet4";
-	fStrictChainId = false;
+	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
 	nEquihashN = 200;
 	nEquihashK = 9;
@@ -219,7 +218,7 @@ public:
 	genesis.nNonce = 3;
         nDefaultPort = 18444;
         strDataDir = "regtest";
-	fStrictChainId = false;
+	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
 	nEquihashN = 200;
 	nEquihashK = 9;
@@ -245,7 +244,6 @@ const CChainParams &Params() {
 void SelectParams(CChainParams::Network network) {
     switch (network) {
         case CChainParams::MAIN:
-	  LogPrintf("network is mainnet\n");
 	  pCurrentParams = &mainParams;
 	  break;
         case CChainParams::TESTNET:

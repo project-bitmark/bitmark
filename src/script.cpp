@@ -1513,7 +1513,7 @@ isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
         break;
     case TX_SCRIPTHASH:
     {
-        CScriptID scriptId = CScriptID(uint160(vSolutions[0]));
+        CScriptID scriptID = CScriptID(uint160(vSolutions[0]));
         CScript subscript;
         if (keystore.GetCScript(scriptID, subscript)) {
             isminetype ret = IsMine(keystore, subscript);

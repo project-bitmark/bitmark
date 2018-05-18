@@ -143,7 +143,7 @@ Value importaddress(const Array& params, bool fHelp)
 
     CScript script;
 
-    CBitcoinAddress address(params[0].get_str());
+    CBitmarkAddress address(params[0].get_str());
     if (address.IsValid()) {
         script.SetDestination(address.Get());
     } else if (IsHex(params[0].get_str())) {

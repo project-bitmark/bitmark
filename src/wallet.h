@@ -315,6 +315,13 @@ public:
     {
         return (GetDebit(tx, ISMINE_ALL) > 0);
     }
+    bool IsConflicting(const CTransaction& tx) const
+    {
+  	    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+    	    if (mapTxSpends.count(txin.prevout))
+    	        return true;
+   	    return false;
+    }
     int64_t GetDebit(const CTransaction& tx, const isminefilter& filter) const
     {
         int64_t nDebit = 0;

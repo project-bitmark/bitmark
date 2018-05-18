@@ -603,6 +603,27 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
         // Notify UI of new or updated transaction
         NotifyTransactionChanged(this, hash, fInsertedNew ? CT_NEW : CT_UPDATED);
 
+        if (fInsertedNew)
+        {
+            BOOST_FOREACH(const uint256& conflictHash, wtxIn.GetConflicts(false))
+            {
+                CWalletTx& txConflict = mapWallet[conflictHash];
+                NotifyTransactionChanged(this, conflictHash, CT_UPDATED); //Updates UI table
+                if (IsFromMe(txConflict) || IsMine(txConflict))
+                {
+                    NotifyTransactionChanged(this, conflictHash, CT_GOT_CONFLICT);  //Throws dialog
+                    // external respend notify
+                    std::string strCmd = GetArg("-respendnotify", "");
+                    if (!strCmd.empty())
+                    {
+                        boost::replace_all(strCmd, "%s", wtxIn.GetHash().GetHex());
+                        boost::replace_all(strCmd, "%t", conflictHash.GetHex());
+                        boost::thread t(runCommand, strCmd); // thread runs free
+                    }
+                }
+            }
+        }
+
         // notify an external script when a wallet transaction comes in or is updated
         std::string strCmd = GetArg("-walletnotify", "");
 
@@ -625,6 +646,11 @@ bool CWallet::AddToWalletIfInvolvingMe(const uint256 &hash, const CTransaction& 
         AssertLockHeld(cs_wallet);
         bool fExisted = mapWallet.count(hash);
         if (fExisted && !fUpdate) return false;
+
+        bool fIsConflicting = IsConflicting(tx);
+        if (fIsConflicting)
+            nConflictsReceived++;
+
         if (fExisted || IsMine(tx) || IsFromMe(tx))
         {
             CWalletTx wtx(this,tx);
@@ -916,7 +942,7 @@ void CWallet::ReacceptWalletTransactions()
 
         int nDepth = wtx.GetDepthInMainChain();
 
-        if (!wtx.IsCoinBase() && nDepth < 0)
+        if (!wtx.IsCoinBase() && nDepth < 0 && (IsMine(wtx) || IsFromMe(wtx)))
         {
             // Try to add to memory pool
             LOCK(mempool.cs);

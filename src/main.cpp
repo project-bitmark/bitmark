@@ -1343,7 +1343,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     if (emitted < 2757984964566000)  // Q 18 H 17 height 13790000
       baseSubsidy = 15258;
     // total of 2757989473108000 coins emitted
-    return nFees + baseSubsidy - baseSubsidy/scalingFactor*100
+    return nFees + baseSubsidy - baseSubsidy/scalingFactor*100;
 }
 
 static const int64_t nTargetTimespan = 24*60*60; // one day

@@ -497,7 +497,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
       // For backward compatibility.
       // Enforce only one chain merkle root by checking that it starts early in the coinbase.
       // 8-12 bytes are enough to encode extraNonce and nBits.
-      if (pc - script.begin() > 2) {
+      if (pc - script.begin() > 20) {
 	LogPrintf("check auxpow err 8\n");
 	return error("Aux POW chain merkle root must start in the first 20 bytes of the parent coinbase");
       }
@@ -600,7 +600,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
     LogPrintf("chain id : %d\n",block.GetChainId());
   }
 
-  if (block.nVersion > 3 && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
+  if (block.nVersion > 3 && block.IsAuxpow() && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
     LogPrintf("auxpow err 1\n");
     return error("%s : block does not have our chain ID"
 		 " (got %d, expected %d, full nVersion %d)",

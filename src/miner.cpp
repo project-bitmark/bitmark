@@ -125,6 +125,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
       //pblock->nVersion = 3;
       //LogPrintf("pblock nVersion is %d\n",pblock->nVersion);
       pblock->SetAlgo(miningAlgo);
+      //pblock->SetChainId(Params().GetAuxpowChainId());
       //LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
     }
 

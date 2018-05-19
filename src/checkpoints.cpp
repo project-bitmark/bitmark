@@ -31,7 +31,7 @@ namespace Checkpoints
         double fTransactionsPerDay;
     };
 
-    bool fEnabled = false;
+    bool fEnabled = true;
 
     // What makes a good checkpoint block?
     // + Is surrounded by blocks with reasonable timestamps

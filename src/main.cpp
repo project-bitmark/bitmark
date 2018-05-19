@@ -2698,6 +2698,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     if (fCheckPOW && blockHash != Params().HashGenesisBlock()) {
       map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
       if (mi != mapBlockIndex.end()) {
+	LogPrintf("have pindexPrev\n");
 	CBlockIndex * pindexPrev = (*mi).second;
 	if (pindexPrev->nHeight >= nForkHeight-1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
 	  blockOnFork = true;
@@ -2721,11 +2722,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 	  //LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
 	  if (fCheckPOW && blockOnFork && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
-	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
+	    return state.DoS(50, error("CheckBlock() : proof of work failed 1"),
 			 REJECT_INVALID, "high-hash");
 	  }
 	  else if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(ALGO_SCRYPT), block.nBits)) {
-	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
+	    return state.DoS(50, error("CheckBlock() : proof of work failed 2"),
 			     REJECT_INVALID, "high-hash");
 	  }
     }

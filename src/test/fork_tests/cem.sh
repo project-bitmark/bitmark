@@ -30,7 +30,8 @@ ASSERT_EQUALS $nssf 1
 
 peakhr=$($bitmarkcli chaindynamics | grep 'peak hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}')
 curhr=$($bitmarkcli chaindynamics | grep 'current hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}') #p2
-echo "p2 curhr = $curhr curpeakhr = $peakhr"
+reward=$($bitmarkcli getblockreward 1 | grep 'block reward' | awk '{print $4}' | awk -F ',' '{print $1}')
+echo "p2 curhr = $curhr curpeakhr = $peakhr reward = $reward"
 
 ASSERT_EQUALS $curhr $peakhr
 
@@ -53,7 +54,8 @@ do
     $bitmarkcli setgenerate true 50 5
     curhr=$($bitmarkcli chaindynamics | grep 'current hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}')
     curpeakhr=$($bitmarkcli chaindynamics | grep 'peak hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}')
-    echo "p$i curhr = $curhr curpeakhr = $curpeakhr"
+    reward=$($bitmarkcli getblockreward 1 | grep 'block reward' | awk '{print $4}' | awk -F ',' '{print $1}')
+    echo "p$i curhr = $curhr curpeakhr = $curpeakhr reward = $reward"
 done
 
 # we now have 368 periods in total

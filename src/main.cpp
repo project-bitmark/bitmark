@@ -2731,25 +2731,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
-
-    // check whether it's on fork
-    bool blockOnFork = false;
-    uint256 blockHash = block.GetHash();
-    if (fCheckPOW && blockHash != Params().HashGenesisBlock()) {
-      map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
-      if (mi != mapBlockIndex.end()) {
-	LogPrintf("have pindexPrev\n");
-	CBlockIndex * pindexPrev = (*mi).second;
-	LogPrintf("nHeight = %d nForkheight = %d\n",pindexPrev->nHeight,nForkHeight);
-	if (pindexPrev->nHeight >= nForkHeight-1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
-	  blockOnFork = true;
-	  LogPrintf("blockOnFork\n");
-	}
-      }
-    }
-    
     // Check proof of work matches claimed amount
-    if(fCheckPOW && block.IsAuxpow() && blockOnFork) {
+    if(fCheckPOW && block.IsAuxpow()) {
       LogPrintf("block being checked is auxpow\n");
       if (!CheckAuxPowProofOfWork(block, Params())) {
 	return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
@@ -2763,13 +2746,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 	  }
 
 	  //LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
-	  if (fCheckPOW && blockOnFork && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
+	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
 	    return state.DoS(50, error("CheckBlock() : proof of work failed 1"),
 			 REJECT_INVALID, "high-hash");
-	  }
-	  else if (fCheckPOW && !blockOnFork && !CheckProofOfWork(block.GetPoWHash(ALGO_SCRYPT), block.nBits)) {
-	    return state.DoS(50, error("CheckBlock() : proof of work failed 2"),
-			     REJECT_INVALID, "high-hash");
 	  }
     }
 
@@ -2900,6 +2879,14 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	    return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
 				 REJECT_OBSOLETE, "bad-version");
 	  }
+
+	if (block.IsAuxpow() || block.GetAlgo() != ALGO_SCRYPT) {
+	  if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
+	    return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
+	  }
+	}
+
+	
 	
     }
 

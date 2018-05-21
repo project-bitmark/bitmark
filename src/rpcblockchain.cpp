@@ -97,7 +97,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	    hashes_bn = CBigNum(0);
 	    break;
 	  }
-	  LogPrintf("j=%d add block work of block %lu\n",j,pprev_algo->nHeight);
+	  //LogPrintf("j=%d add block work of block %lu\n",j,pprev_algo->nHeight);
 	  hashes_bn += pprev_algo->GetBlockWork();	  
 	}
 	CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);

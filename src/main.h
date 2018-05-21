@@ -65,8 +65,6 @@ static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
 /** Timeout in seconds before considering a block download peer unresponsive. */
 static const unsigned int BLOCK_DOWNLOAD_TIMEOUT = 60;
 
-static const int64_t nForkHeight = 200; //446500
-
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
 #else
@@ -165,6 +163,7 @@ std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
+bool onFork(const CBlockIndex* pindex);
 int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale = true);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo);
@@ -288,8 +287,6 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state);
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
 */
 bool IsStandardTx(const CTransaction& tx, std::string& reason);
-
-bool onFork(const CBlockIndex * p);
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
@@ -713,7 +710,7 @@ int64_t get_mpow_ms_correction (CBlockIndex * p);
 bool update_ssf (int nVersion);
 
 /* Calculate the subsidy scaling factor for the CBlockIndex pointer */
-double get_ssf (CBlockIndex * pindex);
+unsigned int get_ssf (CBlockIndex * pindex);
 
 /* Get the number of blocks since the last update of the subsidy scaling factor */
 int get_ssf_height (const CBlockIndex * pindex);

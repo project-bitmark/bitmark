@@ -174,7 +174,7 @@ class CPureBlockHeader {
     if (vector_format) {
       if (vector_rep.size()<4) return 0;
       for (int i=0; i<4; i++) {
-	((unsigned char *)nVersion)[i] = vector_rep[4-i];
+	((unsigned char *)&nVersion)[i] = vector_rep[4-i];
       }
     }
     return nVersion >> 16;

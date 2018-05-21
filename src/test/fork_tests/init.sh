@@ -121,7 +121,8 @@ done
 
 curpeakhr=$($bitmarkcli chaindynamics | grep 'peak hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}')
 curhr=$($bitmarkcli chaindynamics | grep 'current hashrate SHA256D' | awk '{print $5}' | awk -F ',' '{print $1}') #p1
-echo "p1 curhr = $curhr curpeakhr = $curpeakhr"
+reward=$($bitmarkcli getblockreward 1 | grep 'block reward' | awk '{print $4}' | awk -F ',' '{print $1}')
+echo "p1 curhr = $curhr curpeakhr = $curpeakhr reward = $reward"
 
 # height 1012
 

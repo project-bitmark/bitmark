@@ -161,13 +161,13 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1526146423;
+        genesis.nTime = 1526744911;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 765481;
+	genesis.nNonce = 149056;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("cebcd20689f304088bae59f73cb50c729a083518dfb3431cc6ea7114d626cce4"));
+        assert(hashGenesisBlock == uint256("388f1735e524ed9f69f9fda7ebfa2b7b08eab1d6bed102e8b715ec4b7d174874"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

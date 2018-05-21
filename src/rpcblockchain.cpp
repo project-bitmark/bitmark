@@ -97,7 +97,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	    hashes_bn = CBigNum(0);
 	    break;
 	  }
-	  LogPrintf("j=%d add block work of block %lu\n",j,pprev_algo->nHeight);
+	  //LogPrintf("j=%d add block work of block %lu\n",j,pprev_algo->nHeight);
 	  hashes_bn += pprev_algo->GetBlockWork();	  
 	}
 	CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
@@ -245,7 +245,7 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
   if(!pblocktemplate.get())
     return 0.;
   CBlock *pblock = &pblocktemplate->block;
-  pblock->nVersion = 3;
+  pblock->nVersion = 4;
   pblock->SetAlgo(algo);
   CBlockIndex indexDummy(*pblock);
   indexDummy.pprev = blockindex;

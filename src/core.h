@@ -796,6 +796,8 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
 unsigned int GetAlgoWeight (const int algo);
 
+static const int64_t nForkHeight = 200; //446500
+
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple
  * candidates to be the next block. A blockindex may have multiple pprev pointing
@@ -820,7 +822,7 @@ public:
     int64_t nMoneySupply;
 
     // the scaling factor for the block
-    double subsidyScalingFactor;
+    unsigned int subsidyScalingFactor;
     
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
@@ -912,10 +914,15 @@ public:
         return ret;
     }
 
+    bool onFork() const {
+      if (this->nHeight >= nForkHeight && IsSuperMajority(4,this->pprev,75,100)) return true;
+      return false;
+    }
+
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
-	if (IsAuxpow())
+	if (IsAuxpow() && onFork())
 	  {
 	    const CDiskBlockPos pos = GetBlockPos();
 	    CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);

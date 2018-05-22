@@ -358,6 +358,7 @@ CBlockIndex *CChain::SetTip(CBlockIndex *pindex) {
         vChain.clear();
         return NULL;
     }
+    //LogPrintf("in settip pindex height %d\n",pindex->nHeight);
     vChain.resize(pindex->nHeight + 1);
     while (pindex && vChain[pindex->nHeight] != pindex) {
         vChain[pindex->nHeight] = pindex;
@@ -1398,8 +1399,8 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
     const CBigNum &bnLimit = Params().ProofOfWorkLimit();
     // Testnet has min-difficulty blocks
     // after nTargetSpacing*2 time between blocks:
-    //if (TestNet() && nTime > nTargetSpacing*2)
-    //return bnLimit.GetCompact();
+    if (TestNet() && nTime > nTargetSpacing*2)
+      return bnLimit.GetCompact();
 
     CBigNum bnResult;
     bnResult.SetCompact(nBase);
@@ -2314,6 +2315,7 @@ bool static WriteChainState(CValidationState &state) {
 // Update chainActive and related internal data structures.
 void static UpdateTip(CBlockIndex *pindexNew) {
     chainActive.SetTip(pindexNew);
+    //LogPrintf("updatetip pindexNew nHeight %d\n",pindexNew->nHeight);
 
     // Update best block in wallet (so we can detect restored wallets)
     bool fIsInitialDownload = IsInitialBlockDownload();
@@ -2353,6 +2355,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
 // Disconnect chainActive's tip.
 bool static DisconnectTip(CValidationState &state) {
     CBlockIndex *pindexDelete = chainActive.Tip();
+    //LogPrintf("pindexDelete nHeight %d\n",pindexDelete->nHeight);
     assert(pindexDelete);
     mempool.check(pcoinsTip);
     // Read block from disk.
@@ -2386,7 +2389,7 @@ bool static DisconnectTip(CValidationState &state) {
     }
     mempool.check(pcoinsTip);
     // Update chainActive and related variables.
-    UpdateTip(pindexDelete->pprev);
+s    UpdateTip(pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
     BOOST_FOREACH(const CTransaction &tx, block.vtx) {
@@ -2450,7 +2453,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
 // known to be invalid (it's however far from certain to be valid).
 void static FindMostWorkChain() {
     CBlockIndex *pindexNew = NULL;
-
     // In case the current best is invalid, do not consider it.
     while (chainMostWork.Tip() && (chainMostWork.Tip()->nStatus & BLOCK_FAILED_MASK)) {
         setBlockIndexValid.erase(chainMostWork.Tip());
@@ -2461,8 +2463,9 @@ void static FindMostWorkChain() {
         // Find the best candidate header.
         {
             std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
-            if (it == setBlockIndexValid.rend())
-                return;
+            if (it == setBlockIndexValid.rend()) {
+	      return;
+	    }
             pindexNew = *it;
         }
 
@@ -2492,9 +2495,9 @@ void static FindMostWorkChain() {
     } while(true);
 
     // Check whether it's actually an improvement.
-    if (chainMostWork.Tip() && !CBlockIndexWorkComparator()(chainMostWork.Tip(), pindexNew))
+    if (chainMostWork.Tip() && !CBlockIndexWorkComparator()(chainMostWork.Tip(), pindexNew)) {
         return;
-
+    }
     // We have a new best.
     chainMostWork.SetTip(pindexNew);
 }
@@ -2513,8 +2516,8 @@ bool ActivateBestChain(CValidationState &state) {
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
-            if (!DisconnectTip(state))
-                return false;
+	  if (!DisconnectTip(state))
+	    return false;
         }
 
         // Connect new blocks.
@@ -3223,6 +3226,7 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
     CBlockIndex* pindexNew = new CBlockIndex();
     if (!pindexNew)
         throw runtime_error("LoadBlockIndex() : new CBlockIndex failed");
+    //LogPrintf("insert to mapBlockIndex hash %s\n",hash.GetHex().c_str());
     mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
     pindexNew->phashBlock = &((*mi).first);
 
@@ -3251,6 +3255,7 @@ bool static LoadBlockIndexDB()
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + pindex->GetBlockWork().getuint256();
         pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
         if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pindex->nStatus & BLOCK_FAILED_MASK)) {
+	  //LogPrintf("insert pindex at height %d (%s) as valid\n",pindex->nHeight,(pindex->phashBlock)->GetHex().c_str());
             setBlockIndexValid.insert(pindex);
 	}
         if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
@@ -3273,6 +3278,7 @@ bool static LoadBlockIndexDB()
     LogPrintf("LoadBlockIndexDB(): transaction index %s\n", fTxIndex ? "enabled" : "disabled");
 
     // Load pointer to end of best chain
+    //LogPrintf("load pcoinstip bestblock %s\n",pcoinsTip->GetBestBlock().GetHex().c_str());
     std::map<uint256, CBlockIndex*>::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
     if (it == mapBlockIndex.end())
         return true;

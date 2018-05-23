@@ -852,6 +852,9 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+    uint256 nNonce256;
+    std::vector<unsigned char> nSolution;
+    uint256 hashReserved;
 
     // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
@@ -894,6 +897,10 @@ public:
       nTime          = block.nTime;
       nBits          = block.nBits;
       nNonce         = block.nNonce;
+      hashReserved = block.hashReserved;
+      nNonce256 = block.nNonce256;
+      nSolution = block.nSolution;
+      
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -1088,10 +1095,20 @@ public:
 	READWRITE(this->nVersion);
 	READWRITE(hashPrev);
 	READWRITE(hashMerkleRoot);
+	bool onFork = true; //assume true for disk IO
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  READWRITE(hashReserved);
+	}
 	READWRITE(nTime);
 	READWRITE(nBits);
-	READWRITE(nNonce);
-	if (this->IsAuxpow()) {
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  READWRITE(nNonce256);
+	  READWRITE(nSolution);
+	}
+	else {
+	  READWRITE(nNonce);
+	}
+	if (this->IsAuxpow() && onFork) {
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
 	  int algo = CBlockIndex::GetAlgo();
@@ -1132,10 +1149,20 @@ public:
 	READWRITE(this->nVersion);
 	READWRITE(hashPrev);
 	READWRITE(hashMerkleRoot);
+	bool onFork = true;
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  READWRITE(hashReserved);
+	}	
 	READWRITE(nTime);
 	READWRITE(nBits);
-	READWRITE(nNonce);
-	if (this->IsAuxpow()) {
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  READWRITE(nNonce256);
+	  READWRITE(nSolution);
+	}
+	else {
+	  READWRITE(nNonce);
+	}
+	if (this->IsAuxpow() && onFork) {
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
 	  int algo = CBlockIndex::GetAlgo();
@@ -1175,10 +1202,20 @@ public:
 	READWRITE(this->nVersion);
 	READWRITE(hashPrev);
 	READWRITE(hashMerkleRoot);
+	bool onFork = true;
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  READWRITE(hashReserved);
+	}
 	READWRITE(nTime);
 	READWRITE(nBits);
-	READWRITE(nNonce);
-	if (this->IsAuxpow()) {
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  READWRITE(nNonce256);
+	  READWRITE(nSolution);
+	}
+	else {
+	  READWRITE(nNonce);
+	}
+	if (this->IsAuxpow() && onFork) {
 	  pauxpow.reset(new CAuxPow());
 	  assert(pauxpow);
 	  (*pauxpow).parentBlock.isParent = true;
@@ -1207,9 +1244,19 @@ public:
         block.nVersion        = nVersion;
         block.hashPrevBlock   = hashPrev;
         block.hashMerkleRoot  = hashMerkleRoot;
+	bool onFork = true;
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  block.hashReserved = hashReserved;
+	}
         block.nTime           = nTime;
         block.nBits           = nBits;
-        block.nNonce          = nNonce;
+	if (GetAlgo()==ALGO_EQUIHASH && onFork) {
+	  block.nNonce256 = nNonce256;
+	  block.nSolution = nSolution;
+	}
+	else {
+	  block.nNonce = nNonce;
+	}
         return block.GetHash();
     }
 

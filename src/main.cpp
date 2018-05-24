@@ -1217,12 +1217,12 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
+int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
 {
     // for testnet
-    int nHeight = pindexPrev->nHeight;
+    int nHeight = pindex->nHeight;
 
-    if (!onFork(pindexPrev)) {
+    if (!onFork(pindex)) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1241,24 +1241,25 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     // emitted
     uint256 emitted;
 
-    CBlockIndex * pprev_algo = get_pprev_algo(pindexPrev,-1);
+    CBlockIndex * pprev_algo = get_pprev_algo(pindex,-1);
 
     if (pprev_algo) { //make emitted 8 times bigger so that the target points are divided in 8 for each algo
       emitted = NUM_ALGOS * pprev_algo->nMoneySupply;
     }
     else {
-      emitted = pindexPrev->nMoneySupply;
+      LogPrintf("emitted uses mpow correction \n");
+      emitted = NUM_ALGOS * get_mpow_ms_correction(pindex);
     }
 
     unsigned int scalingFactor = 0;
-    if (onFork(pindexPrev)) {
-      scalingFactor = pindexPrev->subsidyScalingFactor;
+    if (onFork(pindex)) {
+      scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
-	CBlockIndex * pprev_algo = pindexPrev;
+	CBlockIndex * pprev_algo = pindex;
 	do {
 	  if (update_ssf(pprev_algo->nVersion)) {
 	    scalingFactor = get_ssf(pprev_algo);
-	    pindexPrev->subsidyScalingFactor = scalingFactor;
+	    pindex->subsidyScalingFactor = scalingFactor;
 	    break;
 	  }
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
@@ -4929,7 +4930,7 @@ CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
     algo = GetAlgo(p->nVersion);
   }
   CBlockIndex * pprev = p->pprev;
-  while (pprev && pprev->nHeight>=nForkHeight) {
+  while (pprev && onFork(pprev)) {
     int cur_algo = GetAlgo(pprev->nVersion);
     if (cur_algo == algo) {
       return pprev;

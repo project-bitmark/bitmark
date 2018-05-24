@@ -351,10 +351,13 @@ bool static CheckSignatureEncoding(const valtype &vchSig, unsigned int flags) {
         return true;
     }
     if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S | SCRIPT_VERIFY_STRICTENC)) != 0 && !IsValidSignatureEncoding(vchSig)) {
+      //printf("bad signature encoding 1\n");
         return false;
     } else if ((flags & SCRIPT_VERIFY_LOW_S) != 0 && !IsLowDERSignature(vchSig)) {
-        return false;
+      //printf("bad signature encoding 2\n");
+      return false;
     } else if ((flags & SCRIPT_VERIFY_STRICTENC) != 0 && !IsDefinedHashtypeSignature(vchSig)) {
+      //printf("bad signature encoding 3\n");
         return false;
     }
     return true;
@@ -362,7 +365,8 @@ bool static CheckSignatureEncoding(const valtype &vchSig, unsigned int flags) {
 
 bool static CheckPubKeyEncoding(const valtype &vchSig, unsigned int flags) {
     if ((flags & SCRIPT_VERIFY_STRICTENC) != 0 && !IsCompressedOrUncompressedPubKey(vchSig)) {
-        return false;
+      //printf("bad pubkey encoding 1\n");
+      return false;
     }
     return true;
 }
@@ -1338,20 +1342,20 @@ bool CheckSig(vector<unsigned char> vchSig, const vector<unsigned char> &vchPubK
 
     CPubKey pubkey(vchPubKey);
     if (!pubkey.IsValid()) {
-      LogPrintf("checksig: pubkey not valid\n");
+      //printf("checksig: pubkey not valid\n");
       return false;
     }
 
     // Hash type is one byte tacked on to the end of the signature
     if (vchSig.empty()) {
-      LogPrintf("checksig: sig empty\n");
+      //printf("checksig: sig empty\n");
       return false;
     }
     if (nHashType == 0) {
         nHashType = vchSig.back();
     }
     else if (nHashType != vchSig.back()) {
-      LogPrintf("checksig nHashType != vchSig.back()\n");
+      //printf("checksig nHashType != vchSig.back()\n");
       return false;
     }
     vchSig.pop_back();
@@ -1362,7 +1366,7 @@ bool CheckSig(vector<unsigned char> vchSig, const vector<unsigned char> &vchPubK
       return true;
 
     if (!pubkey.Verify(sighash, vchSig)) {
-      LogPrintf("checksig !pubkey.Verify txid = %s\n",txTo.GetHash().GetHex().c_str());
+      //printf("checksig !pubkey.Verify txid = %s\n",txTo.GetHash().GetHex().c_str());
       /*for (int i=0; i<vchSig.size(); i++) {
 	LogPrintf("%02x",vchSig[i]);
 	}*/
@@ -1792,24 +1796,30 @@ void ExtractAffectedKeys(const CKeyStore &keystore, const CScript& scriptPubKey,
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CTransaction& txTo, unsigned int nIn,
                   unsigned int flags, int nHashType)
 {
+  if (flags & SCRIPT_VERIFY_DERSIG) {
+    //printf("%lu verify script with dersig\n",(unsigned long)GetTime());
+  }
+  else {
+    //printf("%lu verify script without dersig\n",(unsigned long)GetTime());
+  }
     vector<vector<unsigned char> > stack, stackCopy;
     if (!EvalScript(stack, scriptSig, txTo, nIn, flags, nHashType)) {
-      LogPrintf("verify script err 1\n");
+      //printf("verify script err 1\n");
         return false;
     }
     if (flags & SCRIPT_VERIFY_P2SH)
         stackCopy = stack;
     if (!EvalScript(stack, scriptPubKey, txTo, nIn, flags, nHashType)) {
-      LogPrintf("verify script err 2\n");
+      //printf("verify script err 2\n");
         return false;
     }
     if (stack.empty()) {
-      LogPrintf("verify script err 3\n");
+      //printf("verify script err 3\n");
       return false;
     }
 
     if (CastToBool(stack.back()) == false) {
-      LogPrintf("verify script err 4\n");
+      //printf("verify script err 4\n");
         return false;
     }
 
@@ -1817,7 +1827,7 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash())
     {
       if (!scriptSig.IsPushOnly()) {// scriptSig must be literals-only
-	LogPrintf("verify script err 5\n");
+	//printf("verify script err 5\n");
 	return false;
       }// or validation fails
 
@@ -1831,11 +1841,11 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         popstack(stackCopy);
 
         if (!EvalScript(stackCopy, pubKey2, txTo, nIn, flags, nHashType)) {
-	  LogPrintf("verify script err 6\n");
+	  //printf("verify script err 6\n");
             return false;
 	}
         if (stackCopy.empty()) {
-	  LogPrintf("verify script err 7\n");
+	  //printf("verify script err 7\n");
 	  return false;
 	}
         return CastToBool(stackCopy.back());

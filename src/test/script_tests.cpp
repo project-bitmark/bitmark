@@ -25,6 +25,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/assign/list_of.hpp>
 #include "json/json_spirit_reader_template.h"
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_writer_template.h"
@@ -36,6 +37,33 @@ using namespace boost::algorithm;
 extern uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
 static const unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
+
+ static std::map<string, unsigned int> mapFlagNames = boost::assign::map_list_of
+   (string("NONE"), (unsigned int)SCRIPT_VERIFY_NONE)
+   (string("P2SH"), (unsigned int)SCRIPT_VERIFY_P2SH)
+   (string("STRICTENC"), (unsigned int)SCRIPT_VERIFY_STRICTENC)
+   (string("DERSIG"), (unsigned int)SCRIPT_VERIFY_DERSIG)
+   (string("LOW_S"), (unsigned int)SCRIPT_VERIFY_LOW_S)
+   (string("CHECKLOCKTIMEVERIFY"), (unsigned int)SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY);
+
+unsigned int ParseScriptFlags(string strFlags)
+{
+    if (strFlags.empty()) {
+        return 0;
+    }
+    unsigned int flags = 0;
+    vector<string> words;
+    boost::algorithm::split(words, strFlags, boost::algorithm::is_any_of(","));
+
+    BOOST_FOREACH(string word, words)
+    {
+        if (!mapFlagNames.count(word))
+            BOOST_ERROR("Bad test: unknown verification flag '" << word << "'");
+        flags |= mapFlagNames[word];
+    }
+
+    return flags;
+}
 
 CScript
 ParseScript(string s)
@@ -140,9 +168,13 @@ BOOST_AUTO_TEST_CASE(script_valid)
         CScript scriptSig = ParseScript(scriptSigString);
         string scriptPubKeyString = test[1].get_str();
         CScript scriptPubKey = ParseScript(scriptPubKeyString);
-
+	unsigned int scriptflags = SCRIPT_VERIFY_P2SH;
+	if (test.size()>3) {
+	  //printf("%lu add to scriptflags: %s\n",(unsigned long)GetTime(),test[2].get_str().c_str());
+	  scriptflags |= ParseScriptFlags(test[2].get_str());
+	}
         CTransaction tx;
-        BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, tx, 0, flags, SIGHASH_NONE), strTest);
+        BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, tx, 0, scriptflags, 0), strTest);
     }
 }
 
@@ -164,9 +196,13 @@ BOOST_AUTO_TEST_CASE(script_invalid)
         CScript scriptSig = ParseScript(scriptSigString);
         string scriptPubKeyString = test[1].get_str();
         CScript scriptPubKey = ParseScript(scriptPubKeyString);
-
+	unsigned int scriptflags = SCRIPT_VERIFY_P2SH;
+	if (test.size()>3) {
+	  //printf("invalid add to scriptflags: %s\n",test[2].get_str().c_str());
+	  scriptflags |= ParseScriptFlags(test[2].get_str());
+	}
         CTransaction tx;
-        BOOST_CHECK_MESSAGE(!VerifyScript(scriptSig, scriptPubKey, tx, 0, flags, SIGHASH_NONE), strTest);
+        BOOST_CHECK_MESSAGE(!VerifyScript(scriptSig, scriptPubKey, tx, 0, scriptflags, 0), strTest);
     }
 }
 

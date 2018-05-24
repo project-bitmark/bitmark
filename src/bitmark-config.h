@@ -21,7 +21,7 @@
 #define CLIENT_VERSION_MINOR 9
 
 /* Build revision */
-#define CLIENT_VERSION_REVISION 5
+#define CLIENT_VERSION_REVISION 7
 
 /* Version is release */
 #define COPYRIGHT_YEAR 2017

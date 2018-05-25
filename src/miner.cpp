@@ -538,6 +538,9 @@ void static BitmarkMiner(CWallet *pwallet)
 
     int n_blocks_created = 0;
 
+    uint256 best_hash;
+    bool first_hash = true;
+    
     try { while (true) {
         if (Params().NetworkID() != CChainParams::REGTEST) {
             // Busy-wait for the network to come online so we don't waste time mining
@@ -591,10 +594,8 @@ void static BitmarkMiner(CWallet *pwallet)
 	  unsigned int nHashesDone = 0;
 	  uint256 thash;
 	  //char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-	  uint256 best_hash;
 	  //LogPrintf("starting best hash: %s\n",best_hash.GetHex().c_str());
-	  LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
-	  bool first_hash = true;
+	  //LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
 
 	  if (miningAlgo==ALGO_EQUIHASH) {
 	    unsigned int n = Params().EquihashN();
@@ -697,15 +698,15 @@ void static BitmarkMiner(CWallet *pwallet)
 	      first_hash = false;
 	      best_hash = thash;
 	      LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
+	      
+	      if (thash <= hashTarget)
+		{
+		  SetThreadPriority(THREAD_PRIORITY_NORMAL);
+		  CheckWork(pblock, *pwallet, reservekey);
+		  SetThreadPriority(THREAD_PRIORITY_LOWEST);
+		  break;
+		}
 	    }
-	  
-	    if (thash <= hashTarget)
-	      {
-		SetThreadPriority(THREAD_PRIORITY_NORMAL);
-		CheckWork(pblock, *pwallet, reservekey);
-		SetThreadPriority(THREAD_PRIORITY_LOWEST);
-		break;
-	      }
 	    pblock->nNonce += 1;
 	    nHashesDone += 1;
 	    if ((pblock->nNonce & 0xFF) == 0) {

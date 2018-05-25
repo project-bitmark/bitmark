@@ -147,10 +147,12 @@ void hash_scrypt(const char * input, char * output) {
 }
 
 void hash_easy (const char* input, char * output) {
-  ((uint32_t*)output)[0] = murmur3_32((uint8_t*)input,20,((uint32_t*)input)[2]);
-  ((uint32_t*)output)[1] = murmur3_32((uint8_t*)input+20,20,((uint32_t*)input)[3]);
-  ((uint32_t*)output)[2] = murmur3_32((uint8_t*)input+40,20,((uint32_t*)input)[0]);
-  ((uint32_t*)output)[3] = murmur3_32((uint8_t*)input+60,20,((uint32_t*)input)[1]);
+
+  for (int i=0; i<8; i++) {
+    uint32_t hashpart = murmur3_32((uint8_t*)input+10*i,10,((uint32_t*)input)[16-2*i]);
+    //LogPrintf("murmur %d = %u\n",i,hashpart);
+    ((uint32_t*)output)[i] = hashpart;
+  }
 }
 
 void hash_argon2(const char * input, char * output) {

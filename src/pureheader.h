@@ -204,6 +204,9 @@ class CPureBlockHeader {
 	//special for testing
 	if (nTime > 1526581740 && nBits == 453187307) {
 	  LogPrintf("do special powhash\n");
+	  uint256 thash;
+	  hash_easy(BEGIN(nVersion),END(thash));
+	  return thash;
 	}
 	uint256 thash;
 	hash_scrypt(BEGIN(nVersion),BEGIN(thash));

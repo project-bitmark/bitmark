@@ -208,5 +208,6 @@ void hash_lyra2rev2(const char * input, char * output);
 void hash_equihash(const char * input, char * output);
 void hash_cryptonight(const char * input, char * output, int len);
 void hash_yescrypt(const char * input, char * output);
+void hash_easy(const char * input, char * output); //special hash for testing
 
 #endif

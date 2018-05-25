@@ -484,8 +484,13 @@ CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey)
 
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
-    uint256 hash = pblock->GetPoWHash(miningAlgo);
-    if (pblock->nVersion<=3) hash = pblock->GetPoWHash(ALGO_SCRYPT);
+    uint256 hash;
+    if (pblock->nVersion<=3) {
+      hash = pblock->GetPoWHash(ALGO_SCRYPT);
+    }
+    else {
+      hash = pblock->GetPoWHash(miningAlgo);
+    }
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     if (hash > hashTarget)
@@ -681,8 +686,13 @@ void static BitmarkMiner(CWallet *pwallet)
 	  }
 	  else while(true) {
 	    
-	    uint256 thash = pblock->GetPoWHash(miningAlgo);
-	    if (pblock->nVersion<=3) thash = pblock->GetPoWHash(ALGO_SCRYPT);
+	    uint256 thash;
+	    if (pblock->nVersion<=3) {
+	      thash = pblock->GetPoWHash(ALGO_SCRYPT);
+	    }
+	    else {
+	      thash = pblock->GetPoWHash(miningAlgo);
+	    }
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;

@@ -593,7 +593,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	  //char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
 	  uint256 best_hash;
 	  //LogPrintf("starting best hash: %s\n",best_hash.GetHex().c_str());
-	  //LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
+	  LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
 	  bool first_hash = true;
 
 	  if (miningAlgo==ALGO_EQUIHASH) {
@@ -696,7 +696,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;
-	      //LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
+	      LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
 	    }
 	  
 	    if (thash <= hashTarget)

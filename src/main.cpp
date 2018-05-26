@@ -1424,7 +1424,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     const CBlockIndex *BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = 25; // todo: maybe make this bigger since it can lead to inaccuracies with unsynced clocks
+    int64_t PastBlocksMin = 25;
     int64_t PastBlocksMax = 25;
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
@@ -1433,7 +1433,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     int64_t LastBlockTimeOtherAlgos = 0;
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
-        return Params().ProofOfWorkLimit().GetCompact();
+        return Params().ProofOfWorkLimitMA().GetCompact();
     }
 
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
@@ -1509,7 +1509,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     else if (CountBlocks==1) {
       LogPrintf("CountBlocks = %d\n",CountBlocks);
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
-      bnNew = Params().ProofOfWorkLimit();
+      bnNew = Params().ProofOfWorkLimitMA();
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");
       LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
       unsigned int weight = GetAlgoWeight(algo);
@@ -1532,8 +1532,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (smultiply) bnNew *= smultiplier*3;
     }
     
-    if (bnNew > Params().ProofOfWorkLimit()){
-      bnNew = Params().ProofOfWorkLimit();
+    if (bnNew > Params().ProofOfWorkLimitMA()){
+      bnNew = Params().ProofOfWorkLimitMA();
     }
 
     //test
@@ -1562,7 +1562,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
   if (RegTest()) return Params().ProofOfWorkLimit().GetCompact();
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
-    // Mainnet
+
     if (nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexLast,75,100) || RegTest()) {
       workAlgo = 0;
     } else {

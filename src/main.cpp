@@ -1599,6 +1599,14 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
+	  if (pindexLast->nHeight >= 446499 && pindexLast->nHeight <= 447000) { // special rule for testing fork
+	    CBigNum bnNew;
+	    bnNew.SetCompact(pindexLast->nBits);
+	    bnNew *= 5000000;
+	    if (bnNew > Params().ProofOfWorkLimitMA())
+	      bnNew = Params().ProofOfWorkLimitMA();
+	    return bnNew.GetCompact();
+	  }
 	  return pindexLast->nBits;
         }
 
@@ -1631,7 +1639,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
         LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
 
-        return bnNew.GetCompact();
+         return bnNew.GetCompact();
     } else {
       return DarkGravityWave(pindexLast,miningAlgo);
     }

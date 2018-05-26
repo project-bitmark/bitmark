@@ -39,7 +39,7 @@ src/config/bitcoin-config.h.in
 src/config/stamp-h1
 src/stamp-h1
 src/bitmark-config.h.in
-share/setup.nsi
+#share/setup.nsi
 share/qt/Info.plist
 
 src/univalue/gen

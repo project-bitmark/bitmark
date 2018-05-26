@@ -617,7 +617,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 		   __func__);
     }
 
-    if (!CheckProofOfWork(block.GetPoWHash(algo), block.nBits)) {
+    if (!CheckProofOfWork(block.GetPoWHash(algo), block.nBits,block.GetAlgo())) {
       LogPrintf("auxpow err 3\n");
       return error("%s : non-AUX proof of work failed", __func__);
     }
@@ -657,7 +657,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
     return error("%s : AUX equihash solution failed", __func__);
   }
   
-  if (!CheckProofOfWork(block.auxpow->getParentBlockPoWHash(algo), block.nBits))
+  if (!CheckProofOfWork(block.auxpow->getParentBlockPoWHash(algo), block.nBits, block.GetAlgo()))
     {
       return error("%s : AUX proof of work failed", __func__);
     }
@@ -668,26 +668,26 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 }
 
 unsigned int GetAlgoWeight (const int algo) {
-  unsigned long weight = 1000;
+  unsigned int weight = 500;
   switch (algo)
     {
     case ALGO_SHA256D:
-      weight = 2;
+      weight = 1;
       break;
     case ALGO_ARGON2:
-      weight = 450000;
+      weight = 225000;
       break;
     case ALGO_LYRA2REv2:
-      weight = 350;
+      weight = 175;
       break;
     case ALGO_EQUIHASH:
-      weight = 1000000;
+      weight = 500000;
       break;
     case ALGO_CRYPTONIGHT:
-      weight = 1000000;
+      weight = 500000;
       break;
     case ALGO_YESCRYPT:
-      weight = 100000;
+      weight = 50000;
       break;
     }
   return weight;

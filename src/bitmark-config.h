@@ -21,7 +21,7 @@
 #define CLIENT_VERSION_MINOR 9
 
 /* Build revision */
-#define CLIENT_VERSION_REVISION 5
+#define CLIENT_VERSION_REVISION 7
 
 /* Version is release */
 #define COPYRIGHT_YEAR 2017
@@ -91,7 +91,7 @@
 /* #undef HAVE_LIBMINGWTHRD */
 
 /* Define to 1 if you have the `miniupnpc' library (-lminiupnpc). */
-/* #undef HAVE_LIBMINIUPNPC */
+#define HAVE_LIBMINIUPNPC 1
 
 /* Define to 1 if you have the `mswsock' library (-lmswsock). */
 /* #undef HAVE_LIBMSWSOCK */
@@ -145,16 +145,16 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the <miniupnpc/miniupnpc.h> header file. */
-/* #undef HAVE_MINIUPNPC_MINIUPNPC_H */
+#define HAVE_MINIUPNPC_MINIUPNPC_H 1
 
 /* Define to 1 if you have the <miniupnpc/miniwget.h> header file. */
-/* #undef HAVE_MINIUPNPC_MINIWGET_H */
+#define HAVE_MINIUPNPC_MINIWGET_H 1
 
 /* Define to 1 if you have the <miniupnpc/upnpcommands.h> header file. */
-/* #undef HAVE_MINIUPNPC_UPNPCOMMANDS_H */
+#define HAVE_MINIUPNPC_UPNPCOMMANDS_H 1
 
 /* Define to 1 if you have the <miniupnpc/upnperrors.h> header file. */
-/* #undef HAVE_MINIUPNPC_UPNPERRORS_H */
+#define HAVE_MINIUPNPC_UPNPERRORS_H 1
 
 /* Define this symbol if you have MSG_NOSIGNAL */
 #define HAVE_MSG_NOSIGNAL 1
@@ -205,7 +205,7 @@
 #define PACKAGE_NAME "Bitmark Core"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "Bitmark Core 0.9.5"
+#define PACKAGE_STRING "Bitmark Core 0.9.7"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "bitmark"
@@ -214,7 +214,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.9.5"
+#define PACKAGE_VERSION "0.9.7"
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
@@ -237,7 +237,7 @@
 
 /* UPnP support not compiled if undefined, otherwise value (0 or 1) determines
    default state */
-/* #undef USE_UPNP */
+#define USE_UPNP 0
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

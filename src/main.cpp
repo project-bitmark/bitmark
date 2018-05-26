@@ -1390,6 +1390,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
 static const int64_t nTargetTimespan = 24*60*60; // one day
 static const int64_t nTargetSpacing = 2*60; // two minutes
 static const int64_t nInterval = nTargetTimespan / nTargetSpacing;
+static const int64_t DGWtimespan = 960; // 16 min for dark gravity wave
 
 //
 // minimum amount of work that could possibly be required nTime after
@@ -1397,7 +1398,7 @@ static const int64_t nInterval = nTargetTimespan / nTargetSpacing;
 //
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 {
-    const CBigNum &bnLimit = Params().ProofOfWorkLimit();
+  const CBigNum &bnLimit = Params().ProofOfWorkLimit();
     // Testnet has min-difficulty blocks
     // after nTargetSpacing*2 time between blocks:
     if (TestNet() && nTime > nTargetSpacing*2)
@@ -1431,9 +1432,10 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     CBigNum PastDifficultyAveragePrev;
     int64_t time_since_last_algo = -1;
     int64_t LastBlockTimeOtherAlgos = 0;
+    unsigned int algoWeight = GetAlgoWeight(algo);
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
-        return Params().ProofOfWorkLimitMA().GetCompact();
+      return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
 
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
@@ -1486,7 +1488,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     
     CBigNum bnNew(PastDifficultyAverage);
-    int64_t _nTargetTimespan = (CountBlocks-1) * 960; //16 min target
+    int64_t _nTargetTimespan = (CountBlocks-1) * DGWtimespan; //16 min target
 
     int64_t smultiplier = 1;
     bool smultiply = false;
@@ -1509,7 +1511,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     else if (CountBlocks==1) {
       LogPrintf("CountBlocks = %d\n",CountBlocks);
       //bnNew = CBigNum().SetCompact(pindexLast->nBits);
-      bnNew = Params().ProofOfWorkLimitMA();
+      bnNew = Params().ProofOfWorkLimit()*algoWeight;
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");
       LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
       unsigned int weight = GetAlgoWeight(algo);
@@ -1532,8 +1534,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (smultiply) bnNew *= smultiplier*3;
     }
     
-    if (bnNew > Params().ProofOfWorkLimitMA()){
-      bnNew = Params().ProofOfWorkLimitMA();
+    if (bnNew > Params().ProofOfWorkLimit()*algoWeight){
+      bnNew = Params().ProofOfWorkLimit()*algoWeight;
     }
 
     //test
@@ -1557,7 +1559,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 }
 
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int miningAlgo)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
 {
   if (RegTest()) return Params().ProofOfWorkLimit().GetCompact();
     int nHeight = pindexLast->nHeight;
@@ -1603,8 +1605,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	    CBigNum bnNew;
 	    bnNew.SetCompact(pindexLast->nBits);
 	    bnNew *= 5000000;
-	    if (bnNew > Params().ProofOfWorkLimitMA())
-	      bnNew = Params().ProofOfWorkLimitMA();
+	    unsigned int algoWeight = GetAlgoWeight(ALGO_SCRYPT);
+	    if (bnNew > Params().ProofOfWorkLimit()*algoWeight)
+	      bnNew = Params().ProofOfWorkLimit()*algoWeight;
 	    return bnNew.GetCompact();
 	  }
 	  return pindexLast->nBits;
@@ -1641,7 +1644,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
          return bnNew.GetCompact();
     } else {
-      return DarkGravityWave(pindexLast,miningAlgo);
+      return DarkGravityWave(pindexLast,algo);
     }
 }
 
@@ -2743,8 +2746,12 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
+
+    CBlockIndex * pindexPrev = mapBlockIndex[block.hashPrevBlock];
+    bool blockOnFork = (pindexPrev->nHeight >= nForkHeight - 1) && (CBlockIndex::IsSuperMajority(4,pindexPrev,75,100));
+    
     // Check proof of work matches claimed amount
-    if(fCheckPOW && block.IsAuxpow()) {
+    if(fCheckPOW && blockOnFork && block.IsAuxpow()) {
       LogPrintf("block being checked is auxpow\n");
       if (!CheckAuxPowProofOfWork(block, Params())) {
 	return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
@@ -2752,15 +2759,15 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
       }
     }
     else {
-          if (fCheckPOW && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
+          if (fCheckPOW && blockOnFork && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
 	    return state.DoS(50, error("CheckBlock() : Invalid Equihash Solution"),
 			     REJECT_INVALID, "bad-equihash-solution");      
 	  }
 
 	  //LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
-	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
-	    return state.DoS(50, error("CheckBlock() : proof of work failed 1"),
-			 REJECT_INVALID, "high-hash");
+	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(),block.nBits,block.GetAlgo())) {
+	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
+			     REJECT_INVALID, "high-hash");
 	  }
     }
 
@@ -2896,10 +2903,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	  if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
 	    return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
 	  }
-	}
-
-	
-	
+	}	
     }
 
     // Write block to history file
@@ -2961,27 +2965,29 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     if (!CheckBlock(*pblock, state))
         return error("ProcessBlock() : CheckBlock FAILED");
 
-    CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-    if (pcheckpoint && pblock->hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)))
-    {
-        // Extra checks to prevent "fill up memory by spamming with bogus blocks"
-        int64_t deltaTime = pblock->GetBlockTime() - pcheckpoint->nTime;
-        if (deltaTime < 0)
-        {
-            return state.DoS(100, error("ProcessBlock() : block with timestamp before last checkpoint"),
-                             REJECT_CHECKPOINT, "time-too-old");
-        }
-        CBigNum bnNewBlock;
-        bnNewBlock.SetCompact(pblock->nBits);
-        CBigNum bnRequired;
-        bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
-        if (bnNewBlock > bnRequired)
-        {
-            return state.DoS(100, error("ProcessBlock() : block with too little proof-of-work"),
-                             REJECT_INVALID, "bad-diffbits");
-        }
+    CBlockIndex * pindexPrev = mapBlockIndex[pblock->hashPrevBlock];
+    if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
+      CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
+      if (pcheckpoint && pblock->hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)))
+	{
+	  // Extra checks to prevent "fill up memory by spamming with bogus blocks"
+	  int64_t deltaTime = pblock->GetBlockTime() - pcheckpoint->nTime;
+	  if (deltaTime < 0)
+	    {
+	      return state.DoS(100, error("ProcessBlock() : block with timestamp before last checkpoint"),
+			       REJECT_CHECKPOINT, "time-too-old");
+	    }
+	  CBigNum bnNewBlock;
+	  bnNewBlock.SetCompact(pblock->nBits);
+	  CBigNum bnRequired;
+	  bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
+	  if (bnNewBlock > bnRequired)
+	    {
+	      return state.DoS(100, error("ProcessBlock() : block with too little proof-of-work"),
+			       REJECT_INVALID, "bad-diffbits");
+	    }
+	}
     }
-
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (pblock->hashPrevBlock != 0 && !mapBlockIndex.count(pblock->hashPrevBlock))
@@ -3007,22 +3013,6 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         }
         return true;
     }
-    
-    // check for 3 in a row
-    /*
-    CBlockIndex * prev_index = mapBlockIndex[pblock->hashPrevBlock];
-    int algo = GetAlgo(pblock->nVersion);
-    if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
-      prev_index = prev_index->pprev;
-      if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
-	prev_index = prev_index->pprev;
-	if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
-	  LogPrintf("Max 3 in a row from a particular algo\n");
-	  return state.Invalid(error("Max 3 in a row from a particular algo"));
-	}
-      }
-    }
-    */
 
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp))

@@ -58,7 +58,6 @@ public:
     const vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
     int GetDefaultPort() const { return nDefaultPort; }
     const CBigNum& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
-    const CBigNum& ProofOfWorkLimitMA() const { return bnProofOfWorkLimitMA; }
     int SubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     int SubsidyInterimInterval() const { return nSubsidyHalvingInterval/2; }
     virtual const CBlock& GenesisBlock() const = 0;
@@ -85,7 +84,6 @@ protected:
     int nDefaultPort;
     int nRPCPort;
     CBigNum bnProofOfWorkLimit;
-    CBigNum bnProofOfWorkLimitMA;
     int nSubsidyHalvingInterval;
     string strDataDir;
     vector<CDNSSeedData> vSeeds;

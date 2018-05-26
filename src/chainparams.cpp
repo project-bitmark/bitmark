@@ -49,7 +49,6 @@ public:
         nDefaultPort = 9265;
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
-	bnProofOfWorkLimitMA = CBigNum(~uint256(0) >> 8); // multi algo proof of work limit
         nSubsidyHalvingInterval = 788000;
 	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
@@ -144,7 +143,6 @@ public:
         nDefaultPort = 19265;
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
-	bnProofOfWorkLimitMA = CBigNum(~uint256(0) >> 8);
         strDataDir = "testnet4";
 	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
@@ -199,7 +197,6 @@ public:
         pchMessageStart[3] = 0xda;
         nSubsidyHalvingInterval = 300;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
-	bnProofOfWorkLimitMA = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;
 	genesis.nNonce = 713058;

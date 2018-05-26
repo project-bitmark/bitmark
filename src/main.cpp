@@ -2747,11 +2747,18 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
 
-    CBlockIndex * pindexPrev = mapBlockIndex[block.hashPrevBlock];
-    bool blockOnFork = (pindexPrev->nHeight >= nForkHeight - 1) && (CBlockIndex::IsSuperMajority(4,pindexPrev,75,100));
+    /*
+    bool blockOnFork = false;
+    if (fCheckPOW && block.GetHash() != Params().HashGenesisBlock()) {
+      map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+      if (mi == mapBlockIndex.end())
+	return state.DoS(10, error("CheckBlock() : prev block not found"), 0, "bad-prevblk");
+      CBlockIndex * pindexPrev = (*mi).second;
+      blockOnFork = (pindexPrev->nHeight >= nForkHeight - 1) && (CBlockIndex::IsSuperMajority(4,pindexPrev,75,100));
+      }*/
     
     // Check proof of work matches claimed amount
-    if(fCheckPOW && blockOnFork && block.IsAuxpow()) {
+    if(fCheckPOW && block.IsAuxpow()) {
       LogPrintf("block being checked is auxpow\n");
       if (!CheckAuxPowProofOfWork(block, Params())) {
 	return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
@@ -2759,7 +2766,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
       }
     }
     else {
-          if (fCheckPOW && blockOnFork && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
+          if (fCheckPOW && block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&block, Params())) {
 	    return state.DoS(50, error("CheckBlock() : Invalid Equihash Solution"),
 			     REJECT_INVALID, "bad-equihash-solution");      
 	  }
@@ -2965,8 +2972,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     if (!CheckBlock(*pblock, state))
         return error("ProcessBlock() : CheckBlock FAILED");
 
-    CBlockIndex * pindexPrev = mapBlockIndex[pblock->hashPrevBlock];
-    if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
+    if (0) { // skip these extra checks until we have the fork height set
       CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
       if (pcheckpoint && pblock->hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)))
 	{

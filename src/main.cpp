@@ -1469,7 +1469,6 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	if (CountBlocks == 1) {
 	  PastDifficultyAverage.SetCompact(BlockReading->nBits);
 	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
-	  //LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
 	}
 	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
 	PastDifficultyAveragePrev = PastDifficultyAverage;
@@ -1478,10 +1477,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if(LastBlockTime > 0){
 	int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
 	nActualTimespan += Diff;
-	//LogPrintf("Diff %d ",Diff);
       }
       LastBlockTime = BlockReading->GetBlockTime();
-      //LogPrintf("LastBlockTime = %d\n",LastBlockTime);
 
       if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
       BlockReading = BlockReading->pprev;

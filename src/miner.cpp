@@ -697,16 +697,16 @@ void static BitmarkMiner(CWallet *pwallet)
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;
-	      LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
-	      
-	      if (thash <= hashTarget)
-		{
-		  SetThreadPriority(THREAD_PRIORITY_NORMAL);
-		  CheckWork(pblock, *pwallet, reservekey);
-		  SetThreadPriority(THREAD_PRIORITY_LOWEST);
-		  break;
-		}
+	      //LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
 	    }
+	      
+	    if (thash <= hashTarget)
+	      {
+		SetThreadPriority(THREAD_PRIORITY_NORMAL);
+		CheckWork(pblock, *pwallet, reservekey);
+		SetThreadPriority(THREAD_PRIORITY_LOWEST);
+		break;
+	      }
 	    pblock->nNonce += 1;
 	    nHashesDone += 1;
 	    if ((pblock->nNonce & 0xFF) == 0) {

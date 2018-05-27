@@ -1662,6 +1662,7 @@ bool IsInitialBlockDownload()
 
 bool fLargeWorkForkFound = false;
 bool fLargeWorkInvalidChainFound = false;
+bool fBlockTooFarInFuture = false;
 CBlockIndex *pindexBestForkTip = NULL, *pindexBestForkBase = NULL;
 
 void CheckForkWarningConditions()
@@ -2768,9 +2769,19 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     }
 
     // Check timestamp
-    if (block.GetBlockTime() > GetAdjustedTime() + 12 * 60)
-        return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
-                             REJECT_INVALID, "time-too-new");
+    if (block.GetBlockTime() > GetTime() + 12 * 60) {
+      if (block.GetBlockTime() <= GetAdjustedTime() + 2 * 60 * 60) {
+	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please be careful of network forks.");
+	CAlert::Notify(warning, true);
+	fBlockTooFarInFuture = true;
+	LogPrintf("Warning: Block timestamp too far in the future. Please be careful of network forks.");
+      }
+      return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
+			   REJECT_INVALID, "time-too-new");
+    }
+    else {
+      fBlockTooFarInFuture = false;
+    }
 
     // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
@@ -3614,6 +3625,10 @@ string GetWarnings(string strFor)
     {
         nPriority = 2000;
         strStatusBar = strRPC = _("Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.");
+    }
+    else if (fBlockTooFarInFuture) {
+      nPriority = 2000;
+      strStatusBar = strRPC = _("Warning: ");
     }
 
     // Alerts

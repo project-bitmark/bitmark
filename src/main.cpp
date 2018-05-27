@@ -1511,7 +1511,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      bnNew.SetCompact(BlockReading->nBits);
+      bnNew.SetCompact(0x1d00ffff);
       bnNew *= weight;
       bnNew /= (8*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;

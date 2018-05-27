@@ -1447,18 +1447,18 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	  int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
 	  nActualTimespan += Diff;
 	}
-	if (LastBlockTimeOtherAlgos > 0) {
+	if (LastBlockTimeOtherAlgos > 0 && time_since_last_algo == -1) {
 	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
 	break;
       }
-      
+
+      if (!LastBlockTimeOtherAlgos) {
+	LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
+      }
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { /* Only consider blocks from same algo */
-	if (!LastBlockTimeOtherAlgos) {
-	  LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
-	}
 	BlockReading = BlockReading->pprev;
 	continue;
       }
@@ -1510,24 +1510,13 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     else if (CountBlocks==1) {
       LogPrintf("CountBlocks = %d\n",CountBlocks);
-      //bnNew = CBigNum().SetCompact(pindexLast->nBits);
-      bnNew = Params().ProofOfWorkLimit()*algoWeight;
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");
       LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      if (weight>8*weight_scrypt) {
-	unsigned int multiplier = weight/(8*weight_scrypt);
-	LogPrintf("for algo %d multiplier is %d\n",algo,multiplier);
-	bnNew.SetCompact(BlockReading->nBits);
-	bnNew *= multiplier;
-      }
-      else {
-	unsigned int divisor = (8*weight_scrypt)/weight;
-	LogPrintf("for algo %d divisor is %d\n",algo,divisor);
-	bnNew.SetCompact(BlockReading->nBits);
-	bnNew /= divisor;
-      }
+      bnNew.SetCompact(BlockReading->nBits);
+      bnNew *= weight;
+      bnNew /= (8*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;
     }
     else {

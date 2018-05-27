@@ -2768,7 +2768,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     }
 
     // Check timestamp
-    if (block.GetBlockTime() > GetAdjustedTime() + 24 * 60)
+    if (block.GetBlockTime() > GetAdjustedTime() + 12 * 60)
         return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
                              REJECT_INVALID, "time-too-new");
 

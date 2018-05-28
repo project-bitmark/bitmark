@@ -79,7 +79,7 @@ public:
 
         // DNS Seeders - Verified, December 15, 2017 - dBKeys
 
-        /*vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));
         vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));
         vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));
         vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));
@@ -87,7 +87,7 @@ public:
         vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));
         vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));
         vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));
-        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));*/
+        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
@@ -96,7 +96,7 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
         // Convert the pnSeeds array into usable address objects.
-        /*for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
+        for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
         {
             // It'll only connect to one or two seed nodes because once it connects,
             // it'll get a pile of addresses with newer timestamps.
@@ -108,7 +108,7 @@ public:
             CAddress addr(CService(ip, GetDefaultPort()));
             addr.nTime = GetTime() - GetRand(nOneWeek) - nOneWeek;
             vFixedSeeds.push_back(addr);
-	    }*/
+	    }
     }
 
     virtual const CBlock& GenesisBlock() const { return genesis; }

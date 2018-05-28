@@ -1232,7 +1232,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
       emitted = NUM_ALGOS * pprev_algo->nMoneySupply;
     }
     else {
-      LogPrintf("emitted uses mpow correction \n");
+      //LogPrintf("emitted uses mpow correction \n");
       emitted = NUM_ALGOS * get_mpow_ms_correction(pindex);
     }
 
@@ -1496,7 +1496,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      if (BlockReading->nHeight == 464573) {
+      if (BlockReading->nHeight == 446573) {
 	LogPrintf("set to blocktreading nBits\n");
 	bnNew.SetCompact(BlockReading->nBits); //for testing fork
       }

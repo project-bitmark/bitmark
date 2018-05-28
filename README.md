@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-## Introduction
-
-The code on this branch includes several features (mPOW, DGWv3 and CEMv0.1) and is specifically designed to address the mining attack on the Bitmark Blockchain.
-
-**Forking** Why fork this when you can fork [Pfennig](https://github.com/project-bitmark/pfennig) - it's made to be cloned.
+# Introduction
 
 Project Bitmark is a multi faceted project which aims to provide:
 
@@ -41,7 +36,7 @@ All Bitmark software releases are published through the github release process, 
 
 ## mPOW Hard Fork (branch 0.9.7)
 
-We are now in the testing phase of the hard fork that allows for multiple proof-of-work algorithms (SHA256D, SCRYPT, ARGON2, LYRA2REv2, X17, EQUIHASH, CRYPTONIGHT). Each algorithm has its difficulty adjusted independently, with a target spacing of 10 min (so 2 min as before if we consider blocks mined by any algorithm). The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 720/8=90 blocks).
+We are now releasing the hard fork that allows for multiple proof-of-work algorithms (SHA256D, SCRYPT, ARGON2, LYRA2REv2, X17, EQUIHASH, CRYPTONIGHT). Each algorithm has its difficulty adjusted independently, with a target spacing of 16 min (so 2 min as before if we consider blocks mined by any algorithm). The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 720/8=90 blocks). The difficulty adjustment algorithm is Dark Gravity Wave v3, taken and modified from DASH for multi algo usage. It also includes a special retargeting rule that activates if blocks from one algo are halted for a long time.
 
 To test, you can download the current version from this branch, and put the following settings in your bitmark.conf
 

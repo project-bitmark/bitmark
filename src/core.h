@@ -191,7 +191,6 @@ public:
     void print() const;
 };
 
-
 /** The basic transaction that is broadcasted on the network and contained in
  * blocks.  A transaction can contain multiple inputs and outputs.
  */
@@ -401,8 +400,7 @@ public:
     /** Parent block header (on which the real PoW is done).  */
     CPureBlockHeader parentBlock;
 
-    int algo = 0;
- 
+    int algo = 0; 
 
 public:
     /* Prevent accidental conversion.  */

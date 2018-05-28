@@ -198,7 +198,7 @@ yescrypt_r(const yescrypt_shared_t * shared, yescrypt_local_t * local,
 	need = prefixlen + saltlen + 1 + HASH_LEN + 1;
 	if (need > buflen || need < saltlen)
                             
-		           {printf("'%d %d %d'",need,buflen, saltlen);fflush(stdout);
+		           {printf("'%lu %lu %lu'",need,buflen, saltlen);fflush(stdout);
                             printf("died8killbuf ...");
                             fflush(stdout);
 		return NULL; 

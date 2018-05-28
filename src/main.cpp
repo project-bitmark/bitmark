@@ -741,12 +741,6 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
     return chainActive.Height() - pindex->nHeight + 1;
 }
 
-
-
-
-
-
-
 bool CheckTransaction(const CTransaction& tx, CValidationState &state)
 {
     // Basic checks that don't depend on any context
@@ -837,7 +831,6 @@ int64_t GetMinFee(const CTransaction& tx, unsigned int nBytes, bool fAllowFree, 
         nMinFee = MAX_MONEY;
     return nMinFee;
 }
-
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fRejectInsaneFee)
@@ -983,7 +976,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
     return true;
 }
 
-
 int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
 {
     if (hashBlock == 0 || nIndex == -1)
@@ -1033,7 +1025,6 @@ bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
     CValidationState state;
     return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL);
 }
-
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
 bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock, bool fAllowSlow)
@@ -1096,11 +1087,6 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
     return false;
 }
 
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CBlock and CBlockIndex
@@ -1108,7 +1094,6 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 {
-  LogPrintf("In writeblocktodisk\n");
     // Open history file to append
     CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
     if (!fileout) {
@@ -1217,12 +1202,12 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
+int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
 {
     // for testnet
-    int nHeight = pindexPrev->nHeight;
+    int nHeight = pindex->nHeight;
 
-    if (!onFork(pindexPrev)) {
+    if (!onFork(pindex)) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1241,24 +1226,25 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
     // emitted
     uint256 emitted;
 
-    CBlockIndex * pprev_algo = get_pprev_algo(pindexPrev,-1);
+    CBlockIndex * pprev_algo = get_pprev_algo(pindex,-1);
 
     if (pprev_algo) { //make emitted 8 times bigger so that the target points are divided in 8 for each algo
       emitted = NUM_ALGOS * pprev_algo->nMoneySupply;
     }
     else {
-      emitted = pindexPrev->nMoneySupply;
+      LogPrintf("emitted uses mpow correction \n");
+      emitted = NUM_ALGOS * get_mpow_ms_correction(pindex);
     }
 
     unsigned int scalingFactor = 0;
-    if (onFork(pindexPrev)) {
-      scalingFactor = pindexPrev->subsidyScalingFactor;
+    if (onFork(pindex)) {
+      scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
-	CBlockIndex * pprev_algo = pindexPrev;
+	CBlockIndex * pprev_algo = pindex;
 	do {
 	  if (update_ssf(pprev_algo->nVersion)) {
 	    scalingFactor = get_ssf(pprev_algo);
-	    pindexPrev->subsidyScalingFactor = scalingFactor;
+	    pindex->subsidyScalingFactor = scalingFactor;
 	    break;
 	  }
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
@@ -1389,6 +1375,7 @@ int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale)
 static const int64_t nTargetTimespan = 24*60*60; // one day
 static const int64_t nTargetSpacing = 2*60; // two minutes
 static const int64_t nInterval = nTargetTimespan / nTargetSpacing;
+static const int64_t DGWtimespan = 960; // 16 min for dark gravity wave
 
 //
 // minimum amount of work that could possibly be required nTime after
@@ -1396,7 +1383,7 @@ static const int64_t nInterval = nTargetTimespan / nTargetSpacing;
 //
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 {
-    const CBigNum &bnLimit = Params().ProofOfWorkLimit();
+  const CBigNum &bnLimit = Params().ProofOfWorkLimit();
     // Testnet has min-difficulty blocks
     // after nTargetSpacing*2 time between blocks:
     if (TestNet() && nTime > nTargetSpacing*2)
@@ -1423,16 +1410,17 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     const CBlockIndex *BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = 25; // todo: maybe make this bigger since it can lead to inaccuracies with unsynced clocks
+    int64_t PastBlocksMin = 25;
     int64_t PastBlocksMax = 25;
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
     CBigNum PastDifficultyAveragePrev;
     int64_t time_since_last_algo = -1;
     int64_t LastBlockTimeOtherAlgos = 0;
+    unsigned int algoWeight = GetAlgoWeight(algo);
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
-        return Params().ProofOfWorkLimit().GetCompact();
+      return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
 
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
@@ -1444,18 +1432,18 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	  int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
 	  nActualTimespan += Diff;
 	}
-	if (LastBlockTimeOtherAlgos > 0) {
+	if (LastBlockTimeOtherAlgos > 0 && time_since_last_algo == -1) {
 	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
 	break;
       }
-      
+
+      if (!LastBlockTimeOtherAlgos) {
+	LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
+      }
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { /* Only consider blocks from same algo */
-	if (!LastBlockTimeOtherAlgos) {
-	  LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
-	}
 	BlockReading = BlockReading->pprev;
 	continue;
       }
@@ -1466,7 +1454,6 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	if (CountBlocks == 1) {
 	  PastDifficultyAverage.SetCompact(BlockReading->nBits);
 	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
-	  //LogPrintf("time_since_last_algo = %d - %d\n",LastBlockTimeOtherAlgos,BlockReading->GetBlockTime());
 	}
 	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
 	PastDifficultyAveragePrev = PastDifficultyAverage;
@@ -1475,17 +1462,15 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if(LastBlockTime > 0){
 	int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
 	nActualTimespan += Diff;
-	//LogPrintf("Diff %d ",Diff);
       }
       LastBlockTime = BlockReading->GetBlockTime();
-      //LogPrintf("LastBlockTime = %d\n",LastBlockTime);
 
       if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
       BlockReading = BlockReading->pprev;
     }
     
     CBigNum bnNew(PastDifficultyAverage);
-    int64_t _nTargetTimespan = (CountBlocks-1) * 960; //16 min target
+    int64_t _nTargetTimespan = (CountBlocks-1) * DGWtimespan; //16 min target
 
     int64_t smultiplier = 1;
     bool smultiply = false;
@@ -1507,42 +1492,29 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     else if (CountBlocks==1) {
       LogPrintf("CountBlocks = %d\n",CountBlocks);
-      //bnNew = CBigNum().SetCompact(pindexLast->nBits);
-      bnNew = Params().ProofOfWorkLimit();
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");
-      LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
+      LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      if (weight>8*weight_scrypt) {
-	unsigned int multiplier = weight/(8*weight_scrypt);
-	LogPrintf("for algo %d multiplier is %d\n",algo,multiplier);
-	bnNew.SetCompact(BlockReading->nBits);
-	bnNew *= multiplier;
+      if (BlockReading->nHeight == 464573) {
+	LogPrintf("set to blocktreading nBits\n");
+	bnNew.SetCompact(BlockReading->nBits); //for testing fork
       }
       else {
-	unsigned int divisor = (8*weight_scrypt)/weight;
-	LogPrintf("for algo %d divisor is %d\n",algo,divisor);
-	bnNew.SetCompact(BlockReading->nBits);
-	bnNew /= divisor;
+	LogPrintf("set to 1d00ffff\n");
+	bnNew.SetCompact(0x1d00ffff);
       }
+      bnNew *= weight;
+      bnNew /= (8*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;
     }
     else {
       if (smultiply) bnNew *= smultiplier*3;
     }
     
-    if (bnNew > Params().ProofOfWorkLimit()){
-      bnNew = Params().ProofOfWorkLimit();
+    if (bnNew > Params().ProofOfWorkLimit()*algoWeight){
+      bnNew = Params().ProofOfWorkLimit()*algoWeight;
     }
-
-    //test
-    /*
-    CBigNum bnTest;
-    bnTest.SetCompact(0x1c055bc8);
-    LogPrintf("bnTest from %s\n",bnTest.getuint256().ToString());
-    bnTest *= 10*287;
-    LogPrintf("to %s\n",bnTest.getuint256().ToString());
-    */
     
     /// debug print
     LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
@@ -1556,12 +1528,12 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 }
 
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int miningAlgo)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
 {
   if (RegTest()) return Params().ProofOfWorkLimit().GetCompact();
     int nHeight = pindexLast->nHeight;
     int workAlgo = pindexLast->nHeight;
-    // Mainnet
+
     if (nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexLast,75,100) || RegTest()) {
       workAlgo = 0;
     } else {
@@ -1598,6 +1570,15 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
+	  /*if (pindexLast->nHeight >= 446499 && pindexLast->nHeight<=446599) { // special rule for testing fork
+	    CBigNum bnNew;
+	    bnNew.SetCompact(pindexLast->nBits);
+	    bnNew *= 5000000;
+	    unsigned int algoWeight = GetAlgoWeight(ALGO_SCRYPT);
+	    if (bnNew > Params().ProofOfWorkLimit()*algoWeight)
+	      bnNew = Params().ProofOfWorkLimit()*algoWeight;
+	    return bnNew.GetCompact();
+	    }*/
 	  return pindexLast->nBits;
         }
 
@@ -1630,9 +1611,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         LogPrintf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
         LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
 
-        return bnNew.GetCompact();
+         return bnNew.GetCompact();
     } else {
-      return DarkGravityWave(pindexLast,miningAlgo);
+      return DarkGravityWave(pindexLast,algo);
     }
 }
 
@@ -1661,6 +1642,7 @@ bool IsInitialBlockDownload()
 
 bool fLargeWorkForkFound = false;
 bool fLargeWorkInvalidChainFound = false;
+bool fBlockTooFarInFuture = false;
 CBlockIndex *pindexBestForkTip = NULL, *pindexBestForkBase = NULL;
 
 void CheckForkWarningConditions()
@@ -1926,8 +1908,6 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 
     return true;
 }
-
-
 
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
@@ -2252,7 +2232,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	pindex->nMoneySupply = 2000000000;
       }
     }
-    LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
+    //LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
 
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS)
@@ -2328,10 +2308,10 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",
       chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),
 	      Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
-    char * blocktime = (char *)malloc(50);
-    sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
+    //char * blocktime = (char *)malloc(50);
+    //sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
     //LogPrintTest(blocktime,"timingtest.log");
-    free(blocktime);
+    //free(blocktime);
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload)
@@ -2553,7 +2533,6 @@ bool ActivateBestChain(CValidationState &state) {
 
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos)
 {
-  LogPrintf("In addtoblockindex\n");
     // Check for duplicate
     uint256 hash = block.GetHash();
     if (mapBlockIndex.count(hash))
@@ -2577,11 +2556,8 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
     pindexNew->nTx = block.vtx.size();
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + pindexNew->GetBlockWork().getuint256();
     if (block.IsAuxpow()) {
-      LogPrintf("addtoblockindex auxpow\n");
       pindexNew->pauxpow = block.auxpow;
-      LogPrintf("Have set pindexNew pauxpow\n");
       assert(NULL != pindexNew->pauxpow.get());
-      LogPrintf("Have asserted pindexNew\n");
     }
     pindexNew->nChainTx = (pindexNew->pprev ? pindexNew->pprev->nChainTx : 0) + pindexNew->nTx;
     pindexNew->nFile = pos.nFile;
@@ -2592,15 +2568,11 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
 
     if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew)))
         return state.Abort(_("Failed to write block index"));
-
-    LogPrintf("wrote blockindex\n");
     
     // New best?
     if (!ActivateBestChain(state))
         return false;
 
-    LogPrintf("passed activatebestchain\n");
-    
     LOCK(cs_main);
     if (pindexNew == chainActive.Tip())
     {
@@ -2612,22 +2584,17 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
         hashPrevBestCoinBase = block.GetTxHash(0);
     } else
         CheckForkWarningConditionsOnNewFork(pindexNew);
-
-    LogPrintf("passed forkwarningconds\n");
     
     if (!pblocktree->Flush())
         return state.Abort(_("Failed to sync block index"));
 
     uiInterface.NotifyBlocksChanged();
-    LogPrintf("done with addtoblockindex\n");
+
     return true;
 }
 
-
 bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64_t nTime, bool fKnown = false)
 {
-
-  LogPrintf("In findblockpos with nAddSize = %d",nAddSize);
   
     bool fUpdatedLast = false;
 
@@ -2734,9 +2701,19 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || block_size > MAX_BLOCK_SIZE)
         return state.DoS(100, error("CheckBlock() : size limits failed"),
                          REJECT_INVALID, "bad-blk-length");
+
+    /*
+    bool blockOnFork = false;
+    if (fCheckPOW && block.GetHash() != Params().HashGenesisBlock()) {
+      map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+      if (mi == mapBlockIndex.end())
+	return state.DoS(10, error("CheckBlock() : prev block not found"), 0, "bad-prevblk");
+      CBlockIndex * pindexPrev = (*mi).second;
+      blockOnFork = (pindexPrev->nHeight >= nForkHeight - 1) && (CBlockIndex::IsSuperMajority(4,pindexPrev,75,100));
+      }*/
+    
     // Check proof of work matches claimed amount
     if(fCheckPOW && block.IsAuxpow()) {
-      LogPrintf("block being checked is auxpow\n");
       if (!CheckAuxPowProofOfWork(block, Params())) {
 	return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
 			 REJECT_INVALID, "high-hash");
@@ -2749,16 +2726,26 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 	  }
 
 	  //LogPrintf("check proof of work of block with algo %d\n",block.GetAlgo());
-	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(), block.nBits)) {
-	    return state.DoS(50, error("CheckBlock() : proof of work failed 1"),
-			 REJECT_INVALID, "high-hash");
+	  if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(),block.nBits,block.GetAlgo())) {
+	    return state.DoS(50, error("CheckBlock() : proof of work failed"),
+			     REJECT_INVALID, "high-hash");
 	  }
     }
 
     // Check timestamp
-    if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
-        return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
-                             REJECT_INVALID, "time-too-new");
+    if (block.GetBlockTime() > GetTime() + 12 * 60) {
+      if (block.GetBlockTime() <= GetAdjustedTime() + 2 * 60 * 60) {
+	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please be careful of network forks.");
+	CAlert::Notify(warning, true);
+	fBlockTooFarInFuture = true;
+	LogPrintf("Warning: Block timestamp too far in the future. Please be careful of network forks.");
+      }
+      return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
+			   REJECT_INVALID, "time-too-new");
+    }
+    else {
+      fBlockTooFarInFuture = false;
+    }
 
     // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
@@ -2808,7 +2795,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
-  LogPrintf("In acceptblock\n");
     AssertLockHeld(cs_main);
     // Check for duplicate
     uint256 hash = block.GetHash();
@@ -2823,9 +2809,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         if (mi == mapBlockIndex.end())
             return state.DoS(10, error("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
         pindexPrev = (*mi).second;
-        nHeight = pindexPrev->nHeight+1;
-
-	
+        nHeight = pindexPrev->nHeight+1;	
 
         // Check proof of work
 	int block_algo = GetAlgo(block.nVersion);
@@ -2887,10 +2871,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	  if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
 	    return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
 	  }
-	}
-
-	
-	
+	}	
     }
 
     // Write block to history file
@@ -2919,8 +2900,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
             if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
-
-    LogPrintf("Done acceptblock\n");
     
     return true;
 }
@@ -2952,27 +2931,28 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     if (!CheckBlock(*pblock, state))
         return error("ProcessBlock() : CheckBlock FAILED");
 
-    CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-    if (pcheckpoint && pblock->hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)))
-    {
-        // Extra checks to prevent "fill up memory by spamming with bogus blocks"
-        int64_t deltaTime = pblock->GetBlockTime() - pcheckpoint->nTime;
-        if (deltaTime < 0)
-        {
-            return state.DoS(100, error("ProcessBlock() : block with timestamp before last checkpoint"),
-                             REJECT_CHECKPOINT, "time-too-old");
-        }
-        CBigNum bnNewBlock;
-        bnNewBlock.SetCompact(pblock->nBits);
-        CBigNum bnRequired;
-        bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
-        if (bnNewBlock > bnRequired)
-        {
-            return state.DoS(100, error("ProcessBlock() : block with too little proof-of-work"),
-                             REJECT_INVALID, "bad-diffbits");
-        }
+    if (0) { // skip these extra checks until we have the fork height set
+      CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
+      if (pcheckpoint && pblock->hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)))
+	{
+	  // Extra checks to prevent "fill up memory by spamming with bogus blocks"
+	  int64_t deltaTime = pblock->GetBlockTime() - pcheckpoint->nTime;
+	  if (deltaTime < 0)
+	    {
+	      return state.DoS(100, error("ProcessBlock() : block with timestamp before last checkpoint"),
+			       REJECT_CHECKPOINT, "time-too-old");
+	    }
+	  CBigNum bnNewBlock;
+	  bnNewBlock.SetCompact(pblock->nBits);
+	  CBigNum bnRequired;
+	  bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
+	  if (bnNewBlock > bnRequired)
+	    {
+	      return state.DoS(100, error("ProcessBlock() : block with too little proof-of-work"),
+			       REJECT_INVALID, "bad-diffbits");
+	    }
+	}
     }
-
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (pblock->hashPrevBlock != 0 && !mapBlockIndex.count(pblock->hashPrevBlock))
@@ -2998,22 +2978,6 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         }
         return true;
     }
-    
-    // check for 3 in a row
-    /*
-    CBlockIndex * prev_index = mapBlockIndex[pblock->hashPrevBlock];
-    int algo = GetAlgo(pblock->nVersion);
-    if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
-      prev_index = prev_index->pprev;
-      if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
-	prev_index = prev_index->pprev;
-	if (prev_index && GetAlgo(prev_index->nVersion)==algo) {
-	  LogPrintf("Max 3 in a row from a particular algo\n");
-	  return state.Invalid(error("Max 3 in a row from a particular algo"));
-	}
-      }
-    }
-    */
 
     // Store to disk
     if (!AcceptBlock(*pblock, state, dbp))
@@ -3024,7 +2988,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     vWorkQueue.push_back(hash);
     for (unsigned int i = 0; i < vWorkQueue.size(); i++)
     {
-      LogPrintf("processblock work queue %d of %d\n",i,vWorkQueue.size());
+      //LogPrintf("processblock work queue %d of %d\n",i,vWorkQueue.size());
         uint256 hashPrev = vWorkQueue[i];
         for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev);
              mi != mapOrphanBlocksByPrev.upper_bound(hashPrev);
@@ -3264,9 +3228,9 @@ bool static LoadBlockIndexDB()
 
     // Load block file info
     pblocktree->ReadLastBlockFile(nLastBlockFile);
-    LogPrintf("LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);
+    //LogPrintf("LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);
     if (pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile))
-        LogPrintf("LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString());
+      LogPrintf("LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString());
 
     // Check whether we need to continue reindexing
     bool fReindexing = false;
@@ -3397,7 +3361,7 @@ bool InitBlockIndex() {
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
 
-	    /*uint256 best_hash = block.GetPoWHash();
+	    /*uint256 best_hash = block.GetPoWHash(); // for generating a testnet genesis block
 	    CBigNum bnTarget;
 	    bnTarget.SetCompact(block.nBits);
 	    uint256 target = bnTarget.getuint256();
@@ -3433,8 +3397,6 @@ bool InitBlockIndex() {
 
     return true;
 }
-
-
 
 void PrintBlockTree()
 {
@@ -3578,15 +3540,6 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
     return nLoaded > 0;
 }
 
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CAlert
@@ -3621,6 +3574,10 @@ string GetWarnings(string strFor)
         nPriority = 2000;
         strStatusBar = strRPC = _("Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.");
     }
+    else if (fBlockTooFarInFuture) {
+      nPriority = 2000;
+      strStatusBar = strRPC = _("Warning: ");
+    }
 
     // Alerts
     {
@@ -3644,18 +3601,10 @@ string GetWarnings(string strFor)
     return "error";
 }
 
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // Messages
 //
-
 
 bool static AlreadyHave(const CInv& inv)
 {
@@ -3821,8 +3770,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         LOCK(cs_main);
         State(pfrom->GetId())->nLastBlockProcess = GetTimeMicros();
     }
-
-
 
     if (strCommand == "version")
     {
@@ -4010,7 +3957,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->fDisconnect = true;
     }
 
-
     else if (strCommand == "inv")
     {
         vector<CInv> vInv;
@@ -4054,7 +4000,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "getdata")
     {
         vector<CInv> vInv;
@@ -4074,7 +4019,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
         ProcessGetData(pfrom);
     }
-
 
     else if (strCommand == "getblocks")
     {
@@ -4110,7 +4054,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
-
 
     else if (strCommand == "getheaders")
     {
@@ -4149,7 +4092,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
         pfrom->PushMessage("headers", vHeaders);
     }
-
 
     else if (strCommand == "tx")
     {
@@ -4253,7 +4195,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
         CBlock block;
@@ -4274,7 +4215,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         ProcessBlock(state, pfrom, &block);
     }
 
-
     else if (strCommand == "getaddr")
     {
         pfrom->vAddrToSend.clear();
@@ -4282,7 +4222,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         BOOST_FOREACH(const CAddress &addr, vAddr)
             pfrom->PushAddress(addr);
     }
-
 
     else if (strCommand == "mempool")
     {
@@ -4308,7 +4247,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->PushMessage("inv", vInv);
     }
 
-
     else if (strCommand == "ping")
     {
     	// BIP0031
@@ -4327,7 +4265,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 		// return very quickly.
 		pfrom->PushMessage("pong", nonce);
     }
-
 
     else if (strCommand == "pong")
     {
@@ -4385,7 +4322,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "alert")
     {
         CAlert alert;
@@ -4416,7 +4352,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "filterload")
     {
         CBloomFilter filter;
@@ -4434,7 +4369,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
         pfrom->fRelayTxes = true;
     }
-
 
     else if (strCommand == "filteradd")
     {
@@ -4455,7 +4389,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "filterclear")
     {
         LOCK(pfrom->cs_filter);
@@ -4463,7 +4396,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         pfrom->pfilter = new CBloomFilter();
         pfrom->fRelayTxes = true;
     }
-
 
     else if (strCommand == "reject")
     {
@@ -4489,7 +4421,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     {
         // Ignore unknown commands for extensibility
     }
-
 
     // Update the last seen time for this node's address
     if (pfrom->fNetworkNode)
@@ -4627,7 +4558,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Don't send anything until we get their version message
         if (pto->nVersion == 0)
             return true;
-
+	
         //
         // Message: ping
         //
@@ -4838,11 +4769,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
     return true;
 }
 
-
-
-
-
-
 class CMainCleanup
 {
 public:
@@ -4929,7 +4855,7 @@ CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo) {
     algo = GetAlgo(p->nVersion);
   }
   CBlockIndex * pprev = p->pprev;
-  while (pprev && pprev->nHeight>=nForkHeight) {
+  while (pprev && onFork(pprev)) {
     int cur_algo = GetAlgo(pprev->nVersion);
     if (cur_algo == algo) {
       return pprev;
@@ -4954,19 +4880,6 @@ int64_t get_mpow_ms_correction (CBlockIndex * p) {
   //LogPrintf("just return 0 for correction\n");
   return 0;
 }
-
-/*
-CBigNum GetPeakHashrate (int nVersion) {
-  CBigNum peak_hashrate_base = CBigNum((nVersion & BLOCK_VERSION_PEAK_HASHRATE_BASE) >> 20);
-  if (peak_hashrate_base == 0) return 0;
-  CBigNum peak_hashrate_exp = CBigNum((nVersion & BLOCK_VERSION_PEAK_HASHRATE_EXP) >> 12);
-  CBigNum peak_hashrate = 1;
-  for (CBigNum i=0; i<peak_hashrate_exp; i++) {
-    peak_hashrate *= peak_hashrate_base;
-  }
-  return peak_hashrate;  
-}
-*/
 
 bool update_ssf (int nVersion) {
   return nVersion & BLOCK_VERSION_UPDATE_SSF;

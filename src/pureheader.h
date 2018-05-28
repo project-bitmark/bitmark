@@ -38,8 +38,7 @@ enum
     BLOCK_VERSION_CHAIN = (1 << 16)
   };
 
-
-class CPureBlockHeader {
+class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow in CBlockHeader
  public:
   static const int CURRENT_VERSION=4;
   int nVersion;
@@ -202,9 +201,12 @@ class CPureBlockHeader {
     case ALGO_SCRYPT:
       {
 	//special for testing
-	if (nTime > 1526581740 && nBits == 453187307) {
-	  LogPrintf("do special powhash\n");
-	}
+	/*if (nTime > 1527138083 && nBits == 453187307) {
+	  //LogPrintf("do special powhash\n");
+	  uint256 thash;
+	  hash_easy(BEGIN(nVersion),BEGIN(thash));
+	  return thash;
+	  }*/
 	uint256 thash;
 	hash_scrypt(BEGIN(nVersion),BEGIN(thash));
 	return thash;
@@ -225,9 +227,6 @@ class CPureBlockHeader {
       }
     case ALGO_EQUIHASH:
       {
-	/*uint256 thash;
-	hash_equihash(BEGIN(nVersion),BEGIN(thash));
-	return thash;*/
 	return GetHashE();
       }
     case ALGO_CRYPTONIGHT:

@@ -6,6 +6,44 @@
 #include "cryptonight/crypto/hash-ops.h"
 #include "yescrypt/yescrypt.h"
 
+uint32_t murmur3_32(const uint8_t* key, size_t len, uint32_t seed) {
+  uint32_t h = seed;
+  if (len > 3) {
+    const uint32_t* key_x4 = (const uint32_t*) key;
+    size_t i = len >> 2;
+    do {
+      uint32_t k = *key_x4++;
+      k *= 0xcc9e2d51;
+      k = (k << 15) | (k >> 17);
+      k *= 0x1b873593;
+      h ^= k;
+      h = (h << 13) | (h >> 19);
+      h = (h * 5) + 0xe6546b64;
+    } while (--i);
+    key = (const uint8_t*) key_x4;
+  }
+  if (len & 3) {
+    size_t i = len & 3;
+    uint32_t k = 0;
+    key = &key[i - 1];
+    do {
+      k <<= 8;
+      k |= *key--;
+    } while (--i);
+    k *= 0xcc9e2d51;
+    k = (k << 15) | (k >> 17);
+    k *= 0x1b873593;
+    h ^= k;
+  }
+  h ^= len;
+  h ^= h >> 16;
+  h *= 0x85ebca6b;
+  h ^= h >> 13;
+  h *= 0xc2b2ae35;
+  h ^= h >> 16;
+  return h;
+}
+
 inline uint32_t MROTL32 ( uint32_t x, int8_t r )
 {
     return (x << r) | (x >> (32 - r));
@@ -106,6 +144,16 @@ int HMAC_SHA512_Final(unsigned char *pmd, HMAC_SHA512_CTX *pctx)
 
 void hash_scrypt(const char * input, char * output) {
   scrypt_1024_1_1_256(input,output);
+}
+
+void hash_easy (const char* input, char * output) {
+
+  for (int i=0; i<7; i++) {
+    uint32_t hashpart = murmur3_32((uint8_t*)input+10*i,10,((uint32_t*)input)[16-2*i]);
+    //LogPrintf("murmur %d = %u\n",i,hashpart);
+    ((uint32_t*)output)[i] = hashpart;
+  }
+  ((uint32_t*)output)[7] = 0;
 }
 
 void hash_argon2(const char * input, char * output) {

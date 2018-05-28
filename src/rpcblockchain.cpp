@@ -59,7 +59,7 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
         nShift--;
     }
 
-    return dDiff;
+    return dDiff*GetAlgoWeight(algo); //weighted difficulty
 }
 
 double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {

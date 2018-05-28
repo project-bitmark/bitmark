@@ -182,9 +182,9 @@ mineBlock(CBlockHeader& block, bool ok, int nBits = -1)
   }
 
   if (ok)
-    BOOST_CHECK(CheckProofOfWork(block.GetPoWHash(algo), nBits));
+    BOOST_CHECK(CheckProofOfWork(block.GetPoWHash(algo), nBits,block.GetAlgo()));
   else
-    BOOST_CHECK(!CheckProofOfWork(block.GetPoWHash(algo), nBits));
+    BOOST_CHECK(!CheckProofOfWork(block.GetPoWHash(algo), nBits,block.GetAlgo()));
 }
 
 BOOST_AUTO_TEST_CASE(check_auxpow)

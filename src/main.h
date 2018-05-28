@@ -81,7 +81,6 @@ static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
 
-
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
@@ -99,7 +98,6 @@ extern unsigned int nCoinCacheSize;
 
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
-
 
 class CCoinsDB;
 class CBlockTreeDB;
@@ -181,22 +179,13 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
 void Misbehaving(NodeId nodeid, int howmuch);
 
-
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fRejectInsaneFee=false);
 
-
-
-
-
-
-
-
 struct CNodeStateStats {
     int nMisbehavior;
 };
-
 
 struct CDiskTxPos : public CDiskBlockPos
 {
@@ -219,8 +208,6 @@ struct CDiskTxPos : public CDiskBlockPos
         nTxOffset = 0;
     }
 };
-
-
 
 enum GetMinFee_mode
 {
@@ -261,7 +248,6 @@ unsigned int GetLegacySigOpCount(const CTransaction& tx);
     @see CTransaction::FetchInputs
  */
 unsigned int GetP2SHSigOpCount(const CTransaction& tx, CCoinsViewCache& mapInputs);
-
 
 inline bool AllowFree(double dPriority)
 {
@@ -359,7 +345,6 @@ public:
         return true;
     }
 };
-
 
 /** Closure representing one script verification
  *  Note that this stores references to the spending transaction */
@@ -485,13 +470,10 @@ public:
     uint256 ExtractMatches(std::vector<uint256> &vMatch);
 };
 
-
-
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
-
 
 /** Functions for validating blocks and updating the block tree */
 
@@ -513,8 +495,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = t
 // Store block on disk
 // if dbp is provided, the file is known to already reside on disk
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp = NULL);
-
-
 
 class CBlockFileInfo
 {
@@ -648,11 +628,6 @@ struct CBlockTemplate
     std::vector<int64_t> vTxSigOps;
 };
 
-
-
-
-
-
 /** Used to relay blocks as header + vector<merkle branch>
  * to filtered nodes.
  */
@@ -679,7 +654,6 @@ public:
         READWRITE(txn);
     )
 };
-
 
 class CWalletInterface {
 protected:

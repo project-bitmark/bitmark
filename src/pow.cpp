@@ -4,13 +4,13 @@
 #include "util.h"
 #include "equihash.h"
 
-bool CheckProofOfWork(uint256 hash, unsigned int nBits)
-{
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, int algo)
+ {
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
 
     // Check range
-    if (bnTarget <= 0 || bnTarget > Params().ProofOfWorkLimit()) {
+    if (bnTarget <= 0 || bnTarget > Params().ProofOfWorkLimit()*GetAlgoWeight(algo)) {
       return error("CheckProofOfWork() : nBits below minimum work");
     }
 

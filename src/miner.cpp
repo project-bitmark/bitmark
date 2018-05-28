@@ -484,8 +484,13 @@ CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey)
 
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
-    uint256 hash = pblock->GetPoWHash(miningAlgo);
-    if (pblock->nVersion<=3) hash = pblock->GetPoWHash(ALGO_SCRYPT);
+    uint256 hash;
+    if (pblock->nVersion<=3) {
+      hash = pblock->GetPoWHash(ALGO_SCRYPT);
+    }
+    else {
+      hash = pblock->GetPoWHash(miningAlgo);
+    }
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     if (hash > hashTarget)
@@ -533,6 +538,9 @@ void static BitmarkMiner(CWallet *pwallet)
 
     int n_blocks_created = 0;
 
+    uint256 best_hash;
+    bool first_hash = true;
+    
     try { while (true) {
         if (Params().NetworkID() != CChainParams::REGTEST) {
             // Busy-wait for the network to come online so we don't waste time mining
@@ -586,10 +594,8 @@ void static BitmarkMiner(CWallet *pwallet)
 	  unsigned int nHashesDone = 0;
 	  uint256 thash;
 	  //char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-	  uint256 best_hash;
 	  //LogPrintf("starting best hash: %s\n",best_hash.GetHex().c_str());
 	  //LogPrintf("hash target = %s\n",hashTarget.GetHex().c_str());
-	  bool first_hash = true;
 
 	  if (miningAlgo==ALGO_EQUIHASH) {
 	    unsigned int n = Params().EquihashN();
@@ -681,14 +687,19 @@ void static BitmarkMiner(CWallet *pwallet)
 	  }
 	  else while(true) {
 	    
-	    uint256 thash = pblock->GetPoWHash(miningAlgo);
-	    if (pblock->nVersion<=3) thash = pblock->GetPoWHash(ALGO_SCRYPT);
+	    uint256 thash;
+	    if (pblock->nVersion<=3) {
+	      thash = pblock->GetPoWHash(ALGO_SCRYPT);
+	    }
+	    else {
+	      thash = pblock->GetPoWHash(miningAlgo);
+	    }
 	    if (thash < best_hash || first_hash) {
 	      first_hash = false;
 	      best_hash = thash;
 	      //LogPrintf("best hash: %s\n",best_hash.GetHex().c_str());
 	    }
-	  
+	      
 	    if (thash <= hashTarget)
 	      {
 		SetThreadPriority(THREAD_PRIORITY_NORMAL);

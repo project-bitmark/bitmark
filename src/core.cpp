@@ -297,12 +297,10 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMer
 
 uint256 CBlock::CheckMerkleBranchKeccak(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex)
 {
-  LogPrintf("in checkmerklebranchkeccak nIndex=%d\n",nIndex);
     if (nIndex == -1)
         return 0;
     BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
     {
-      LogPrintf("otherside\n");
         if (nIndex & 1)
             hash = KeccakHash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
         else
@@ -369,11 +367,11 @@ bool
 CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& params) const
 {
 
-  LogPrintf("check auxpow with parentBlock chainId = %d and vChainMerkleBranch size %d and nChainIndex %d\n",parentBlock.GetChainId(),vChainMerkleBranch.size(),nChainIndex);
+  //LogPrintf("check auxpow with parentBlock chainId = %d and vChainMerkleBranch size %d and nChainIndex %d\n",parentBlock.GetChainId(),vChainMerkleBranch.size(),nChainIndex);
   
   if (nIndex != 0) {
     LogPrintf("check auxpow err 1\n");
-        return error("AuxPow is not a generate");
+    return error("AuxPow is not a generate");
   }
 
   if (params.StrictChainId() && parentBlock.GetChainId() == nChainId) {
@@ -385,19 +383,17 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     LogPrintf("check auxpow err 3\n");
     return error("Aux POW chain merkle branch too long");
   }
-  LogPrintf("get nRootHash vChainMerkleBranch size %d\n",vChainMerkleBranch.size());
+  //LogPrintf("get nRootHash vChainMerkleBranch size %d\n",vChainMerkleBranch.size());
 
     // Check that the chain merkle root is in the coinbase
     const uint256 nRootHash = CBlock::CheckMerkleBranch(hashAuxBlock, vChainMerkleBranch, nChainIndex);
-    LogPrintf("create vchRootHash: %s\n",nRootHash.GetHex().c_str());
+    //LogPrintf("create vchRootHash: %s\n",nRootHash.GetHex().c_str());
     std::vector<unsigned char> vchRootHash(nRootHash.begin(), nRootHash.end());
     std::reverse(vchRootHash.begin(), vchRootHash.end()); // correct endian
 
-    LogPrintf("get transaction hash\n");
     uint256 transaction_hash = GetHash();
-    LogPrintf("transaction_hash = %s\n",transaction_hash.GetHex().c_str());
-    LogPrintf("hashBlock = %s\n",hashBlock.GetHex().c_str());
-    LogPrintf("get merklebranch_hash\n");
+    //LogPrintf("transaction_hash = %s\n",transaction_hash.GetHex().c_str());
+    //LogPrintf("hashBlock = %s\n",hashBlock.GetHex().c_str());
     //LogPrintf("auxpow transaction = %s\n",ToString().c_str());
     //LogPrintf("auxpow transaction_hash = %s\n",transaction_hash.ToString().c_str());
     if (parentBlock.vector_format) {
@@ -410,29 +406,28 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
       LogPrintf("\n");
     }
     else {
-      LogPrintf("parentBlock.nVersion = %u\n",parentBlock.nVersion);
-      LogPrintf("parentBlock.hashPrevBlock = %s\n",parentBlock.hashPrevBlock.ToString().c_str());
-      LogPrintf("parentBlock.hashMerkleRoot = %s\n",parentBlock.hashMerkleRoot.ToString().c_str());
-      LogPrintf("parentBlock.nTime = %lu\n",parentBlock.nTime);
-      LogPrintf("parentBlock.solution size = %lu\n",parentBlock.nSolution.size());
+      //LogPrintf("parentBlock.nVersion = %u\n",parentBlock.nVersion);
+      //LogPrintf("parentBlock.hashPrevBlock = %s\n",parentBlock.hashPrevBlock.ToString().c_str());
+      //LogPrintf("parentBlock.hashMerkleRoot = %s\n",parentBlock.hashMerkleRoot.ToString().c_str());
+      //LogPrintf("parentBlock.nTime = %lu\n",parentBlock.nTime);
+      //LogPrintf("parentBlock.solution size = %lu\n",parentBlock.nSolution.size());
     }
-    //LogPrintf("merklebranch_hash = %s\n",merklebranch_hash.ToString().c_str());
+    /*LogPrintf("merklebranch_hash = %s\n",merklebranch_hash.ToString().c_str());
     BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
       {
 	LogPrintf("VMerkleBranch hash: %s\n",otherside.GetHex().c_str());
-      }
-    
+	}*/    
     
     // Check that we are in the parent block merkle tree
     if (parentBlock.vector_format) {
       const uint256 merklebranch_hash = CBlock::CheckMerkleBranchKeccak(transaction_hash, vMerkleBranch, nIndex);
       std::vector<unsigned char> vchMerkleBranchHash(merklebranch_hash.begin(),merklebranch_hash.end());
       //std::reverse(vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
-      LogPrintf("search for ");
+      /*LogPrintf("search for ");
       for (int i=0; i<32; i++) {
 	LogPrintf("%02x",vchMerkleBranchHash[i]);
       }
-      LogPrintf("\n");
+      LogPrintf("\n");*/
       std::vector<unsigned char> vector_rep_block = parentBlock.vector_rep;
       std::vector<unsigned char>::iterator pc_block = std::search(vector_rep_block.begin(),vector_rep_block.end(), vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
       if (pc_block == vector_rep_block.end()) {
@@ -447,7 +442,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
         return error("Aux POW merkle root incorrect");
       }
     }
-    LogPrintf("check scriptsig\n");
+
     std::vector<unsigned char> script;
     if (vector_format) {
       script = vector_rep;
@@ -456,21 +451,19 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     else {
       script = vin[0].scriptSig;
     }
-    LogPrintf("script size = %lu\n",script.size());
+    //LogPrintf("script size = %lu\n",script.size());
 
     // Check that the same work is not submitted twice to our chain.
     //
 
-
-    LogPrintf("search pcHead\n");
     std::vector<unsigned char>::iterator pcHead =
     std::search(script.begin(), script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader));
       
-    LogPrintf("script:\n");
+    /*LogPrintf("script:\n");
     for (unsigned int i=0;i<script.size();i++) {
       LogPrintf("%02x",script[i]);
     }
-    LogPrintf("\n");
+    LogPrintf("\n");*/
     
     std::vector<unsigned char>::iterator pc = std::search(script.begin(), script.end(), vchRootHash.begin(), vchRootHash.end());
 
@@ -502,12 +495,10 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
 	return error("Aux POW chain merkle root must start in the first 20 bytes of the parent coinbase");
       }
     }
-
-    LogPrintf("check deterministic point\n");
     
     // Ensure we are at a deterministic point in the merkle leaves by hashing
     // a nonce and our chain ID and comparing to the index.
-    LogPrintf("vchRootHash size = %lu\n",vchRootHash.size());
+    //LogPrintf("vchRootHash size = %lu\n",vchRootHash.size());
     pc += vchRootHash.size();
     if (script.end() - pc < 8) {
       LogPrintf("check auxpow err 9\n");
@@ -524,7 +515,6 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
 
     int nNonce;
     memcpy(&nNonce, &pc[4], 4);
-
     
     int expectedIndex = getExpectedIndex(nNonce, nChainId, merkleHeight);
     if (nChainIndex != expectedIndex) {
@@ -595,10 +585,10 @@ FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
 bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& params)
 {
   int algo = block.GetAlgo();
-  if (block.auxpow || block.IsAuxpow()) {
+  /*if (block.auxpow || block.IsAuxpow()) {
     LogPrintf("checking auxpowproofofwork for algo %d\n",algo);
     LogPrintf("chain id : %d\n",block.GetChainId());
-  }
+    }*/
 
   if (block.nVersion > 3 && block.IsAuxpow() && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
     LogPrintf("auxpow err 1\n");
@@ -647,12 +637,6 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 		bnTarget.GetCompact());
     }
 
-  /*
-  if (!(algo == ALGO_SHA256D || algo == ALGO_SCRYPT) )
-    {*const_cast<uint256*>(&hash)
-      return error("%s : AUX POW is not allowed on this algo", __func__);
-      }*/
-
   if (block.GetAlgo() == ALGO_EQUIHASH && !CheckEquihashSolution(&(block.auxpow->parentBlock), Params())) {
     return error("%s : AUX equihash solution failed", __func__);
   }
@@ -661,13 +645,11 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
     {
       return error("%s : AUX proof of work failed", __func__);
     }
-
-  LogPrintf("checkauxpowproofofwork passed\n");
   
   return true;
 }
 
-unsigned int GetAlgoWeight (const int algo) {
+unsigned int GetAlgoWeight (const int algo) { // Based on tests with general purpose CPUs
   unsigned int weight = 500;
   switch (algo)
     {

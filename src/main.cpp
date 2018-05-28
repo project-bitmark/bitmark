@@ -741,12 +741,6 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
     return chainActive.Height() - pindex->nHeight + 1;
 }
 
-
-
-
-
-
-
 bool CheckTransaction(const CTransaction& tx, CValidationState &state)
 {
     // Basic checks that don't depend on any context
@@ -837,7 +831,6 @@ int64_t GetMinFee(const CTransaction& tx, unsigned int nBytes, bool fAllowFree, 
         nMinFee = MAX_MONEY;
     return nMinFee;
 }
-
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fRejectInsaneFee)
@@ -983,7 +976,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
     return true;
 }
 
-
 int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
 {
     if (hashBlock == 0 || nIndex == -1)
@@ -1033,7 +1025,6 @@ bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
     CValidationState state;
     return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL);
 }
-
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
 bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock, bool fAllowSlow)
@@ -1096,11 +1087,6 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
     return false;
 }
 
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CBlock and CBlockIndex
@@ -1108,7 +1094,6 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 {
-  LogPrintf("In writeblocktodisk\n");
     // Open history file to append
     CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
     if (!fileout) {
@@ -1508,7 +1493,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     else if (CountBlocks==1) {
       LogPrintf("CountBlocks = %d\n",CountBlocks);
       LogPrintf("setting nBits to keep continuity of scrypt chain\n");
-      LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
+      //LogPrintf("scaling wrt block at height %u\n",BlockReading->nHeight);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
       bnNew.SetCompact(0x1d00ffff);
@@ -1523,15 +1508,6 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     if (bnNew > Params().ProofOfWorkLimit()*algoWeight){
       bnNew = Params().ProofOfWorkLimit()*algoWeight;
     }
-
-    //test
-    /*
-    CBigNum bnTest;
-    bnTest.SetCompact(0x1c055bc8);
-    LogPrintf("bnTest from %s\n",bnTest.getuint256().ToString());
-    bnTest *= 10*287;
-    LogPrintf("to %s\n",bnTest.getuint256().ToString());
-    */
     
     /// debug print
     LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
@@ -1926,8 +1902,6 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
     return true;
 }
 
-
-
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
@@ -2251,7 +2225,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	pindex->nMoneySupply = 2000000000;
       }
     }
-    LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
+    //LogPrintf("Total coins emitted: %" PRId64 "\n", pindex->nMoneySupply);
 
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS)
@@ -2327,10 +2301,10 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",
       chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),
 	      Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
-    char * blocktime = (char *)malloc(50);
-    sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
+    //char * blocktime = (char *)malloc(50);
+    //sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
     //LogPrintTest(blocktime,"timingtest.log");
-    free(blocktime);
+    //free(blocktime);
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload)
@@ -2552,7 +2526,6 @@ bool ActivateBestChain(CValidationState &state) {
 
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos)
 {
-  LogPrintf("In addtoblockindex\n");
     // Check for duplicate
     uint256 hash = block.GetHash();
     if (mapBlockIndex.count(hash))
@@ -2576,11 +2549,8 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
     pindexNew->nTx = block.vtx.size();
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + pindexNew->GetBlockWork().getuint256();
     if (block.IsAuxpow()) {
-      LogPrintf("addtoblockindex auxpow\n");
       pindexNew->pauxpow = block.auxpow;
-      LogPrintf("Have set pindexNew pauxpow\n");
       assert(NULL != pindexNew->pauxpow.get());
-      LogPrintf("Have asserted pindexNew\n");
     }
     pindexNew->nChainTx = (pindexNew->pprev ? pindexNew->pprev->nChainTx : 0) + pindexNew->nTx;
     pindexNew->nFile = pos.nFile;
@@ -2591,15 +2561,11 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
 
     if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew)))
         return state.Abort(_("Failed to write block index"));
-
-    LogPrintf("wrote blockindex\n");
     
     // New best?
     if (!ActivateBestChain(state))
         return false;
 
-    LogPrintf("passed activatebestchain\n");
-    
     LOCK(cs_main);
     if (pindexNew == chainActive.Tip())
     {
@@ -2611,22 +2577,17 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
         hashPrevBestCoinBase = block.GetTxHash(0);
     } else
         CheckForkWarningConditionsOnNewFork(pindexNew);
-
-    LogPrintf("passed forkwarningconds\n");
     
     if (!pblocktree->Flush())
         return state.Abort(_("Failed to sync block index"));
 
     uiInterface.NotifyBlocksChanged();
-    LogPrintf("done with addtoblockindex\n");
+
     return true;
 }
 
-
 bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64_t nTime, bool fKnown = false)
 {
-
-  LogPrintf("In findblockpos with nAddSize = %d",nAddSize);
   
     bool fUpdatedLast = false;
 
@@ -2746,7 +2707,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     
     // Check proof of work matches claimed amount
     if(fCheckPOW && block.IsAuxpow()) {
-      LogPrintf("block being checked is auxpow\n");
       if (!CheckAuxPowProofOfWork(block, Params())) {
 	return state.DoS(50, error("CheckBlock() : auxpow proof of work failed"),
 			 REJECT_INVALID, "high-hash");
@@ -2828,7 +2788,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
-  LogPrintf("In acceptblock\n");
     AssertLockHeld(cs_main);
     // Check for duplicate
     uint256 hash = block.GetHash();
@@ -2843,9 +2802,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         if (mi == mapBlockIndex.end())
             return state.DoS(10, error("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
         pindexPrev = (*mi).second;
-        nHeight = pindexPrev->nHeight+1;
-
-	
+        nHeight = pindexPrev->nHeight+1;	
 
         // Check proof of work
 	int block_algo = GetAlgo(block.nVersion);
@@ -2936,8 +2893,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
             if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
-
-    LogPrintf("Done acceptblock\n");
     
     return true;
 }
@@ -3026,7 +2981,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     vWorkQueue.push_back(hash);
     for (unsigned int i = 0; i < vWorkQueue.size(); i++)
     {
-      LogPrintf("processblock work queue %d of %d\n",i,vWorkQueue.size());
+      //LogPrintf("processblock work queue %d of %d\n",i,vWorkQueue.size());
         uint256 hashPrev = vWorkQueue[i];
         for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev);
              mi != mapOrphanBlocksByPrev.upper_bound(hashPrev);
@@ -3266,9 +3221,9 @@ bool static LoadBlockIndexDB()
 
     // Load block file info
     pblocktree->ReadLastBlockFile(nLastBlockFile);
-    LogPrintf("LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);
+    //LogPrintf("LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);
     if (pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile))
-        LogPrintf("LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString());
+      LogPrintf("LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString());
 
     // Check whether we need to continue reindexing
     bool fReindexing = false;
@@ -3399,7 +3354,7 @@ bool InitBlockIndex() {
         try {
             CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
 
-	    /*uint256 best_hash = block.GetPoWHash();
+	    /*uint256 best_hash = block.GetPoWHash(); // for generating a testnet genesis block
 	    CBigNum bnTarget;
 	    bnTarget.SetCompact(block.nBits);
 	    uint256 target = bnTarget.getuint256();
@@ -3435,8 +3390,6 @@ bool InitBlockIndex() {
 
     return true;
 }
-
-
 
 void PrintBlockTree()
 {
@@ -3580,15 +3533,6 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
     return nLoaded > 0;
 }
 
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CAlert
@@ -3650,18 +3594,10 @@ string GetWarnings(string strFor)
     return "error";
 }
 
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // Messages
 //
-
 
 bool static AlreadyHave(const CInv& inv)
 {
@@ -3827,8 +3763,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         LOCK(cs_main);
         State(pfrom->GetId())->nLastBlockProcess = GetTimeMicros();
     }
-
-
 
     if (strCommand == "version")
     {
@@ -4016,7 +3950,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->fDisconnect = true;
     }
 
-
     else if (strCommand == "inv")
     {
         vector<CInv> vInv;
@@ -4060,7 +3993,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "getdata")
     {
         vector<CInv> vInv;
@@ -4080,7 +4012,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
         ProcessGetData(pfrom);
     }
-
 
     else if (strCommand == "getblocks")
     {
@@ -4116,7 +4047,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
-
 
     else if (strCommand == "getheaders")
     {
@@ -4155,7 +4085,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
         pfrom->PushMessage("headers", vHeaders);
     }
-
 
     else if (strCommand == "tx")
     {
@@ -4259,7 +4188,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
         CBlock block;
@@ -4280,7 +4208,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         ProcessBlock(state, pfrom, &block);
     }
 
-
     else if (strCommand == "getaddr")
     {
         pfrom->vAddrToSend.clear();
@@ -4288,7 +4215,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         BOOST_FOREACH(const CAddress &addr, vAddr)
             pfrom->PushAddress(addr);
     }
-
 
     else if (strCommand == "mempool")
     {
@@ -4314,7 +4240,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->PushMessage("inv", vInv);
     }
 
-
     else if (strCommand == "ping")
     {
     	// BIP0031
@@ -4333,7 +4258,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 		// return very quickly.
 		pfrom->PushMessage("pong", nonce);
     }
-
 
     else if (strCommand == "pong")
     {
@@ -4391,7 +4315,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "alert")
     {
         CAlert alert;
@@ -4422,7 +4345,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "filterload")
     {
         CBloomFilter filter;
@@ -4440,7 +4362,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
         pfrom->fRelayTxes = true;
     }
-
 
     else if (strCommand == "filteradd")
     {
@@ -4461,7 +4382,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
     else if (strCommand == "filterclear")
     {
         LOCK(pfrom->cs_filter);
@@ -4469,7 +4389,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         pfrom->pfilter = new CBloomFilter();
         pfrom->fRelayTxes = true;
     }
-
 
     else if (strCommand == "reject")
     {
@@ -4495,7 +4414,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     {
         // Ignore unknown commands for extensibility
     }
-
 
     // Update the last seen time for this node's address
     if (pfrom->fNetworkNode)
@@ -4633,7 +4551,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Don't send anything until we get their version message
         if (pto->nVersion == 0)
             return true;
-
+	
         //
         // Message: ping
         //
@@ -4844,11 +4762,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
     return true;
 }
 
-
-
-
-
-
 class CMainCleanup
 {
 public:
@@ -4960,19 +4873,6 @@ int64_t get_mpow_ms_correction (CBlockIndex * p) {
   //LogPrintf("just return 0 for correction\n");
   return 0;
 }
-
-/*
-CBigNum GetPeakHashrate (int nVersion) {
-  CBigNum peak_hashrate_base = CBigNum((nVersion & BLOCK_VERSION_PEAK_HASHRATE_BASE) >> 20);
-  if (peak_hashrate_base == 0) return 0;
-  CBigNum peak_hashrate_exp = CBigNum((nVersion & BLOCK_VERSION_PEAK_HASHRATE_EXP) >> 12);
-  CBigNum peak_hashrate = 1;
-  for (CBigNum i=0; i<peak_hashrate_exp; i++) {
-    peak_hashrate *= peak_hashrate_base;
-  }
-  return peak_hashrate;  
-}
-*/
 
 bool update_ssf (int nVersion) {
   return nVersion & BLOCK_VERSION_UPDATE_SSF;

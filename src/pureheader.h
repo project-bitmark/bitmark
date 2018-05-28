@@ -38,8 +38,7 @@ enum
     BLOCK_VERSION_CHAIN = (1 << 16)
   };
 
-
-class CPureBlockHeader {
+class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow in CBlockHeader
  public:
   static const int CURRENT_VERSION=4;
   int nVersion;
@@ -228,9 +227,6 @@ class CPureBlockHeader {
       }
     case ALGO_EQUIHASH:
       {
-	/*uint256 thash;
-	hash_equihash(BEGIN(nVersion),BEGIN(thash));
-	return thash;*/
 	return GetHashE();
       }
     case ALGO_CRYPTONIGHT:

@@ -1570,7 +1570,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
-	  if (pindexLast->nHeight >= 446499 && pindexLast->nHeight<=446599) { // special rule for testing fork
+	  /*if (pindexLast->nHeight >= 446499 && pindexLast->nHeight<=446599) { // special rule for testing fork
 	    CBigNum bnNew;
 	    bnNew.SetCompact(pindexLast->nBits);
 	    bnNew *= 5000000;
@@ -1578,7 +1578,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	    if (bnNew > Params().ProofOfWorkLimit()*algoWeight)
 	      bnNew = Params().ProofOfWorkLimit()*algoWeight;
 	    return bnNew.GetCompact();
-	  }
+	    }*/
 	  return pindexLast->nBits;
         }
 

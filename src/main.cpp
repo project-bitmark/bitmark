@@ -1512,6 +1512,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
       bnNew.SetCompact(0x1d00ffff);
+      if (BlockReading->nHeight == 464573) bnNew.SetCompact(BlockReading->nBits); //for testing fork
       bnNew *= weight;
       bnNew /= (8*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;
@@ -1587,7 +1588,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
-	  if (pindexLast->nHeight >= 446499 && pindexLast->nHeight <= 447000) { // special rule for testing fork
+	  if (pindexLast->nHeight == 446499) { // special rule for testing fork
 	    CBigNum bnNew;
 	    bnNew.SetCompact(pindexLast->nBits);
 	    bnNew *= 5000000;

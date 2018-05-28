@@ -1423,7 +1423,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
 
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight - 1; i++) {
 
       if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
 
@@ -1496,9 +1496,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      if (BlockReading->nHeight == 464573) {
+      if (BlockReading->nHeight == 464573) { // temp for testing
 	LogPrintf("set to blocktreading nBits\n");
-	bnNew.SetCompact(BlockReading->nBits); //for testing fork
+	bnNew.SetCompact(BlockReading->nBits); // for release set this for sha256d and scrypt
       }
       else {
 	LogPrintf("set to 1d00ffff\n");

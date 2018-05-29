@@ -1496,13 +1496,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      if (BlockReading->nHeight == 446573) { // condition for testing fork
+      //if (BlockReading->nHeight == 446573) { // condition for testing fork
+      if (algo == ALGO_SCRYPT || algo == ALGO_SHA256D) {
 	LogPrintf("set to blocktreading nBits\n");
-	bnNew.SetCompact(BlockReading->nBits); // for release set this for sha256d and scrypt
+	bnNew.SetCompact(BlockReading->nBits);
       }
       else {
 	LogPrintf("set to 1d00ffff\n");
-	bnNew.SetCompact(0x1d00ffff);
+	bnNew.SetCompact(0x1d00ffff); // same as difficulty of genesis block
       }
       bnNew *= weight;
       bnNew /= (8*weight_scrypt);
@@ -1643,6 +1644,7 @@ bool IsInitialBlockDownload()
 bool fLargeWorkForkFound = false;
 bool fLargeWorkInvalidChainFound = false;
 bool fBlockTooFarInFuture = false;
+int nSinceBlockTooFarInFuture = 0;
 CBlockIndex *pindexBestForkTip = NULL, *pindexBestForkBase = NULL;
 
 void CheckForkWarningConditions()
@@ -2735,16 +2737,20 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     // Check timestamp
     if (block.GetBlockTime() > GetTime() + 12 * 60) {
       if (block.GetBlockTime() <= GetAdjustedTime() + 2 * 60 * 60) {
-	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please be careful of network forks.");
+	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please check your clock and be careful of network forks.");
 	CAlert::Notify(warning, true);
 	fBlockTooFarInFuture = true;
-	LogPrintf("Warning: Block timestamp too far in the future. Please be careful of network forks.");
+	LogPrintf("Warning: Block timestamp too far in the future. Please check your clock and be careful of network forks.");
       }
       return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
 			   REJECT_INVALID, "time-too-new");
     }
     else {
-      fBlockTooFarInFuture = false;
+      nSinceBlockTooFarInFuture++;
+      if (nSinceBlockTooFarInFuture > 720) {
+	fBlockTooFarInFuture = false;
+	nSinceBlockTooFarInFuture = 0;
+      }
     }
 
     // First transaction must be coinbase, the rest must not be
@@ -3576,7 +3582,7 @@ string GetWarnings(string strFor)
     }
     else if (fBlockTooFarInFuture) {
       nPriority = 2000;
-      strStatusBar = strRPC = _("Warning: ");
+      strStatusBar = strRPC = _("Warning: A block's timestamp in the past 720 blocks was too far in the future. Please check your clock and be careful of network forks.");
     }
 
     // Alerts

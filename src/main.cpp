@@ -2735,7 +2735,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     // Check timestamp
     int64_t nNow = GetTime();
     LogPrintf("block_delta = %ld\n",block.GetBlockTime()-nNow); // for generating statistics
-    if (block.GetBlockTime() > cur_time + 12 * 60) {
+    if (block.GetBlockTime() > nNow + 12 * 60) {
       if (block.GetBlockTime() <= GetAdjustedTime() + 2 * 60 * 60) {
 	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please check your clock and be careful of network forks.");
 	CAlert::Notify(warning, true);

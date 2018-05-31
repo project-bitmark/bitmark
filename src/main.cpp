@@ -1505,7 +1505,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (algo == ALGO_SCRYPT || algo == ALGO_SHA256D) {
 	LogPrintf("set to blocktreading nBits\n");
 	bnNew.SetCompact(BlockReading->nBits);
-	if (algo == ALGO_SHA256D) bnNew /= 10; // ASIC protection
+	if (algo == ALGO_SHA256D) bnNew /= 2; // ASIC protection
       }
       else {
 	LogPrintf("set to 1d00ffff\n");
@@ -2740,7 +2740,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
     // Check timestamp
     int64_t nNow = GetTime();
-    LogPrintf("block_delta = %ld\n",block.GetBlockTime()-nNow); // for generating statistics
+    //if (fDebug) LogPrintf("block_delta = %ld\n",block.GetBlockTime()-nNow); // for generating statistics
     if (block.GetBlockTime() > nNow + 12 * 60) {
       if (block.GetBlockTime() <= GetAdjustedTime() + 2 * 60 * 60) {
 	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please check your clock and be careful of network forks.");

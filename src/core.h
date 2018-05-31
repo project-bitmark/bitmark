@@ -972,7 +972,11 @@ public:
         bnTarget.SetCompact(nBits);
         if (bnTarget <= 0)
             return 0;
-	CBigNum weight(GetAlgoWeight(this->GetAlgo()));
+	unsigned int algo_weight = 1000000;
+	if (onFork()) {
+	  algo_weight = GetAlgoWeight(this->GetAlgo());
+	}
+	CBigNum weight(algo_weight);
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }

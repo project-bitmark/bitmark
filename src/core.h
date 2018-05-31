@@ -974,7 +974,7 @@ public:
             return 0;
 	CBigNum weight(GetAlgoWeight(this->GetAlgo()));
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
-        return (CBigNum(1)<<256) / (bnTarget+1) * weight;
+        return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
 
     bool CheckIndex() const

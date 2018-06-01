@@ -1577,7 +1577,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
-	  if (pindexLast->nHeight == 446499) return (Params().ProofOfWorkLimit()*GetAlgoWeight(ALGO_SCRYPT)).GetCompact() // special rule for testing fork
+	  if (pindexLast->nHeight == 446499) return (Params().ProofOfWorkLimit()*GetAlgoWeight(ALGO_SCRYPT)).GetCompact(); // special rule for testing fork
 	  return pindexLast->nBits;
         }
 

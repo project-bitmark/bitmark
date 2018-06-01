@@ -177,6 +177,10 @@ Value getminingalgo(const Array& params, bool fHelp)
 			"x (1-5) The number representing the mining algorithm\n"			
 			);
 
+  if (!confAlgoIsSet) {
+    miningAlgo = GetArg("-miningalgo", miningAlgo);
+    confAlgoIsSet = true;
+  }
   return (int)miningAlgo;
 }
       

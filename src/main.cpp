@@ -1512,7 +1512,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew.SetCompact(0x1d00ffff); // same as difficulty of genesis block
       }
       bnNew *= weight;
-      bnNew /= (64*weight_scrypt);
+      bnNew /= (8*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;
     }
     else {

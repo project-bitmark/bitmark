@@ -4909,7 +4909,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
       break;
     }
     CBigNum hashes = pprev_algo->GetBlockWork();
-    unsigned int time_f = pprev_algo->GetBlockTime();
+    unsigned int time_f = pprev_algo->GetMedianTimePast();
     unsigned int time_i = 0;
     for (int j=0; j<nSSF-1; j++) {  // nSSF blocks = 24 hours, using only blocks from the same algo as the target block
       pprev_algo = get_pprev_algo(pprev_algo,-1);
@@ -4918,18 +4918,18 @@ unsigned int get_ssf (CBlockIndex * pindex) {
 	break;
       }
       hashes += pprev_algo->GetBlockWork();
-      time_i = pprev_algo->GetBlockTime();
+      time_i = pprev_algo->GetMedianTimePast();
     }
     CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
     if (pprev_algo_time) {
-      time_i = pprev_algo_time->GetBlockTime();
+      time_i = pprev_algo_time->GetMedianTimePast();
     }
     else { // get prefork block time
       CBlockIndex * blockindex = pprev_algo;
       while (blockindex && onFork(blockindex)) {
 	blockindex = blockindex->pprev;
       }
-      if (blockindex) time_i = blockindex->GetBlockTime();
+      if (blockindex) time_i = blockindex->GetMedianTimePast();
     }
     if (time_f>time_i) {
       time_f -= time_i;
@@ -4978,21 +4978,21 @@ unsigned long get_ssf_work (const CBlockIndex * pindex) {
 }
 
 double get_ssf_time (const CBlockIndex * pindex) {
-  int time_f = pindex->GetBlockTime();
+  int time_f = pindex->GetMedianTimePast();
   //LogPrintf("time_f = %d\n",time_f);
   const CBlockIndex * pcur_algo = pindex;
   const CBlockIndex * pprev_algo = get_pprev_algo(pindex,-1);
   int time_i = 0;
   for (int i=0; i<nSSF; i++) {
     if (pprev_algo) {
-      time_i = pprev_algo->GetBlockTime();
+      time_i = pprev_algo->GetMedianTimePast();
     }
     else {
       const CBlockIndex * blockindex = pindex;
       while (blockindex && onFork(blockindex)) {
 	blockindex = blockindex->pprev;
       }
-      if (blockindex) time_i = blockindex->GetBlockTime();
+      if (blockindex) time_i = blockindex->GetMedianTimePast();
     }
     if (update_ssf(pcur_algo->nVersion)) {
       if (time_f>time_i) {

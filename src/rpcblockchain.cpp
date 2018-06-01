@@ -82,7 +82,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
       const CBlockIndex * pprev_algo = get_pprev_algo(blockindex,-1);
       for (int i=0; i<365; i++) {
 	if (!pprev_algo) break;
-	int time_f = pprev_algo->GetBlockTime();
+	int time_f = pprev_algo->GetMedianTimePast();
 	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int time_i = 0;
 	
@@ -91,7 +91,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 
 	  if (pprev_algo) {
-	    time_i = pprev_algo->GetBlockTime();
+	    time_i = pprev_algo->GetMedianTimePast();
 	  }
 	  else {
 	    hashes_bn = CBigNum(0);
@@ -102,7 +102,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	}
 	CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
 	if (pprev_algo_time) {
-	  time_i = pprev_algo_time->GetBlockTime();
+	  time_i = pprev_algo_time->GetMedianTimePast();
 	}
 	else {
 	  const CBlockIndex * blockindex_time = pprev_algo;
@@ -110,7 +110,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	    blockindex_time = blockindex_time->pprev;
 	  }
 	  if (blockindex_time) {
-	    time_i = blockindex_time->GetBlockTime();
+	    time_i = blockindex_time->GetMedianTimePast();
 	  }
 	}
 	pprev_algo = pprev_algo_time;
@@ -153,14 +153,14 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
     if (update_ssf(blockindex->nVersion)) {
       const CBlockIndex * pcur_algo = get_pprev_algo(blockindex,-1);
       if (!pcur_algo) return 0.;
-      int time_f = pcur_algo->GetBlockTime();
+      int time_f = pcur_algo->GetMedianTimePast();
       CBigNum hashes_bn = pcur_algo->GetBlockWork();
       int time_i = 0;
       const CBlockIndex * pprev_algo = pcur_algo;
       for (int j=0; j<nSSF-1; j++) {
 	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	if (pprev_algo) {
-	  time_i = pprev_algo->GetBlockTime();
+	  time_i = pprev_algo->GetMedianTimePast();
 	}
 	else {
 	  return 0.;
@@ -169,14 +169,14 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       }
       CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
       if (pprev_algo_time) {
-	time_i = pprev_algo_time->GetBlockTime();
+	time_i = pprev_algo_time->GetMedianTimePast();
       }
       else {
 	const CBlockIndex * blockindex_time = pprev_algo;
 	while (blockindex_time && onFork(blockindex_time)) {
 	  blockindex_time = blockindex_time->pprev;
 	}
-	if (blockindex_time) time_i = blockindex_time->GetBlockTime();
+	if (blockindex_time) time_i = blockindex_time->GetMedianTimePast();
       }
 
       if (time_f>time_i) {

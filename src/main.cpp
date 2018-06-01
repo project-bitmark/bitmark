@@ -1434,10 +1434,10 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
       if (!onFork(BlockReading)) { /* last block before fork */
 	if(LastBlockTime > 0){
-	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
+	  nActualTimespan = (LastBlockTime - BlockReading->GetBlockTime());
 	}
 	if (LastBlockTimeOtherAlgos > 0 && time_since_last_algo == -1) {
-	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetMedianTimePast();
+	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
 	break;
@@ -4929,7 +4929,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
       while (blockindex && onFork(blockindex)) {
 	blockindex = blockindex->pprev;
       }
-      if (blockindex) time_i = blockindex->GetMedianTimePast();
+      if (blockindex) time_i = blockindex->GetBlockTime();
     }
     if (time_f>time_i) {
       time_f -= time_i;
@@ -4992,7 +4992,7 @@ double get_ssf_time (const CBlockIndex * pindex) {
       while (blockindex && onFork(blockindex)) {
 	blockindex = blockindex->pprev;
       }
-      if (blockindex) time_i = blockindex->GetMedianTimePast();
+      if (blockindex) time_i = blockindex->GetBlockTime();
     }
     if (update_ssf(pcur_algo->nVersion)) {
       if (time_f>time_i) {

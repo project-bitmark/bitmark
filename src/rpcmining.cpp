@@ -57,6 +57,7 @@ void ShutdownRPCMining()
 int miningAlgo = ALGO_SCRYPT;
 int miningAlgoGBT = miningAlgo;
 int miningAlgoGAB = miningAlgo;
+bool confAlgoIsSet = false;
 
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.
@@ -798,7 +799,7 @@ Value getauxblock(const Array& params, bool fHelp)
     }
     result.push_back(Pair("coinbasedata",coinbasedata));
     */
-    block.vtx[0].print();
+    //block.vtx[0].print();
     CTxDestination address;
     ExtractDestination(block.vtx[0].vout[0].scriptPubKey,address);
     result.push_back(Pair("address",CBitmarkAddress(address).ToString()));

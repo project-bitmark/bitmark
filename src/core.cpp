@@ -649,27 +649,27 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   return true;
 }
 
-unsigned int GetAlgoWeight (const int algo) { // Based on tests with general purpose CPUs
-  unsigned int weight = 500;
+unsigned int GetAlgoWeight (const int algo) { // Based on tests with general purpose CPUs55
+  unsigned int weight = 4000;
   switch (algo)
     {
     case ALGO_SHA256D:
       weight = 1;
       break;
     case ALGO_ARGON2:
-      weight = 225000;
+      weight = 2000000;
       break;
     case ALGO_LYRA2REv2:
-      weight = 175;
+      weight = 1400;
       break;
     case ALGO_EQUIHASH:
-      weight = 500000;
+      weight = 4000000;
       break;
     case ALGO_CRYPTONIGHT:
-      weight = 500000;
+      weight = 4000000;
       break;
     case ALGO_YESCRYPT:
-      weight = 50000;
+      weight = 400000;
       break;
     }
   return weight;

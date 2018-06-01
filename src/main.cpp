@@ -1232,7 +1232,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
       emitted = NUM_ALGOS * pprev_algo->nMoneySupply;
     }
     else {
-      LogPrintf("emitted uses mpow correction \n");
+      //LogPrintf("emitted uses mpow correction \n");
       emitted = NUM_ALGOS * get_mpow_ms_correction(pindex);
     }
 
@@ -1423,24 +1423,28 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
 
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight; i++) {
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight - 1; i++) {
 
-      if (PastBlocksMax > 0 && CountBlocks >= PastBlocksMax) { break; }
+      if (CountBlocks >= PastBlocksMax) {
+	if(LastBlockTime > 0){
+	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
+	}
+	break;
+      }
 
       if (!onFork(BlockReading)) { /* last block before fork */
 	if(LastBlockTime > 0){
-	  int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
-	  nActualTimespan += Diff;
+	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
 	}
 	if (LastBlockTimeOtherAlgos > 0 && time_since_last_algo == -1) {
-	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
+	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetMedianTimePast();
 	}
 	CountBlocks++;
 	break;
       }
 
       if (!LastBlockTimeOtherAlgos) {
-	LastBlockTimeOtherAlgos = BlockReading->GetBlockTime();
+	LastBlockTimeOtherAlgos = BlockReading->GetMedianTimePast();
       }
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { /* Only consider blocks from same algo */
@@ -1453,19 +1457,20 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if(CountBlocks <= PastBlocksMin) {
 	if (CountBlocks == 1) {
 	  PastDifficultyAverage.SetCompact(BlockReading->nBits);
-	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
+	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetMedianTimePast();
+	  LastBlockTime = BlockReading->GetMedianTimePast();
 	}
 	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
 	PastDifficultyAveragePrev = PastDifficultyAverage;
       }
  
-      if(LastBlockTime > 0){
-	int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
-	nActualTimespan += Diff;
+      if (BlockReading->pprev == NULL) {
+ 	assert(BlockReading);
+	if(LastBlockTime > 0){
+	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
+	}
+	break;
       }
-      LastBlockTime = BlockReading->GetBlockTime();
-
-      if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
       BlockReading = BlockReading->pprev;
     }
     
@@ -1496,16 +1501,18 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
       unsigned int weight = GetAlgoWeight(algo);
       unsigned int weight_scrypt = GetAlgoWeight(0);
-      if (BlockReading->nHeight == 464573) {
+      //if (BlockReading->nHeight == 446573) { // condition for testing fork
+      if (algo == ALGO_SCRYPT || algo == ALGO_SHA256D) {
 	LogPrintf("set to blocktreading nBits\n");
-	bnNew.SetCompact(BlockReading->nBits); //for testing fork
+	bnNew.SetCompact(BlockReading->nBits);
+	if (algo == ALGO_SHA256D) bnNew /= 2; // ASIC protection
       }
       else {
 	LogPrintf("set to 1d00ffff\n");
-	bnNew.SetCompact(0x1d00ffff);
+	bnNew.SetCompact(0x1d00ffff); // same as difficulty of genesis block
       }
       bnNew *= weight;
-      bnNew /= (8*weight_scrypt);
+      bnNew /= (64*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;
     }
     else {
@@ -1643,6 +1650,7 @@ bool IsInitialBlockDownload()
 bool fLargeWorkForkFound = false;
 bool fLargeWorkInvalidChainFound = false;
 bool fBlockTooFarInFuture = false;
+int nSinceBlockTooFarInFuture = 0;
 CBlockIndex *pindexBestForkTip = NULL, *pindexBestForkBase = NULL;
 
 void CheckForkWarningConditions()
@@ -2305,9 +2313,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     // New best block
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
-    LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",
-      chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),
-	      Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
+    LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
     //char * blocktime = (char *)malloc(50);
     //sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
     //LogPrintTest(blocktime,"timingtest.log");
@@ -2733,18 +2739,24 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     }
 
     // Check timestamp
-    if (block.GetBlockTime() > GetTime() + 12 * 60) {
+    int64_t nNow = GetTime();
+    //if (fDebug) LogPrintf("block_delta = %ld\n",block.GetBlockTime()-nNow); // for generating statistics
+    if (block.GetBlockTime() > nNow + 12 * 60) {
       if (block.GetBlockTime() <= GetAdjustedTime() + 2 * 60 * 60) {
-	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please be careful of network forks.");
+	std::string warning = std::string("'Warning: Block timestamp too far in the future. Please check your clock and be careful of network forks.");
 	CAlert::Notify(warning, true);
 	fBlockTooFarInFuture = true;
-	LogPrintf("Warning: Block timestamp too far in the future. Please be careful of network forks.");
+	LogPrintf("Warning: Block timestamp too far in the future. Please check your clock and be careful of network forks.");
       }
       return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
 			   REJECT_INVALID, "time-too-new");
     }
     else {
-      fBlockTooFarInFuture = false;
+      nSinceBlockTooFarInFuture++;
+      if (nSinceBlockTooFarInFuture > 720) {
+	fBlockTooFarInFuture = false;
+	nSinceBlockTooFarInFuture = 0;
+      }
     }
 
     // First transaction must be coinbase, the rest must not be
@@ -3576,7 +3588,7 @@ string GetWarnings(string strFor)
     }
     else if (fBlockTooFarInFuture) {
       nPriority = 2000;
-      strStatusBar = strRPC = _("Warning: ");
+      strStatusBar = strRPC = _("Warning: A block's timestamp in the past 720 blocks was too far in the future. Please check your clock and be careful of network forks.");
     }
 
     // Alerts

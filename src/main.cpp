@@ -1508,9 +1508,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew /= (8*weightScrypt);
       }
       else {
-	bnNew.SetCompact(0x1d00ffff); // for newer algos, use difficulty of genesis block, weighted
+	bnNew.SetCompact(0x1d00ffff); // for newer algos, use min diff times 128, weighted
 	bnNew *= algoWeight;
-	bnNew /= weightScrypt;
+	bnNew /= 128;
       }
       if (smultiply) bnNew *= smultiplier*3;
     }
@@ -1577,7 +1577,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
-	  if (pindexLast->nHeight == 446499) return (Params().ProofOfWorkLimit()*GetAlgoWeight(ALGO_SCRYPT)).GetCompact(); // special rule for testing fork
+	  //if (pindexLast->nHeight == 446499) return (Params().ProofOfWorkLimit()*GetAlgoWeight(ALGO_SCRYPT)).GetCompact(); // special rule for testing fork
 	  return pindexLast->nBits;
         }
 

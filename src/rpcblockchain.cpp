@@ -41,11 +41,12 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
       }
     }
     unsigned int nBits = 0;
+    unsigned int algoWeight = GetAlgoWeight(algo);
     if (blockindex && blockindex->nHeight>0) {
       nBits = blockindex->nBits;
     }
     else {
-      nBits = Params().ProofOfWorkLimit().GetCompact();
+      nBits = (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
     
     int nShift = (nBits >> 24) & 0xff;
@@ -63,7 +64,7 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
         nShift--;
     }
 
-    if (blockOnFork) return dDiff*GetAlgoWeight(algo); //weighted difficulty
+    if (blockOnFork) return dDiff*algoWeight; //weighted difficulty
     return dDiff;
 }
 

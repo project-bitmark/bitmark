@@ -992,8 +992,12 @@ public:
         int64_t* pend = &pmedian[nMedianTimeSpan];
 
         const CBlockIndex* pindex = this;
-        for (int i = 0; i < nMedianTimeSpan && pindex; i++, pindex = pindex->pprev)
+	bool wasOnFork = false;
+        for (int i = 0; i < nMedianTimeSpan && pindex; i++, pindex = pindex->pprev) {
             *(--pbegin) = pindex->GetBlockTime();
+	    if (pindex->onFork()) wasOnFork = true;
+	    if (wasOnFork && !pindex->onFork()) break;
+	}
 
         std::sort(pbegin, pend);
         return pbegin[(pend - pbegin)/2];

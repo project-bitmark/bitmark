@@ -32,16 +32,21 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
     if (algo<0) {
       algo = GetAlgo(blockindex->nVersion);
     }
-    int algo_tip = GetAlgo(blockindex->nVersion);
-    if (algo_tip != algo) {
-      blockindex = get_pprev_algo(blockindex,algo);
+    bool blockOnFork = false;
+    if (onFork(blockindex)) blockOnFork = true;
+    if (blockOnFork) {
+      int algo_tip = GetAlgo(blockindex->nVersion);
+      if (algo_tip != algo) {
+	blockindex = get_pprev_algo(blockindex,algo);
+      }
     }
     unsigned int nBits = 0;
+    unsigned int algoWeight = GetAlgoWeight(algo);
     if (blockindex && blockindex->nHeight>0) {
       nBits = blockindex->nBits;
     }
     else {
-      nBits = Params().ProofOfWorkLimit().GetCompact();
+      nBits = (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
     
     int nShift = (nBits >> 24) & 0xff;
@@ -59,7 +64,8 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
         nShift--;
     }
 
-    return dDiff*GetAlgoWeight(algo); //weighted difficulty
+    if (blockOnFork) return dDiff*algoWeight; //weighted difficulty
+    return dDiff;
 }
 
 double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
@@ -82,7 +88,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
       const CBlockIndex * pprev_algo = get_pprev_algo(blockindex,-1);
       for (int i=0; i<365; i++) {
 	if (!pprev_algo) break;
-	int time_f = pprev_algo->GetBlockTime();
+	int time_f = pprev_algo->GetMedianTimePast();
 	CBigNum hashes_bn = pprev_algo->GetBlockWork();
 	int time_i = 0;
 	
@@ -91,7 +97,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 
 	  if (pprev_algo) {
-	    time_i = pprev_algo->GetBlockTime();
+	    time_i = pprev_algo->GetMedianTimePast();
 	  }
 	  else {
 	    hashes_bn = CBigNum(0);
@@ -102,7 +108,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	}
 	CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
 	if (pprev_algo_time) {
-	  time_i = pprev_algo_time->GetBlockTime();
+	  time_i = pprev_algo_time->GetMedianTimePast();
 	}
 	else {
 	  const CBlockIndex * blockindex_time = pprev_algo;
@@ -153,14 +159,14 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
     if (update_ssf(blockindex->nVersion)) {
       const CBlockIndex * pcur_algo = get_pprev_algo(blockindex,-1);
       if (!pcur_algo) return 0.;
-      int time_f = pcur_algo->GetBlockTime();
+      int time_f = pcur_algo->GetMedianTimePast();
       CBigNum hashes_bn = pcur_algo->GetBlockWork();
       int time_i = 0;
       const CBlockIndex * pprev_algo = pcur_algo;
       for (int j=0; j<nSSF-1; j++) {
 	pprev_algo = get_pprev_algo(pprev_algo,-1);
 	if (pprev_algo) {
-	  time_i = pprev_algo->GetBlockTime();
+	  time_i = pprev_algo->GetMedianTimePast();
 	}
 	else {
 	  return 0.;
@@ -169,7 +175,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
       }
       CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
       if (pprev_algo_time) {
-	time_i = pprev_algo_time->GetBlockTime();
+	time_i = pprev_algo_time->GetMedianTimePast();
       }
       else {
 	const CBlockIndex * blockindex_time = pprev_algo;

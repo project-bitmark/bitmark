@@ -1432,12 +1432,12 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	break;
       }
 
-      if (!onFork(BlockReading)) { /* last block before fork */
+      if (!onFork(BlockReading)) { // last block before fork
 	if(LastBlockTime > 0){
-	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
+	  nActualTimespan = (LastBlockTime - BlockReading->GetBlockTime());
 	}
 	if (LastBlockTimeOtherAlgos > 0 && time_since_last_algo == -1) {
-	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetMedianTimePast();
+	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
 	break;
@@ -1447,7 +1447,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	LastBlockTimeOtherAlgos = BlockReading->GetMedianTimePast();
       }
       int block_algo = GetAlgo(BlockReading->nVersion);
-      if (block_algo != algo) { /* Only consider blocks from same algo */
+      if (block_algo != algo) { // Only consider blocks from same algo
 	BlockReading = BlockReading->pprev;
 	continue;
       }
@@ -1496,23 +1496,22 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew /= _nTargetTimespan;
     }
     else if (CountBlocks==1) {
-      LogPrintf("CountBlocks = %d\n",CountBlocks);
-      LogPrintf("setting nBits to keep continuity of scrypt chain\n");
-      LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
-      unsigned int weight = GetAlgoWeight(algo);
-      unsigned int weight_scrypt = GetAlgoWeight(0);
-      //if (BlockReading->nHeight == 446573) { // condition for testing fork
+      if (fDebug) {
+	LogPrintf("CountBlocks = %d\n",CountBlocks);
+	LogPrintf("setting nBits to keep continuity of scrypt chain\n");
+	LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
+      }
+      unsigned int weightScrypt = GetAlgoWeight(ALGO_SCRYPT);
       if (algo == ALGO_SCRYPT || algo == ALGO_SHA256D) {
-	LogPrintf("set to blocktreading nBits\n");
-	bnNew.SetCompact(BlockReading->nBits);
-	if (algo == ALGO_SHA256D) bnNew /= 2; // ASIC protection
+	bnNew.SetCompact(BlockReading->nBits); //preserve continuity of chain diff for scrypt and sha256d
+	bnNew *= algoWeight;
+	bnNew /= (8*weightScrypt);
       }
       else {
-	LogPrintf("set to 1d00ffff\n");
-	bnNew.SetCompact(0x1d00ffff); // same as difficulty of genesis block
+	bnNew.SetCompact(0x1d00ffff); // for newer algos, use min diff times 128, weighted
+	bnNew *= algoWeight;
+	bnNew /= 128;
       }
-      bnNew *= weight;
-      bnNew /= (64*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;
     }
     else {
@@ -1523,13 +1522,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       bnNew = Params().ProofOfWorkLimit()*algoWeight;
     }
     
-    /// debug print
-    LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
-    LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
-    LogPrintf("Before: %08x  %lu\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
-    LogPrintf("BlockReading: %08x %lu\n",BlockReading->nBits,CBigNum().SetCompact(BlockReading->nBits).getuint256().ToString());
-    LogPrintf("Avg from past %d: %08x %lu\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
-    LogPrintf("After:  %08x  %lu\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+    if (fDebug) {
+      LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
+      LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
+      LogPrintf("Before: %08x  %lu\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
+      LogPrintf("BlockReading: %08x %lu\n",BlockReading->nBits,CBigNum().SetCompact(BlockReading->nBits).getuint256().ToString());
+      LogPrintf("Avg from past %d: %08x %lu\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
+      LogPrintf("After:  %08x  %lu\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+    }
 
     return bnNew.GetCompact();
 }
@@ -1577,15 +1577,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
-	  /*if (pindexLast->nHeight >= 446499 && pindexLast->nHeight<=446599) { // special rule for testing fork
-	    CBigNum bnNew;
-	    bnNew.SetCompact(pindexLast->nBits);
-	    bnNew *= 5000000;
-	    unsigned int algoWeight = GetAlgoWeight(ALGO_SCRYPT);
-	    if (bnNew > Params().ProofOfWorkLimit()*algoWeight)
-	      bnNew = Params().ProofOfWorkLimit()*algoWeight;
-	    return bnNew.GetCompact();
-	    }*/
+	  //if (pindexLast->nHeight == 446499) return (Params().ProofOfWorkLimit()*GetAlgoWeight(ALGO_SCRYPT)).GetCompact(); // special rule for testing fork
 	  return pindexLast->nBits;
         }
 
@@ -4909,7 +4901,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
       break;
     }
     CBigNum hashes = pprev_algo->GetBlockWork();
-    unsigned int time_f = pprev_algo->GetBlockTime();
+    unsigned int time_f = pprev_algo->GetMedianTimePast();
     unsigned int time_i = 0;
     for (int j=0; j<nSSF-1; j++) {  // nSSF blocks = 24 hours, using only blocks from the same algo as the target block
       pprev_algo = get_pprev_algo(pprev_algo,-1);
@@ -4918,11 +4910,11 @@ unsigned int get_ssf (CBlockIndex * pindex) {
 	break;
       }
       hashes += pprev_algo->GetBlockWork();
-      time_i = pprev_algo->GetBlockTime();
+      time_i = pprev_algo->GetMedianTimePast();
     }
     CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
     if (pprev_algo_time) {
-      time_i = pprev_algo_time->GetBlockTime();
+      time_i = pprev_algo_time->GetMedianTimePast();
     }
     else { // get prefork block time
       CBlockIndex * blockindex = pprev_algo;
@@ -4978,14 +4970,14 @@ unsigned long get_ssf_work (const CBlockIndex * pindex) {
 }
 
 double get_ssf_time (const CBlockIndex * pindex) {
-  int time_f = pindex->GetBlockTime();
+  int time_f = pindex->GetMedianTimePast();
   //LogPrintf("time_f = %d\n",time_f);
   const CBlockIndex * pcur_algo = pindex;
   const CBlockIndex * pprev_algo = get_pprev_algo(pindex,-1);
   int time_i = 0;
   for (int i=0; i<nSSF; i++) {
     if (pprev_algo) {
-      time_i = pprev_algo->GetBlockTime();
+      time_i = pprev_algo->GetMedianTimePast();
     }
     else {
       const CBlockIndex * blockindex = pindex;

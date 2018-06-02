@@ -1425,12 +1425,6 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight - 1; i++) {
 
-      if (CountBlocks >= PastBlocksMax) {
-	if(LastBlockTime > 0){
-	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
-	}
-	break;
-      }
 
       if (!onFork(BlockReading)) { // last block before fork
 	if(LastBlockTime > 0){
@@ -1459,6 +1453,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	  PastDifficultyAverage.SetCompact(BlockReading->nBits);
 	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetMedianTimePast();
 	  LastBlockTime = BlockReading->GetMedianTimePast();
+	   if (fDebug) LogPrintf("block time final = %d\n",LastBlockTime);
 	}
 	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
 	PastDifficultyAveragePrev = PastDifficultyAverage;
@@ -1470,6 +1465,13 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
 	}
 	break;
+      }
+      if (CountBlocks >= PastBlocksMax) {
+        if(LastBlockTime > 0){
+          if (fDebug) LogPrintf("block time initial %d\n",BlockReading->GetMedianTimePast());
+          nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
+        }
+        break;
       }
       BlockReading = BlockReading->pprev;
     }

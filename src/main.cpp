@@ -1432,7 +1432,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	break;
       }
 
-      if (!onFork(BlockReading)) { /* last block before fork */
+      if (!onFork(BlockReading)) { // last block before fork
 	if(LastBlockTime > 0){
 	  nActualTimespan = (LastBlockTime - BlockReading->GetBlockTime());
 	}
@@ -1447,7 +1447,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	LastBlockTimeOtherAlgos = BlockReading->GetMedianTimePast();
       }
       int block_algo = GetAlgo(BlockReading->nVersion);
-      if (block_algo != algo) { /* Only consider blocks from same algo */
+      if (block_algo != algo) { // Only consider blocks from same algo
 	BlockReading = BlockReading->pprev;
 	continue;
       }
@@ -1496,23 +1496,22 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew /= _nTargetTimespan;
     }
     else if (CountBlocks==1) {
-      LogPrintf("CountBlocks = %d\n",CountBlocks);
-      LogPrintf("setting nBits to keep continuity of scrypt chain\n");
-      LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
-      unsigned int weight = GetAlgoWeight(algo);
-      unsigned int weight_scrypt = GetAlgoWeight(0);
-      //if (BlockReading->nHeight == 446573) { // condition for testing fork
+      if (fDebug) {
+	LogPrintf("CountBlocks = %d\n",CountBlocks);
+	LogPrintf("setting nBits to keep continuity of scrypt chain\n");
+	LogPrintf("scaling wrt block at height %u algo %d\n",BlockReading->nHeight,algo);
+      }
+      unsigned int weightScrypt = GetAlgoWeight(ALGO_SCRYPT);
       if (algo == ALGO_SCRYPT || algo == ALGO_SHA256D) {
-	LogPrintf("set to blocktreading nBits\n");
-	bnNew.SetCompact(BlockReading->nBits);
-	if (algo == ALGO_SHA256D) bnNew /= 2; // ASIC protection
+	bnNew.SetCompact(BlockReading->nBits); //preserve continuity of chain diff for scrypt and sha256d
+	bnNew *= algoWeight;
+	bnNew /= (8*weightScrypt);
       }
       else {
-	LogPrintf("set to 1d00ffff\n");
-	bnNew.SetCompact(0x1d00ffff); // same as difficulty of genesis block
+	bnNew.SetCompact(0x1d00ffff); // for newer algos, use difficulty of genesis block, weighted
+	bnNew *= algoWeight;
+	bnNew /= weightScrypt;
       }
-      bnNew *= weight;
-      bnNew /= (8*weight_scrypt);
       if (smultiply) bnNew *= smultiplier*3;
     }
     else {
@@ -1523,13 +1522,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       bnNew = Params().ProofOfWorkLimit()*algoWeight;
     }
     
-    /// debug print
-    LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
-    LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
-    LogPrintf("Before: %08x  %lu\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
-    LogPrintf("BlockReading: %08x %lu\n",BlockReading->nBits,CBigNum().SetCompact(BlockReading->nBits).getuint256().ToString());
-    LogPrintf("Avg from past %d: %08x %lu\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
-    LogPrintf("After:  %08x  %lu\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+    if (fDebug) {
+      LogPrintf("DarkGravityWave RETARGET algo %d\n",algo);
+      LogPrintf("_nTargetTimespan = %d    nActualTimespan = %d\n", _nTargetTimespan, nActualTimespan);
+      LogPrintf("Before: %08x  %lu\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString());
+      LogPrintf("BlockReading: %08x %lu\n",BlockReading->nBits,CBigNum().SetCompact(BlockReading->nBits).getuint256().ToString());
+      LogPrintf("Avg from past %d: %08x %lu\n", CountBlocks,PastDifficultyAverage.GetCompact(), PastDifficultyAverage.getuint256().ToString());
+      LogPrintf("After:  %08x  %lu\n", bnNew.GetCompact(), bnNew.getuint256().ToString());
+    }
 
     return bnNew.GetCompact();
 }

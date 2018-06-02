@@ -32,9 +32,13 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
     if (algo<0) {
       algo = GetAlgo(blockindex->nVersion);
     }
-    int algo_tip = GetAlgo(blockindex->nVersion);
-    if (algo_tip != algo) {
-      blockindex = get_pprev_algo(blockindex,algo);
+    bool blockOnFork = false;
+    if (onFork(blockindex)) blockOnFork = true;
+    if (blockOnFork) {
+      int algo_tip = GetAlgo(blockindex->nVersion);
+      if (algo_tip != algo) {
+	blockindex = get_pprev_algo(blockindex,algo);
+      }
     }
     unsigned int nBits = 0;
     if (blockindex && blockindex->nHeight>0) {
@@ -59,7 +63,8 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
         nShift--;
     }
 
-    return dDiff*GetAlgoWeight(algo); //weighted difficulty
+    if (blockOnFork) return dDiff*GetAlgoWeight(algo); //weighted difficulty
+    return dDiff;
 }
 
 double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {

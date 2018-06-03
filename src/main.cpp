@@ -1437,6 +1437,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	}
 	CountBlocks++;
 	if (nInRow<9) nInRow = 0;
+	if (CountBlocks<10) last9algo = false;
 	break;
       }
 

@@ -1415,9 +1415,12 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
     CBigNum PastDifficultyAveragePrev;
+    CBigNum LastDifficultyAlgo;
     int64_t time_since_last_algo = -1;
     int64_t LastBlockTimeOtherAlgos = 0;
     unsigned int algoWeight = GetAlgoWeight(algo);
+    bool last9algo = true;
+    int nInRow = 0;
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
       return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
@@ -1433,6 +1436,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
+	if (nInRow<9) nInRow = 0;
 	break;
       }
 
@@ -1442,10 +1446,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { // Only consider blocks from same algo
 	BlockReading = BlockReading->pprev;
+	if (CountBlocks<9) last9algo = false;
+	if (nInRow<9) nInRow = 0;
+	if (!CountBlocks) LastDifficultyAlgo = BlockReading->nBits;
 	continue;
       }
 	
       CountBlocks++;
+      nInARow++;
 
       if(CountBlocks <= PastBlocksMin) {
 	if (CountBlocks == 1) {
@@ -1476,8 +1484,24 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       
       BlockReading = BlockReading->pprev;
     }
+
+    bool past9algo = true;
+    if (!BlockReading) past9algo = false;
+    while (BlockReading) {
+      if (GetAlgo(BlockReading->nVersion)!=algo) {
+	past9algo = false;
+	break;
+      }
+      BlockReading = BlockReading->pprev;
+    }
     
-    CBigNum bnNew(PastDifficultyAverage);
+    CBigNum bnNew;
+    if (nInRow==9 && !past9algo) {
+      bnNew = LastDifficultyAlgo;
+    }
+    else {
+      bnNew = PastDifficultyAverage;
+    }
     int64_t _nTargetTimespan = (CountBlocks-1) * DGWtimespan; //16 min target
 
     int64_t smultiplier = 1;
@@ -1489,7 +1513,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       smultiply = true;
     }
     
-    if (nActualTimespan < _nTargetTimespan/3)
+    if (nActualTimespan < _nTargetTimespan/3 || last9algo)
       nActualTimespan = _nTargetTimespan/3;
     if (nActualTimespan > _nTargetTimespan*3)
       nActualTimespan = smultiplier*_nTargetTimespan*3;

@@ -1453,7 +1453,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       }
 	
       CountBlocks++;
-      nInARow++;
+      nInRow++;
 
       if(CountBlocks <= PastBlocksMin) {
 	if (CountBlocks == 1) {

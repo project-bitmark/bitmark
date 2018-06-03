@@ -1511,7 +1511,12 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew /= (8*weightScrypt);
       }
       else {
-	bnNew.SetCompact(0x1d00ffff); // for newer algos, use min diff times 128, weighted
+	if (TestNet()) {
+	  bnNew.SetCompact(BlockReading->nBits);
+	}
+	else {
+	  bnNew.SetCompact(0x1d00ffff); // for newer algos, use min diff times 128, weighted
+	}
 	bnNew *= algoWeight;
 	bnNew /= 128;
       }

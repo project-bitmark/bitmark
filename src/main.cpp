@@ -1426,7 +1426,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
 
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight - 1; i++) {
+    while (BlockReading && BlockReading->nHeight >= nForkHeight - 1) {
 
       if (!onFork(BlockReading)) { // last block before fork
 	if(LastBlockTime > 0){
@@ -1489,7 +1489,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     bool past9algo = true;
     const CBlockIndex * BlockPast = BlockReading;
     if (!BlockPast) past9algo = false;
-    while (BlockPast) {
+    for (int i=0; i<9; i++) {
       if (GetAlgo(BlockPast->nVersion)!=algo) {
 	past9algo = false;
 	break;
@@ -1550,6 +1550,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     else {
       if (smultiply) bnNew *= smultiplier*3;
+      if (last9algo) bnNew /= 3;
     }
     
     if (bnNew > Params().ProofOfWorkLimit()*algoWeight){

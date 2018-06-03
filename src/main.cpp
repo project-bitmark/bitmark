@@ -1411,7 +1411,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
     int64_t PastBlocksMin = 25;
-    int64_t PastBlocksMax = 25;
+    int64_t PastBlocksMax = 25; // We have same max and min, just using same variables from old code
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
     CBigNum PastDifficultyAveragePrev;
@@ -1487,13 +1487,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
 
     bool past9algo = true;
-    if (!BlockReading) past9algo = false;
-    while (BlockReading) {
-      if (GetAlgo(BlockReading->nVersion)!=algo) {
+    const CBlockIndex * BlockPast = BlockReading;
+    if (!BlockPast) past9algo = false;
+    while (BlockPast) {
+      if (GetAlgo(BlockPast->nVersion)!=algo) {
 	past9algo = false;
 	break;
       }
-      BlockReading = BlockReading->pprev;
+      BlockPast = BlockPast->pprev;
     }
     
     CBigNum bnNew;

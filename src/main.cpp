@@ -1454,7 +1454,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { // Only consider blocks from same algo
 	BlockReading = BlockReading->pprev;
-	if (!CountBlocks || CountBlocks<9) last9algo = false;
+	if (CountBlocks && CountBlocks<9) last9algo = false;
 	if (nInRow<9) {
 	  nInRow = 0;
 	}

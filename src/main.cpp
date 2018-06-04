@@ -1567,7 +1567,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     else {
       if (smultiply) bnNew *= smultiplier*3;
-      if (last9algo) bnNew /= 3;
+      if (last9algo && !nInRowMod) bnNew /= 3;
     }
     
     if (bnNew > Params().ProofOfWorkLimit()*algoWeight){

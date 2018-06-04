@@ -1537,9 +1537,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     if (nActualTimespan > _nTargetTimespan*3)
       nActualTimespan = smultiplier*_nTargetTimespan*3;
     
-    if (CountBlocks >= PastBlocksMin ) {          
+    if (CountBlocks >= PastBlocksMin ) {
+      if (last9algo && !nInRowMod) {
+	bnNew /= 3;
+      }
+      else if (!nInRow) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
+      }
     }
     else if (CountBlocks==1) {
       if (fDebug) {

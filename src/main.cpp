@@ -1421,7 +1421,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     unsigned int algoWeight = GetAlgoWeight(algo);
     bool last9algo = true;
     int nInRow = 0;
-    int nInRowEnd = -1;
+    //int nInRowEnd = -1;
     bool nInRowDone = false;
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
@@ -1465,7 +1465,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	continue;
       }
 
-      if (!nInRow) nInRowEnd = CountBlocks;
+      //if (!nInRow) nInRowEnd = CountBlocks;
       CountBlocks++;
       nInRow++;
 
@@ -1499,9 +1499,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       BlockReading = BlockReading->pprev;
     }
 
-    if (nInRow && !nInRowDone) {
+    if (nInRow && !nInRowDone && BlockReading) {
       if (fDebug) LogPrintf("nInRow = %d and not done\n",nInRow);
-      const CBlockIndex * BlockPast = BlockReading;
+      const CBlockIndex * BlockPast = BlockReading->pprev;
       while (BlockPast) {
 	if (GetAlgo(BlockPast->nVersion)!=algo||!onFork(BlockPast)) {
 	  break;
@@ -1513,7 +1513,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     
     CBigNum bnNew;
     int nInRowMod = nInRow%9;
-    if (nInRow && !nInRowMod && nInRowEnd>1) {
+    if (nInRow || time_since_last_algo>9600) {
       if (fDebug) LogPrintf("bnNew = LastDifficultyAlgo\n");
       bnNew = LastDifficultyAlgo;
     }
@@ -1524,7 +1524,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
     int64_t smultiplier = 1;
     bool smultiply = false;
-    if (time_since_last_algo > 9600) { //160 min for special retarget
+    if (time_since_last_algo > 9600) { //160 min for special5 retarget
       smultiplier = time_since_last_algo/9600;
       LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), smultiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, smultiplier);
       nActualTimespan = 10*smultiplier*_nTargetTimespan;

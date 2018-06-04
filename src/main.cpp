@@ -1461,9 +1461,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	else {
 	  nInRowDone = true;
 	}
-	if (!CountBlocks) LastDifficultyAlgo = BlockReading->nBits;
 	continue;
       }
+      if (!CountBlocks) LastDifficultyAlgo = BlockReading->nBits;
 
       //if (!nInRow) nInRowEnd = CountBlocks;
       CountBlocks++;

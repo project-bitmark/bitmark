@@ -1421,12 +1421,14 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     unsigned int algoWeight = GetAlgoWeight(algo);
     bool last9algo = true;
     int nInRow = 0;
+    int nInRowEnd = -1;
+    bool nInRowDone = false;
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
       return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
 
-    while (BlockReading && BlockReading->nHeight >= nForkHeight - 1) {
+    for (int i=0; BlockReading && BlockReading->nHeight >= nForkHeight - 1; i++) {
 
       if (!onFork(BlockReading)) { // last block before fork
 	if(LastBlockTime > 0){
@@ -1436,7 +1438,12 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
-	if (nInRow<9) nInRow = 0;
+	if (nInRow<9) {
+	  nInRow = 0;
+	}
+	else{
+	  nInRowDone = true;
+	}
 	if (CountBlocks<10) last9algo = false;
 	break;
       }
@@ -1448,11 +1455,17 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (block_algo != algo) { // Only consider blocks from same algo
 	BlockReading = BlockReading->pprev;
 	if (CountBlocks<9) last9algo = false;
-	if (nInRow<9) nInRow = 0;
+	if (nInRow<9) {
+	  nInRow = 0;
+	}
+	else {
+	  nInRowDone = true;
+	}
 	if (!CountBlocks) LastDifficultyAlgo = BlockReading->nBits;
 	continue;
       }
-	
+
+      if (!nInRow) nInRowEnd = CountBlocks;
       CountBlocks++;
       nInRow++;
 
@@ -1486,19 +1499,20 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       BlockReading = BlockReading->pprev;
     }
 
-    bool past9algo = true;
-    const CBlockIndex * BlockPast = BlockReading;
-    if (!BlockPast) past9algo = false;
-    for (int i=0; i<9; i++) {
-      if (GetAlgo(BlockPast->nVersion)!=algo) {
-	past9algo = false;
-	break;
+    if (nInRow && !nInRowDone) {
+      const CBlockIndex * BlockPast = BlockReading;
+      while (BlockPast) {
+	if (GetAlgo(BlockPast->nVersion)!=algo) {
+	  break;
+	}
+	nInRow++;
+	BlockPast = BlockPast->pprev;
       }
-      BlockPast = BlockPast->pprev;
     }
     
     CBigNum bnNew;
-    if (nInRow==9 && !past9algo) {
+    int nInRowMod = nInRow%9;
+    if (nInRow && !nInRowMod && nInRowEnd>1) {
       bnNew = LastDifficultyAlgo;
     }
     else {
@@ -1515,7 +1529,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       smultiply = true;
     }
     
-    if (nActualTimespan < _nTargetTimespan/3 || last9algo)
+    if (nActualTimespan < _nTargetTimespan/3 || last9algo && !nInRowMod)
       nActualTimespan = _nTargetTimespan/3;
     if (nActualTimespan > _nTargetTimespan*3)
       nActualTimespan = smultiplier*_nTargetTimespan*3;

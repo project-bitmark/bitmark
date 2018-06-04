@@ -1419,9 +1419,12 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     int64_t time_since_last_algo = -1;
     int64_t LastBlockTimeOtherAlgos = 0;
     unsigned int algoWeight = GetAlgoWeight(algo);
-    bool last9algo = true;
-    int nInRow = 0;
-    //int nInRowEnd = -1;
+
+    int lastInRow = 0; // starting from last block from algo to first occurence of another algo
+    bool lastInRowDone = false;
+
+    int nInRow = 0; // consecutive sequence of blocks from algo within the 25 block period and more if it continues past the boundary
+    // If an island of 9 or more is found, then stop the count
     bool nInRowDone = false;
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
@@ -1444,17 +1447,17 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	else{
 	  nInRowDone = true;
 	}
-	if (CountBlocks<10) last9algo = false;
 	break;
       }
 
       if (!LastBlockTimeOtherAlgos) {
 	LastBlockTimeOtherAlgos = BlockReading->GetMedianTimePast();
       }
+      
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { // Only consider blocks from same algo
 	BlockReading = BlockReading->pprev;
-	if (CountBlocks && CountBlocks<9) last9algo = false;
+	if (CountBlocks) lastInRowDone = true;
 	if (nInRow<9) {
 	  nInRow = 0;
 	}
@@ -1465,9 +1468,9 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       }
       if (!CountBlocks) LastDifficultyAlgo.SetCompact(BlockReading->nBits);
 
-      //if (!nInRow) nInRowEnd = CountBlocks;
       CountBlocks++;
       if (!nInRowDone) nInRow++;
+      if (!lastInRowDone) lastInRow++;
 
       if(CountBlocks <= PastBlocksMin) {
 	if (CountBlocks == 1) {
@@ -1499,22 +1502,23 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       BlockReading = BlockReading->pprev;
     }
 
-    if (nInRow && !nInRowDone && BlockReading) {
+    if ((nInRow && !nInRowDone || lastInRow && !lastInRowDone) && BlockReading) {
       if (fDebug) LogPrintf("nInRow = %d and not done\n",nInRow);
       const CBlockIndex * BlockPast = BlockReading->pprev;
       while (BlockPast) {
 	if (GetAlgo(BlockPast->nVersion)!=algo||!onFork(BlockPast)) {
 	  break;
 	}
-	nInRow++;
+	if (!nInRowDone) nInRow++;
+	if (!lastInRowDone) lastInRow++;
 	BlockPast = BlockPast->pprev;
       }
     }
     
     CBigNum bnNew;
-    int nInRowMod = nInRow%9;
-    if (fDebug) LogPrintf("nInRow = %d last9algo=%d\n",nInRow,last9algo);
-    if (nInRow || time_since_last_algo>9600) {
+    int lastInRowMod = lastInRow%9;
+    if (fDebug) LogPrintf("nInRow = %d lastInRow=%d\n",nInRow,lastInRow);
+    if (nInRow>=9 || time_since_last_algo>9600) {
       if (fDebug) LogPrintf("bnNew = LastDifficultyAlgo\n");
       bnNew = LastDifficultyAlgo;
     }
@@ -1532,17 +1536,17 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       smultiply = true;
     }
 
-    if (fDebug && last9algo && !nInRowMod) LogPrintf("activate surge protector\n");
-    if (nActualTimespan < _nTargetTimespan/3 || last9algo && !nInRowMod)
+    if (fDebug && lastInRow && !lastInRowMod) LogPrintf("activate surge protector\n");
+    if (nActualTimespan < _nTargetTimespan/3 || lastInRow && !lastInRowMod)
       nActualTimespan = _nTargetTimespan/3;
     if (nActualTimespan > _nTargetTimespan*3)
       nActualTimespan = smultiplier*_nTargetTimespan*3;
     
     if (CountBlocks >= PastBlocksMin ) {
-      if (last9algo && !nInRowMod) {
+      if (lastInRow && !lastInRowMod) {
 	bnNew /= 3;
       }
-      else if (!nInRow) {
+      else if (nInRow<9) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }
@@ -1573,7 +1577,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     else {
       if (smultiply) bnNew *= smultiplier*3;
-      if (last9algo && !nInRowMod) bnNew /= 3;
+      if (lastInRow && !lastInRowMod) bnNew /= 3;
     }
     
     if (bnNew > Params().ProofOfWorkLimit()*algoWeight){

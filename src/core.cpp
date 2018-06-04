@@ -651,7 +651,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
 // Based on tests with general purpose CPUs, except for SHA256 which was designed for simplicity and suited for ASICs, so given a factor of 16 decrease in weight.
 unsigned int GetAlgoWeight (const int algo) {
-  unsigned int weight = 8000;
+  unsigned int weight = 8000; // scrypt, lyra2rev2, and share this value
   switch (algo)
     {
     case ALGO_SHA256D:
@@ -659,9 +659,6 @@ unsigned int GetAlgoWeight (const int algo) {
       break;
     case ALGO_ARGON2:
       weight = 4000000;
-      break;
-    case ALGO_LYRA2REv2:
-      weight = 2800;
       break;
     case ALGO_EQUIHASH:
       weight = 8000000;

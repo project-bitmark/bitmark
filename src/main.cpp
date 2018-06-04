@@ -1500,9 +1500,10 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
 
     if (nInRow && !nInRowDone) {
+      if (fDebug) LogPrintf("nInRow = %d and not done\n",nInRow);
       const CBlockIndex * BlockPast = BlockReading;
       while (BlockPast) {
-	if (GetAlgo(BlockPast->nVersion)!=algo) {
+	if (GetAlgo(BlockPast->nVersion)!=algo||!onFork(BlockPast)) {
 	  break;
 	}
 	nInRow++;
@@ -1513,6 +1514,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     CBigNum bnNew;
     int nInRowMod = nInRow%9;
     if (nInRow && !nInRowMod && nInRowEnd>1) {
+      if (fDebug) LogPrintf("bnNew = LastDifficultyAlgo\n");
       bnNew = LastDifficultyAlgo;
     }
     else {
@@ -1528,7 +1530,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       nActualTimespan = 10*smultiplier*_nTargetTimespan;
       smultiply = true;
     }
-    
+
+    if (fDebug && last9algo && !nInRowMod) LogPrintf("activate surge protector\n");
     if (nActualTimespan < _nTargetTimespan/3 || last9algo && !nInRowMod)
       nActualTimespan = _nTargetTimespan/3;
     if (nActualTimespan > _nTargetTimespan*3)

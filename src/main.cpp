@@ -1463,7 +1463,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	}
 	continue;
       }
-      if (!CountBlocks) LastDifficultyAlgo = BlockReading->nBits;
+      if (!CountBlocks) LastDifficultyAlgo.SetCompact(BlockReading->nBits);
 
       //if (!nInRow) nInRowEnd = CountBlocks;
       CountBlocks++;

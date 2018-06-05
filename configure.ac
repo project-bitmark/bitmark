@@ -178,6 +178,14 @@ CPPFLAGS="$CPPFLAGS -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_
 
 AC_LANG_PUSH([C++])
 
+## CPU-specific flags
+case $host in
+       i?86-*)
+	  CFLAGS="$CFLAGS -fPIC -msse -msse2"
+	  CXXFLAGS="$CXXFLAGS -msse -msse2"
+       ;;
+esac
+
 use_pkgconfig=yes
 case $host in
   *mingw*)
@@ -558,6 +566,7 @@ else
 
   AC_CHECK_HEADER([openssl/ssl.h],, AC_MSG_ERROR(libssl headers missing),)
   AC_CHECK_LIB([ssl],         [main],, AC_MSG_ERROR(libssl missing))
+  AC_CHECK_LIB([sodium], [crypto_generichash_blake2b_update],, AC_MSG_ERROR(libsodium missing))
 
   BITMARK_QT_CHECK(AC_CHECK_LIB([protobuf] ,[main],,BITMARK_QT_FAIL(libprotobuf not found)))
   if test x$use_qr != xno; then

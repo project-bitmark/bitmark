@@ -555,7 +555,7 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
     int counter = 0;
     while (!file && counter < 10) {
         LogPrintf("Unable to open file %s\n", path.string());
-	sleep(1);
+
 	if (fReadOnly) {
 	  file = fopen(path.string().c_str(), "rb+");
 	}

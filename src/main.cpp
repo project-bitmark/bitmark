@@ -1421,11 +1421,10 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     unsigned int algoWeight = GetAlgoWeight(algo);
 
     int lastInRow = 0; // starting from last block from algo to first occurence of another algo
-    bool lastInRowDone = false;
+    bool lastInRowDone = false; // once another algo is found, stop the count
 
-    int nInRow = 0; // consecutive sequence of blocks from algo within the 25 block period and more if it continues past the boundary
-    // If an island of 9 or more is found, then stop the count
-    bool nInRowDone = false;
+    int nInRow = 0; // consecutive sequence of blocks from algo within the 25 block period
+    bool nInRowDone = false; // if an island of 9 or more is found, then stop the count
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
       return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
@@ -1502,6 +1501,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       BlockReading = BlockReading->pprev;
     }
 
+    int pastInRow = 0; // if not done counting, count the past blocks in row with algo starting at the boundary and going back
     if ((nInRow && !nInRowDone || lastInRow && !lastInRowDone) && BlockReading) {
       if (fDebug) LogPrintf("nInRow = %d and not done\n",nInRow);
       const CBlockIndex * BlockPast = BlockReading->pprev;
@@ -1509,16 +1509,16 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	if (GetAlgo(BlockPast->nVersion)!=algo||!onFork(BlockPast)) {
 	  break;
 	}
-	if (!nInRowDone) nInRow++;
-	if (!lastInRowDone) lastInRow++;
+	pastInRow++;
 	BlockPast = BlockPast->pprev;
       }
+      if (!lastInRowDone) lastInRow += pastInRow;
     }
     
     CBigNum bnNew;
     int lastInRowMod = lastInRow%9;
     if (fDebug) LogPrintf("nInRow = %d lastInRow=%d\n",nInRow,lastInRow);
-    if (nInRow>=9 || time_since_last_algo>9600) {
+    if (nInRow>=9 || nInRow && pastInRow && pastInRow%9==0 || time_since_last_algo>9600) {
       if (fDebug) LogPrintf("bnNew = LastDifficultyAlgo\n");
       bnNew = LastDifficultyAlgo;
     }

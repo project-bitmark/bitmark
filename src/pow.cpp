@@ -26,10 +26,10 @@ bool CheckEquihashSolution(const CPureBlockHeader *pblock, const CChainParams& p
 {
 
   if (pblock->nSolution.size()>1) {
-    LogPrintf("check equihash solution hashprevblock=%s solution size = %d part = %x %x\n",pblock->hashPrevBlock.GetHex().c_str(),pblock->nSolution.size(),pblock->nSolution[0],pblock->nSolution[1]);
+    //LogPrintf("check equihash solution hashprevblock=%s solution size = %d part = %x %x\n",pblock->hashPrevBlock.GetHex().c_str(),pblock->nSolution.size(),pblock->nSolution[0],pblock->nSolution[1]);
   }
   else {
-    LogPrintf("check equihash solution with solution size = %d\n",pblock->nSolution.size());
+    //LogPrintf("check equihash solution with solution size = %d\n",pblock->nSolution.size());
   }
   
     unsigned int n = params.EquihashN();
@@ -46,7 +46,7 @@ bool CheckEquihashSolution(const CPureBlockHeader *pblock, const CChainParams& p
     ss << I;
     ss << pblock->nNonce256;
 
-    LogPrintf("checkES ss (%lu) = ",ss.size());
+    /*LogPrintf("checkES ss (%lu) = ",ss.size());
     for (int i=0; i<ss.size(); i++) {
       LogPrintf("%02x",*((unsigned char *)&ss[0]+i));
     }
@@ -56,7 +56,7 @@ bool CheckEquihashSolution(const CPureBlockHeader *pblock, const CChainParams& p
     for (int i=0; i<(pblock->nSolution).size(); i++) {
       LogPrintf("%02x",*((unsigned char *)&(pblock->nSolution)[0]+i));
     }
-    LogPrintf("\n");
+    LogPrintf("\n");*/
     
     // H(I||V||...
     crypto_generichash_blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
@@ -65,8 +65,6 @@ bool CheckEquihashSolution(const CPureBlockHeader *pblock, const CChainParams& p
     EhIsValidSolution(n, k, state, pblock->nSolution, isValid);
     if (!isValid)
         return error("CheckEquihashSolution(): invalid solution");
-
-    LogPrintf("Good equihash solution\n");
     
     return true;
 }

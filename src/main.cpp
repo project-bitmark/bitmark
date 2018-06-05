@@ -1518,7 +1518,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     CBigNum bnNew;
     int lastInRowMod = lastInRow%9;
     if (fDebug) LogPrintf("nInRow = %d lastInRow=%d\n",nInRow,lastInRow);
-    if (nInRow>=9 || nInRow && pastInRow && pastInRow%9==0 || time_since_last_algo>9600) {
+    if (nInRow>=9 || nInRow && pastInRow && (nInRow+pastInRow)>=9 && pastInRow%9!=0 || time_since_last_algo>9600) {
       if (fDebug) LogPrintf("bnNew = LastDifficultyAlgo\n");
       bnNew = LastDifficultyAlgo;
     }

@@ -182,6 +182,14 @@ AX_CHECK_COMPILE_FLAG([-std=c++11], [CXXFLAGS="$CXXFLAGS -std=c++11"])
 AX_CHECK_COMPILE_FLAG([-fPIC], [CXXFLAGS="$CXXFLAGS -fPIC"])
 CFLAGS="$CFLAGS -fPIC"
 
+## CPU-specific flags
+case $host in
+       i?86-*)
+	  CFLAGS="$CFLAGS -msse -msse2"
+	  CXXFLAGS="$CXXFLAGS -msse -msse2"
+       ;;
+esac
+
 use_pkgconfig=yes
 case $host in
   *mingw*)
@@ -366,7 +374,6 @@ fi
 if test x$use_hardening != xno; then
   AX_CHECK_COMPILE_FLAG([-Wstack-protector],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -Wstack-protector"])
   AX_CHECK_COMPILE_FLAG([-fstack-protector-all],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -fstack-protector-all"])
-  AX_CHECK_COMPILE_FLAG([-fPIE],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -fPIE"])
 
   AX_CHECK_PREPROC_FLAG([-D_FORTIFY_SOURCE=2],[
     AX_CHECK_PREPROC_FLAG([-U_FORTIFY_SOURCE],[
@@ -563,6 +570,7 @@ else
 
   AC_CHECK_HEADER([openssl/ssl.h],, AC_MSG_ERROR(libssl headers missing),)
   AC_CHECK_LIB([ssl],         [main],, AC_MSG_ERROR(libssl missing))
+  AC_CHECK_LIB([sodium], [crypto_generichash_blake2b_update],, AC_MSG_ERROR(libsodium missing))
 
   BITMARK_QT_CHECK(AC_CHECK_LIB([protobuf] ,[main],,BITMARK_QT_FAIL(libprotobuf not found)))
   if test x$use_qr != xno; then

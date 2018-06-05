@@ -2,9 +2,9 @@
 
 *.exe
 src/bitcoin
-src/bitmarkd*
-src/bitmark-cli*
-src/bitmark-tx*
+src/bitmarkd
+src/bitmark-cli
+src/bitmark-tx
 src/qt/bitmark-qt
 src/test/test_bitcoin
 src/test/test_bitmark
@@ -39,8 +39,8 @@ src/config/bitcoin-config.h.in
 src/config/stamp-h1
 src/stamp-h1
 src/bitmark-config.h.in
-sr/bitmark-config.h
-#share/setup.nsi
+src/bitmark-config.h
+share/setup.nsi
 share/qt/Info.plist
 
 src/univalue/gen
@@ -63,6 +63,7 @@ src/qt/test/moc*.cpp
 *.o
 *.o-*
 *.patch
+!contrib/test-patches/temp-revert-2.patch
 .bitcoin
 *.a
 *.pb.cc

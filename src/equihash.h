@@ -6,7 +6,7 @@
 #ifndef BITCOIN_EQUIHASH_H
 #define BITCOIN_EQUIHASH_H
 
-#include "endian.h"
+#include "portable_endian.h"
 //#include "sha2.h"
 #include "util.h"
 

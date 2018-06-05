@@ -1487,9 +1487,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	if(LastBlockTime > 0){
 	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
 	}
-	break;
+s	break;
       }
-
       if (CountBlocks >= PastBlocksMax) {
 	if(LastBlockTime > 0){
 	  if (fDebug) LogPrintf("block time initial %d\n",BlockReading->GetMedianTimePast());
@@ -1530,7 +1529,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
     int64_t smultiplier = 1;
     bool smultiply = false;
-    if (time_since_last_algo > 9600) { //160 min for special5 retarget
+    if (time_since_last_algo > 9600) { //160 min for special retarget
       smultiplier = time_since_last_algo/9600;
       LogPrintf("special retarget for algo %d with time_since_last_algo = %d (height %d), smultiplier %d\n",algo,time_since_last_algo,pindexLast->nHeight, smultiplier);
       nActualTimespan = 10*smultiplier*_nTargetTimespan;

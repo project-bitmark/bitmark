@@ -552,10 +552,9 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
     FILE* file = fopen(path.string().c_str(), "rb+");
     if (!file && !fReadOnly)
         file = fopen(path.string().c_str(), "wb+");
-    int counter = 0;
-    while (!file && counter < 10) {
+    /*int counter = 0;
+    while (!file && counter < 1) {
         LogPrintf("Unable to open file %s\n", path.string());
-	sleep(1);
 	if (fReadOnly) {
 	  file = fopen(path.string().c_str(), "rb+");
 	}
@@ -564,8 +563,9 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 	}
         //return NULL;
 	counter ++;
-    }
+	}*/
     if (!file) {
+      LogPrintf("unable to open file %s\n",path.string());
       return NULL;
     }
     if (pos.nPos) {

@@ -1551,7 +1551,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew /= _nTargetTimespan;
       }
     }
-    else if (CountBlocks==1) {
+    else if (CountBlocks==1) { // first block of algo for fork
       if (fDebug) {
 	LogPrintf("CountBlocks = %d\n",CountBlocks);
 	LogPrintf("setting nBits to keep continuity of scrypt chain\n");
@@ -1639,7 +1639,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
-	  //if (pindexLast->nHeight == 446499) return (Params().ProofOfWorkLimit()*GetAlgoWeight(ALGO_SCRYPT)).GetCompact(); // special rule for testing fork
 	  return pindexLast->nBits;
         }
 

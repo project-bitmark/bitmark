@@ -399,11 +399,11 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     if (parentBlock.vector_format) {
       int len = parentBlock.vector_rep.size();
       if (len > 1000) return error("parentBlock header too big");
-      LogPrintf("parentBlock vector (%d) = \n",len);
+      /*LogPrintf("parentBlock vector (%d) = \n",len);
       for (int i=0; i<len; i++) {
 	LogPrintf("%02x",parentBlock.vector_rep[i]);
       }
-      LogPrintf("\n");
+      LogPrintf("\n");*/
     }
     else {
       //LogPrintf("parentBlock.nVersion = %u\n",parentBlock.nVersion);

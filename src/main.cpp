@@ -1518,7 +1518,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     CBigNum bnNew;
     int lastInRowMod = lastInRow%9;
     if (fDebug) LogPrintf("nInRow = %d lastInRow=%d\n",nInRow,lastInRow);
-    if (nInRow>=9 || nInRow && pastInRow && (nInRow+pastInRow)>=9 && pastInRow%9!=0 || time_since_last_algo>9600) {
+    bool justHadSurge = nInRow>=9 || nInRow && pastInRow && (nInRow+pastInRow)>=9 && pastInRow%9!=0;
+    if (justHadSurge || time_since_last_algo>9600) {
       if (fDebug) LogPrintf("bnNew = LastDifficultyAlgo\n");
       bnNew = LastDifficultyAlgo;
     }
@@ -1536,17 +1537,17 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       smultiply = true;
     }
 
-    if (fDebug && lastInRow && !lastInRowMod) LogPrintf("activate surge protector\n");
-    if (nActualTimespan < _nTargetTimespan/3 || lastInRow && !lastInRowMod)
+    if (fDebug && lastInRow >= 9 && !lastInRowMod) LogPrintf("activate surge protector\n");
+    if (nActualTimespan < _nTargetTimespan/3 || lastInRow >= 9 && !lastInRowMod)
       nActualTimespan = _nTargetTimespan/3;
     if (nActualTimespan > _nTargetTimespan*3)
       nActualTimespan = smultiplier*_nTargetTimespan*3;
     
     if (CountBlocks >= PastBlocksMin ) {
-      if (lastInRow && !lastInRowMod) {
+      if (lastInRow>=9 && !lastInRowMod) {
 	bnNew /= 3;
       }
-      else if (nInRow<9) {
+      else if (!justHadSurge) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }
@@ -1577,7 +1578,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     else {
       if (smultiply) bnNew *= smultiplier*3;
-      if (lastInRow && !lastInRowMod) bnNew /= 3;
+      if (lastInRow>=9 && !lastInRowMod) bnNew /= 3;
     }
     
     if (bnNew > Params().ProofOfWorkLimit()*algoWeight){

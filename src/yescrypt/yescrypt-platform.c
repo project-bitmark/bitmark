@@ -20,6 +20,11 @@
 
 #ifdef WIN32
 #include <windows.h>
+
+#ifndef ENOMEM
+#define ENOMEM          12
+#endif
+
 #else
 #include <sys/mman.h>
 #endif

@@ -1487,7 +1487,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	if(LastBlockTime > 0){
 	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
 	}
-s	break;
+	break;
       }
       if (CountBlocks >= PastBlocksMax) {
 	if(LastBlockTime > 0){

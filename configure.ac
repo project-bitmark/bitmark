@@ -227,6 +227,19 @@ case $host in
        AC_MSG_WARN("makensis not found. Cannot create installer.")
      fi
 
+     AC_CHECK_PROG([CYGPATH], [cygpath], yes, no)
+     if test x$CYGPATH = xno; then
+       AC_MSG_WARN("cygpath not found.")
+     else
+       WINPATH_TOPSRCDIR=$(cygpath --windows $(realpath $srcdir))
+       WINPATH_INSTALLPREFIX=$(cygpath --windows $prefix)
+       WINPATH_MINGWHOSTPREFIX=$(cygpath --windows "/usr/$host/")
+
+       AC_SUBST(WINPATH_TOPSRCDIR)
+       AC_SUBST(WINPATH_INSTALLPREFIX)
+       AC_SUBST(WINPATH_MINGWHOSTPREFIX)
+     fi
+
      AC_PATH_TOOL(WINDRES, windres, none)
      if test x$WINDRES = xnone; then
        AC_MSG_ERROR("windres not found")

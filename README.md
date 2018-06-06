@@ -7,7 +7,6 @@ Project Bitmark is a multi faceted project which aims to provide:
 
 This repository contains the Bitmark cryptograpic currency software, and a wiki which provides all details pertaining to the software, it's configuration and the rationale of all design decisions.
 
-(Note: **Forking** Why fork this when you can fork [Pfennig](https://github.com/project-bitmark/pfennig) ? - Pfennig was made to be cloned ! )
 # Bitmark
 
 [![Join the chat at https://gitter.im/project-bitmark/bitmark](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/project-bitmark/bitmark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -34,17 +33,33 @@ Bitmark aims to be a relatively stable, user focused, crypto currency, which ref
 
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
 
-## mPOW Hard Fork (branch 0.9.7)
+## Eight Algortihm mPoW Hard Fork (v0.9.7)
 
-We are now releasing the hard fork that allows for multiple proof-of-work algorithms (SHA256D, SCRYPT, ARGON2, LYRA2REv2, X17, EQUIHASH, CRYPTONIGHT). Each algorithm has its difficulty adjusted independently, with a target spacing of 16 min (so 2 min as before if we consider blocks mined by any algorithm). The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 720/8=90 blocks). The difficulty adjustment algorithm is Dark Gravity Wave v3, taken and modified from DASH for multi algo usage. It also includes a special retargeting rule that activates if blocks from one algo are halted for a long time.
+We are now releasing the hard fork that allows for multiple proof-of-work algorithms (SCRYPT, SHA256D, YESCRYPT, ARGON2D, X17, LYRA2REv2, EQUIHASH, CRYPTONIGHT). Each algorithm has its difficulty adjusted independently, with a target spacing of 16 min (for a combined average of  2 min as per the Bitmark specification). 
+The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 720/8=90 blocks). 
+The difficulty adjustment algorithm is Dark Gravity Wave v3, customized for multi algo usage. It also includes special retargeting rules, the Surge Protector and The Resurrector. The Surge Protector activates if there is a string of 9 blocks in-a-row by the same algorithm. The Resurrector activates if blocks from one algo are halted for over 160 minutes.
 
-To test, you can download the current version from this branch, and put the following settings in your bitmark.conf
+Download the current version from 'Master' branch, and put the following settings in your bitmark.conf
 
 rpcuser=bitmarkrpc
-rpcpassword=YoUrPaSsWoRd
-testnet=1
-debug=1
+rpcpassword=YoUrSecreT-PaSsWoRd
 listen=1
+
+
+Note: Daniel J. Bernstein's libsodium cryptographic library is requred by Bitmark v0.9.7
+
+Ubuntu 16 and higher may simply do
+sudo apt-get install libsodium-dev
+
+otherwise, you may have to compile this library from scratch:
+
+git clone git://github.com/jedisct1/libsodium.git
+cd libsodium
+./autogen.sh
+./configure && make check
+sudo make install
+sudo ldconfig
+
 
 You can mine all algorithms using our fork of cpuminer-multi (https://github.com/piratelinux/cpuminer-multi default linux branch), with the following command:
 

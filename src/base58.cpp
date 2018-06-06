@@ -35,8 +35,9 @@ bool DecodeBase58(const char *psz, std::vector<unsigned char>& vch) {
     while (*psz && !isspace(*psz)) {
         // Decode base58 character
         const char *ch = strchr(pszBase58, *psz);
-        if (ch == NULL)
-            return false;
+        if (ch == NULL) {
+	  return false;
+	}
         // Apply "b256 = b256 * 58 + ch".
         int carry = ch - pszBase58;
         for (std::vector<unsigned char>::reverse_iterator it = b256.rbegin(); it != b256.rend(); it++) {
@@ -50,8 +51,9 @@ bool DecodeBase58(const char *psz, std::vector<unsigned char>& vch) {
     // Skip trailing spaces.
     while (isspace(*psz))
         psz++;
-    if (*psz != 0)
-        return false;
+    if (*psz != 0) {
+      return false;
+    }
     // Skip leading zeroes in b256.
     std::vector<unsigned char>::iterator it = b256.begin();
     while (it != b256.end() && *it == 0)

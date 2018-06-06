@@ -228,34 +228,52 @@ public:
     }
 
     bool Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) {
-    	if (vchSig.empty())
-            return false;
-        // New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
-        unsigned char *norm_der = NULL;
-        ECDSA_SIG *norm_sig = ECDSA_SIG_new();
-        const unsigned char* sigptr = &vchSig[0];
-        assert(norm_sig);
-        if (d2i_ECDSA_SIG(&norm_sig, &sigptr, vchSig.size()) == NULL)
+      //if (ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), &vchSig[0], vchSig.size(), pkey) != 1)
+      //return false;
+      //return true;
+      if (vchSig.empty()) {
+	//printf("empty sig\n");
+	return false;
+      }
+      // New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
+      unsigned char *norm_der = NULL;
+      ECDSA_SIG *norm_sig = ECDSA_SIG_new();
+      const unsigned char* sigptr = &vchSig[0];
+      assert(norm_sig);
+      if (d2i_ECDSA_SIG(&norm_sig, &sigptr, vchSig.size()) == NULL)
         {
-            /* As of OpenSSL 1.0.0p d2i_ECDSA_SIG frees and nulls the pointer on
-             * error. But OpenSSL's own use of this function redundantly frees the
-             * result. As ECDSA_SIG_free(NULL) is a no-op, and in the absence of a
-             * clear contract for the function behaving the same way is more
-             * conservative.
-             */
-            ECDSA_SIG_free(norm_sig);
-            return false;
+	  /* As of OpenSSL 1.0.0p d2i_ECDSA_SIG frees and nulls the pointer on
+	   * error. But OpenSSL's own use of this function redundantly frees the
+	   * result. As ECDSA_SIG_free(NULL) is a no-op, and in the absence of a
+	   * clear contract for the function behaving the same way is more
+	   * conservative.
+	   */
+	  ECDSA_SIG_free(norm_sig);
+	  //printf("d2i failed\n");
+	  return false;
         }
-        int derlen = i2d_ECDSA_SIG(norm_sig, &norm_der);
-        ECDSA_SIG_free(norm_sig);
-        if (derlen <= 0)
-    	     return false;
-        return true;
-
-        // -1 = error, 0 = bad sig, 1 = good
-        bool ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
-        OPENSSL_free(norm_der);
-        return ret;
+      int derlen = i2d_ECDSA_SIG(norm_sig, &norm_der);
+      ECDSA_SIG_free(norm_sig);
+      if (derlen <= 0) {
+	//printf("derlen<=0\n");
+	return false;
+      }
+      // -1 = error, 0 = bad sig, 1 = good
+      /*if (vchSig.size()>2 && vchSig[0] == 0x30 && vchSig[1] == 0x45 && vchSig[2] == 0x02) {
+	LogPrintf("ECDSA_verify\n");
+	LogPrintf("(%d) ",sizeof(hash));
+	  for (int i=0; i<sizeof(hash); i++) {
+	  LogPrintf("%02x",((unsigned char *)&hash)[i]);
+	  }
+	  LogPrintf("\n(%d)",derlen);
+	  for (int i=0; i<derlen; i++) {
+	  LogPrintf("%02x",norm_der[i]);
+	  }
+	  LogPrintf("\n");
+	  }*/
+      bool ret = ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), norm_der, derlen, pkey) == 1;
+      OPENSSL_free(norm_der);
+      return ret;
     }
 
     bool SignCompact(const uint256 &hash, unsigned char *p64, int &rec) {
@@ -463,10 +481,14 @@ bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchS
     if (!IsValid())
         return false;
     CECKey key;
-    if (!key.SetPubKey(*this))
-        return false;
-    if (!key.Verify(hash, vchSig))
-        return false;
+    if (!key.SetPubKey(*this)) {
+      //printf("cpubkey::verify: !key.SetPubKey\n");
+      return false;
+    }
+    if (!key.Verify(hash, vchSig)) {
+      //printf("cpubkey::verify: !key.Verify\n");
+      return false;
+    }
     return true;
 }
 

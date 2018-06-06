@@ -18,6 +18,7 @@
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
+#include "base58.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -52,10 +53,16 @@ void ShutdownRPCMining()
 }
 #endif
 
+/* Set mining algo here for rpc mining */
+int miningAlgo = ALGO_SCRYPT;
+int miningAlgoGBT = miningAlgo;
+int miningAlgoGAB = miningAlgo;
+bool confAlgoIsSet = false;
+
 // Return average network hashes per second based on the last 'lookup' blocks,
 // or from the last difficulty change if 'lookup' is nonpositive.
 // If 'height' is nonnegative, compute the estimate at the time when a given block was found.
-Value GetNetworkHashPS(int lookup, int height) {
+Value GetNetworkHashPS(int lookup, int height, int algo) {
     CBlockIndex *pb = chainActive.Tip();
 
     if (height >= 0 && height < chainActive.Height())
@@ -73,28 +80,40 @@ Value GetNetworkHashPS(int lookup, int height) {
         lookup = pb->nHeight;
 
     CBlockIndex *pb0 = pb;
+    int algo_tip = GetAlgo(pb0->nVersion);
+    if (algo_tip != algo) {
+      pb0 = get_pprev_algo(pb0,algo);
+    }
+    if (!pb0) return 0.;
     int64_t minTime = pb0->GetBlockTime();
     int64_t maxTime = minTime;
+    CBigNum hashes_bn = pb0->GetBlockWork();
     for (int i = 0; i < lookup; i++) {
         pb0 = pb0->pprev;
+	if (!pb0) break;
+	if (GetAlgo(pb0->nVersion)!=algo) {
+	  lookup++;
+	  continue;
+	}
         int64_t time = pb0->GetBlockTime();
         minTime = std::min(time, minTime);
         maxTime = std::max(time, maxTime);
+	hashes_bn += pb0->GetBlockWork();
     }
 
     // In case there's a situation where minTime == maxTime, we don't want a divide by zero exception.
     if (minTime == maxTime)
         return 0;
 
-    uint256 workDiff = pb->nChainWork - pb0->nChainWork;
+    //uint256 workDiff = pb->nChainWork - pb0->nChainWork;
     int64_t timeDiff = maxTime - minTime;
 
-    return (int64_t)(workDiff.getdouble() / timeDiff);
+    return (((double)hashes_bn.getulong()) / (double)timeDiff);
 }
 
 Value getnetworkhashps(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
+    if (fHelp || params.size() > 3)
         throw runtime_error(
             "getnetworkhashps ( blocks height )\n"
             "\nReturns the estimated network hashes per second based on the last n blocks.\n"
@@ -110,7 +129,7 @@ Value getnetworkhashps(const Array& params, bool fHelp)
             + HelpExampleRpc("getnetworkhashps", "")
        );
 
-    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1);
+    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1, params.size() > 2 ? params[2].get_int() : ALGO_SCRYPT);
 }
 
 #ifdef ENABLE_WALLET
@@ -135,10 +154,40 @@ Value getgenerate(const Array& params, bool fHelp)
     return GetBoolArg("-gen", false);
 }
 
+Value setminingalgo(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() != 1)
+    throw runtime_error("setminingalgo algo"
+			"\nSet the algorithm for mining purposes\n"
+			"\nArguments:\n"
+			"1. algo         (numeric, required).\n"
+			);
+
+  miningAlgo = params[0].get_int();
+
+  return Value::null;
+}
+
+Value getminingalgo(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() != 0)
+    throw runtime_error("getminingalgo"
+			"\nGet the mining algorithm\n"
+			"\nResult\n"
+			"x (1-5) The number representing the mining algorithm\n"			
+			);
+
+  if (!confAlgoIsSet) {
+    miningAlgo = GetArg("-miningalgo", miningAlgo);
+    confAlgoIsSet = true;
+  }
+  return (int)miningAlgo;
+}
+      
 
 Value setgenerate(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
+    if (fHelp || params.size() < 1 || params.size() > 3)
         throw runtime_error(
             "setgenerate generate ( genproclimit )\n"
             "\nSet 'generate' true or false to turn generation on or off.\n"
@@ -147,10 +196,11 @@ Value setgenerate(const Array& params, bool fHelp)
             "\nArguments:\n"
             "1. generate         (boolean, required) Set to true to turn on generation, off to turn off.\n"
             "2. genproclimit     (numeric, optional) Set the processor limit for when generation is on. Can be -1 for unlimited.\n"
+	    "3. mining algo (numeric, optional) Set the mining algo"
             "                    Note: in -regtest mode, genproclimit controls how many blocks are generated immediately.\n"
             "\nExamples:\n"
-            "\nSet the generation on with a limit of one processor\n"
-            + HelpExampleCli("setgenerate", "true 1") +
+            "\nSet the generation on with a limit of one processor and SHA256D for the algo\n"
+            + HelpExampleCli("setgenerate", "true 1 1") +
             "\nCheck the setting\n"
             + HelpExampleCli("getgenerate", "") +
             "\nTurn off generation\n"
@@ -174,6 +224,10 @@ Value setgenerate(const Array& params, bool fHelp)
             fGenerate = false;
     }
 
+    if (params.size() > 2) {
+      miningAlgo = params[2].get_int();
+    }
+    
     // -regtest mode: don't return until nGenProcLimit blocks are generated
     if (fGenerate && Params().NetworkID() == CChainParams::REGTEST)
     {
@@ -206,6 +260,7 @@ Value setgenerate(const Array& params, bool fHelp)
     {
         mapArgs["-gen"] = (fGenerate ? "1" : "0");
         mapArgs ["-genproclimit"] = itostr(nGenProcLimit);
+	LogPrintf("do generatebitmarks\n");
         GenerateBitmarks(fGenerate, pwalletMain, nGenProcLimit);
     }
 
@@ -244,6 +299,9 @@ Value getmininginfo(const Array& params, bool fHelp)
             "  \"blocks\": nnn,             (numeric) The current block\n"
             "  \"currentblocksize\": nnn,   (numeric) The last block size\n"
             "  \"currentblocktx\": nnn,     (numeric) The last block transaction\n"
+            "  \"reward_next\": nnn,        (numeric) The next block reward\n"
+            "  \"reward_max\": nnn,         (numeric) The maximum block reward\n"
+            "  \"hashrate_4max_reward\": nnn, (numeric) The hashrate required for max reward\n"
             "  \"difficulty\": xxx.xxxxx    (numeric) The current difficulty\n"
             "  \"errors\": \"...\"          (string) Current errors\n"
             "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)\n"
@@ -261,7 +319,10 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",           (int)chainActive.Height()));
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
-    obj.push_back(Pair("difficulty",       (double)GetDifficulty()));
+    obj.push_back(Pair("reward_next",      ValueFromAmount(GetBlockReward(chainActive.Tip(),0)*100000000.)));
+    obj.push_back(Pair("reward_max",       ValueFromAmount(GetBlockValue(chainActive.Tip(), 0, false))));
+    obj.push_back(Pair("hashrate_4max_reward", (uint64_t)35000000000));
+    obj.push_back(Pair("difficulty",       (double)GetDifficulty(NULL,-1)));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
     obj.push_back(Pair("genproclimit",     (int)GetArg("-genproclimit", -1)));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
@@ -269,6 +330,8 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("testnet",          TestNet()));
 #ifdef ENABLE_WALLET
     obj.push_back(Pair("generate",         getgenerate(params, false)));
+    obj.push_back(Pair("algo", miningAlgo));
+    obj.push_back(Pair("algoname",GetAlgoName(miningAlgo)));
     obj.push_back(Pair("hashespersec",     gethashespersec(params, false)));
 #endif
     return obj;
@@ -346,6 +409,11 @@ Value getwork(const Array& params, bool fHelp)
             pindexPrev = pindexPrevNew;
         }
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
+
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100))) {
+	  //pblock->nVersion = 3;
+	  pblock->SetAlgo(miningAlgo);
+	}
 
         // Update nTime
         UpdateTime(*pblock, pindexPrev);
@@ -492,7 +560,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     static CBlockIndex* pindexPrev;
     static int64_t nStart;
     static CBlockTemplate* pblocktemplate;
-    if (pindexPrev != chainActive.Tip() ||
+    if (pindexPrev != chainActive.Tip() || miningAlgo != miningAlgoGBT ||
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -516,6 +584,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
         // Need to update only after we know CreateNewBlock succeeded
         pindexPrev = pindexPrevNew;
+	miningAlgoGBT = miningAlgo;
     }
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
@@ -611,6 +680,7 @@ Value submitblock(const Array& params, bool fHelp)
         );
 
     vector<unsigned char> blockData(ParseHex(params[0].get_str()));
+    LogPrintf("block submitted:\n%s\n",params[0].get_str());
     CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
     CBlock pblock;
     try {
@@ -620,10 +690,163 @@ Value submitblock(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
+    LogPrintf("block algo is %d\n",pblock.GetAlgo());
+
     CValidationState state;
     bool fAccepted = ProcessBlock(state, NULL, &pblock);
     if (!fAccepted)
         return "rejected"; // TODO: report validation state
 
     return Value::null;
+}
+
+Value getauxblock(const Array& params, bool fHelp)
+{
+  if (fHelp || (params.size() != 0 && params.size() != 2))
+    throw runtime_error(
+			"getauxblock (hash auxpow)\n"
+	                "\nCreate or submit a merge-mined block.\n"
+	                "\nWithout arguments, create a new block and return information\n"
+	                "required to merge-mine it.  With arguments, submit a solved\n"
+	                "auxpow for a previously returned block.\n"
+	                "\nArguments:\n"
+	                "1. \"hash\"    (string, optional) hash of the block to submit\n"
+	                "2. \"auxpow\"  (string, optional) serialised auxpow found\n"
+	                "\nResult (without arguments):\n"
+	                "{\n"
+	                "  \"hash\"               (string) hash of the created block\n"
+	                "  \"chainid\"            (numeric) chain ID for this block\n"
+	                "  \"previousblockhash\"  (string) hash of the previous block\n"
+	                "  \"coinbasevalue\"      (numeric) value of the block's coinbase\n"
+	                "  \"bits\"               (string) compressed target of the block\n"
+	                "  \"height\"             (numeric) height of the block\n"
+	                "  \"target\"             (string) target in reversed byte order\n"
+			"{\n"
+			"  \"hash\"               (string) hash of the created block\n"
+			"  \"chainid\"            (numeric) chain ID for this block\n"
+			"  \"previousblockhash\"  (string) hash of the previous block\n"
+			"  \"coinbasevalue\"      (numeric) value of the block's coinbase\n"
+			"  \"bits\"               (string) compressed target of the block\n"
+			"  \"height\"             (numeric) height of the block\n"
+			"  \"target\"             (string) target in reversed byte order\n"
+			"}\n"
+			"\nResult (with arguments):\n"
+			"xxxxx        (boolean) whether the submitted block was correct\n"
+			"\nExamples:\n"
+			+ HelpExampleCli("getauxblock", "")
+			+ HelpExampleCli("getauxblock", "\"hash\" \"serialised auxpow\"")
+			+ HelpExampleRpc("getauxblock", "")
+			);
+  if (pwalletMain == NULL)
+    throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
+  if (vNodes.empty())
+    throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Bitmark is not connected!");
+  if (IsInitialBlockDownload())
+    throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Bitmark is downloading blocks...");
+  static CCriticalSection cs_auxblockCache;
+  LOCK(cs_auxblockCache);
+  static std::map<uint256, CBlock*> mapNewBlock;
+  static std::vector<CBlockTemplate*> vNewBlockTemplate;
+  if (params.size() == 0) {
+    static unsigned nTransactionsUpdatedLast;
+    static CBlockIndex* pindexPrev = NULL;
+    static uint64_t nStart;
+    static CBlockTemplate* pblocktemplate;
+    static unsigned int nExtraNonce = 0;
+    CReserveKey reservekey(pwalletMain);
+
+    {
+      LOCK(cs_main);
+      if (pindexPrev != chainActive.Tip() || miningAlgo != miningAlgoGAB
+	  || (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast
+	      && GetTime() - nStart > 60)) {
+	if (pindexPrev != chainActive.Tip()) {
+	  mapNewBlock.clear();
+	  BOOST_FOREACH(CBlockTemplate* pbt, vNewBlockTemplate)
+	    delete pbt;
+	  vNewBlockTemplate.clear();
+	}
+
+	pblocktemplate = CreateNewBlockWithKey(reservekey);
+	if (!pblocktemplate)
+	  throw JSONRPCError(RPC_OUT_OF_MEMORY, "out of memory");
+
+	nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
+	pindexPrev = chainActive.Tip();
+	nStart = GetTime();
+
+	CBlock* pblock = &pblocktemplate->block;
+	IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+	pblock->SetAuxpow(true);
+	pblock->SetChainId(Params().GetAuxpowChainId());
+	pblock->hashMerkleRoot = pblock->BuildMerkleTree();
+
+	mapNewBlock[pblock->GetHash()] = pblock;
+	vNewBlockTemplate.push_back(pblocktemplate);
+	miningAlgoGAB = miningAlgo;
+      }	    	  
+    }
+
+    const CBlock& block = pblocktemplate->block;
+
+    uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+
+    json_spirit::Object result;
+    result.push_back(Pair("hash", block.GetHash().GetHex()));
+    result.push_back(Pair("chainid", block.GetChainId()));
+    result.push_back(Pair("previousblockhash", block.hashPrevBlock.GetHex()));
+    result.push_back(Pair("coinbasevalue", (int64_t)block.vtx[0].vout[0].nValue));
+    /*
+    char * coinbasedata = (char *)malloc(2*174+1);
+    for (int i=0; i<174; i++) {
+      sprintf(coinbasedata+2*i,"%02x",((unsigned char *)&block.vtx[0])[i]);
+    }
+    result.push_back(Pair("coinbasedata",coinbasedata));
+    */
+    //block.vtx[0].print();
+    CTxDestination address;
+    ExtractDestination(block.vtx[0].vout[0].scriptPubKey,address);
+    result.push_back(Pair("address",CBitmarkAddress(address).ToString()));
+    result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
+    result.push_back(Pair("height", static_cast<int64_t> (pindexPrev->nHeight + 1)));
+    result.push_back(Pair("target", HexStr(BEGIN(hashTarget), END(hashTarget))));
+    result.push_back(Pair("version",block.nVersion));
+    result.push_back(Pair("curtime", (int64_t)block.nTime));
+    result.push_back(Pair("scriptsig",HexStr(block.vtx[0].vin[0].scriptSig)));
+
+    return result;
+  }
+  assert(params.size() == 2);
+  uint256 hash;
+  const char * hash_str = params[0].get_str().c_str();
+  LogPrintf("getauxblock hash_str = %s\n",hash_str);
+  hash.SetHex(params[0].get_str());
+  const std::map<uint256, CBlock*>::iterator mit = mapNewBlock.find(hash);
+  if (strlen(hash_str)>0 && mit == mapNewBlock.end())
+    throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
+  CBlock& block = *mit->second;
+  const char * block_str = params[1].get_str().c_str();
+  LogPrintf("getauxblock block_str = %s\n",block_str);
+  const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
+  CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
+  CAuxPow pow;
+  if (block.GetAlgo()==ALGO_EQUIHASH || block.GetAlgo()==ALGO_CRYPTONIGHT) {
+    pow.vector_format = true;
+  }
+  if (block.GetAlgo()==ALGO_CRYPTONIGHT) {
+    pow.parentBlock.vector_format = true;
+    pow.keccak_hash = true;
+  }
+  pow.parentBlock.algoParent = block.GetAlgo();
+  pow.parentBlock.isParent = true;
+  ss >> pow;
+  block.SetAuxpow(new CAuxPow(pow));
+  if (strlen(hash_str)>0) {
+    assert(block.GetHash() == hash);
+  }
+  CValidationState state;
+  bool fAccepted = ProcessBlock(state, NULL, &block);
+  if (!fAccepted)
+    return "rejected";
+  return Value::null;
 }

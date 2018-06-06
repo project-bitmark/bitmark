@@ -50,6 +50,11 @@ public:
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
         nSubsidyHalvingInterval = 788000;
+	fStrictChainId = true;
+	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = false;
 
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
@@ -67,12 +72,13 @@ public:
         genesis.nBits    = 0x1d00ffff;
         genesis.nNonce   = 14385103;
 
-        hashGenesisBlock = genesis.GetHash();
-
+        hashGenesisBlock = genesis.GetHash();	
+	
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
         // DNS Seeders - Verified, December 15, 2017 - dBKeys
+
         vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));
         vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));
         vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));
@@ -102,7 +108,7 @@ public:
             CAddress addr(CService(ip, GetDefaultPort()));
             addr.nTime = GetTime() - GetRand(nOneWeek) - nOneWeek;
             vFixedSeeds.push_back(addr);
-        }
+	    }
     }
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
@@ -119,7 +125,7 @@ static CMainParams mainParams;
 
 
 //
-// Testnet (v3)
+// Testnet (v4)
 //
 class CTestNetParams : public CMainParams {
 public:
@@ -133,21 +139,41 @@ public:
         pchMessageStart[1] = 0x11;
         pchMessageStart[2] = 0x09;
         pchMessageStart[3] = 0x07;
+
         vAlertPubKey = ParseHex("0468770c9d451dd5d6d373ae6096d4ab0705c4ab66e55cc25c40788580039bd04b7672322b9bd26ce22a3ad95f490d7d188a905ce30246b2425eca8cc5102190d0");
         nDefaultPort = 19265;
         nRPCPort = 19266;
-        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20);
-        strDataDir = "testnet3";
+        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
+        strDataDir = "testnet4";
+	fStrictChainId = true;
+	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = false;
 
-        genesis.nTime = 1405274408;
+	const char* pszTimestamp = "Testing Testnet";
+	CTransaction txNew;
+        txNew.vin.resize(1);
+        txNew.vout.resize(1);
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vout[0].nValue = 20 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04f88a76429dad346a10ecb5d36fcbf50bc2e009870e20c1a6df8db743e0b994afc1f91e079be8acc380b0ee7765519906e3d781519e9db48259f64160104939d8") << OP_CHECKSIG;
+        genesis.vtx[0] = txNew;
+	genesis.hashPrevBlock = 0;
+	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+
+        genesis.nTime = 1528022249;
         genesis.nBits = 0x1e0ffff0;
-        genesis.nNonce = 16687;
-        hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x1d6329aeff3ff6786635afd5d6715b24667329cfda199bd7a1d6626d81a4573c"));
+	genesis.nNonce = 235437;
+	hashGenesisBlock = genesis.GetHash();
+	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
+        assert(hashGenesisBlock == uint256("4b4ce8e8d5d62d39cce4f05017b7d9b566c14f617240e2301f94f3bf54284b1f"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("bitmark.co", "test.bitmark.co"));
+	vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
+        vSeeds.push_back(CDNSSeedData("bitmark.co", "explorer.bitmark.co"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // u
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
@@ -170,15 +196,37 @@ public:
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
-        nSubsidyHalvingInterval = 150;
+        nSubsidyHalvingInterval = 300;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;
-        genesis.nNonce = 0;
+	genesis.nNonce = 713058;
+	/*
+	CBigNum bnTarget;
+	bnTarget.SetCompact(genesis.nBits);
+	uint256 target = bnTarget.getuint256();
+	printf("have to beat %s\n",target.GetHex().c_str());
+	unsigned int curNonce = 0;
+	while (1) {
+	  genesis.nNonce = curNonce;
+	  uint256 hash = genesis.GetPoWHash();
+	  if (hash<=target) break;
+	  curNonce++;
+	}
+	printf("nonce is %d\n",curNonce);
+	*/
         hashGenesisBlock = genesis.GetHash();
+	genesis.nNonce = 3;
         nDefaultPort = 18444;
         strDataDir = "regtest";
-        //assert(hashGenesisBlock == uint256("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
+	fStrictChainId = true;
+	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = true;
+	//printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
+        assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }
@@ -197,8 +245,8 @@ const CChainParams &Params() {
 void SelectParams(CChainParams::Network network) {
     switch (network) {
         case CChainParams::MAIN:
-            pCurrentParams = &mainParams;
-            break;
+	  pCurrentParams = &mainParams;
+	  break;
         case CChainParams::TESTNET:
             pCurrentParams = &testNetParams;
             break;
@@ -209,7 +257,14 @@ void SelectParams(CChainParams::Network network) {
             assert(false && "Unimplemented network");
             return;
     }
+    fReopenDebugLog = true;
 }
+
+/*
+void SelectDifficulty (int difficulty) {
+  
+}
+*/
 
 bool SelectParamsFromCommandLine() {
     bool fRegTest = GetBoolArg("-regtest", false);

@@ -18,7 +18,7 @@ using namespace std;
 
 void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex* blockindex)
+double GetDifficulty(const CBlockIndex* blockindex, int algo)
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
@@ -29,11 +29,29 @@ double GetDifficulty(const CBlockIndex* blockindex)
         else
             blockindex = chainActive.Tip();
     }
-
-    int nShift = (blockindex->nBits >> 24) & 0xff;
-
+    if (algo<0) {
+      algo = GetAlgo(blockindex->nVersion);
+    }
+    bool blockOnFork = false;
+    if (onFork(blockindex)) blockOnFork = true;
+    if (blockOnFork) {
+      int algo_tip = GetAlgo(blockindex->nVersion);
+      if (algo_tip != algo) {
+	blockindex = get_pprev_algo(blockindex,algo);
+      }
+    }
+    unsigned int nBits = 0;
+    unsigned int algoWeight = GetAlgoWeight(algo);
+    if (blockindex && blockindex->nHeight>0) {
+      nBits = blockindex->nBits;
+    }
+    else {
+      nBits = (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
+    }
+    
+    int nShift = (nBits >> 24) & 0xff;
     double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
 
     while (nShift < 29)
     {
@@ -46,20 +64,300 @@ double GetDifficulty(const CBlockIndex* blockindex)
         nShift--;
     }
 
+    if (blockOnFork) return dDiff*algoWeight; //weighted difficulty
     return dDiff;
 }
 
+double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
+  if (blockindex == NULL)
+    {
+      if (chainActive.Tip() == NULL)
+	return 0.;
+      else
+	blockindex = chainActive.Tip();
+    }
+  
+  int algo_tip = GetAlgo(blockindex->nVersion);
+  if (algo_tip != algo) {
+    blockindex = get_pprev_algo(blockindex,algo);
+  }
+  if (!blockindex) return 0.;
+  do {
+    if (update_ssf(blockindex->nVersion)) {
+      double hashes_peak = 0.;
+      const CBlockIndex * pprev_algo = get_pprev_algo(blockindex,-1);
+      for (int i=0; i<365; i++) {
+	if (!pprev_algo) break;
+	int time_f = pprev_algo->GetMedianTimePast();
+	CBigNum hashes_bn = pprev_algo->GetBlockWork();
+	int time_i = 0;
+	
+	for (int j=0; j<nSSF-1; j++) {
+	 
+	  pprev_algo = get_pprev_algo(pprev_algo,-1);
+
+	  if (pprev_algo) {
+	    time_i = pprev_algo->GetMedianTimePast();
+	  }
+	  else {
+	    hashes_bn = CBigNum(0);
+	    break;
+	  }
+	  //LogPrintf("j=%d add block work of block %lu\n",j,pprev_algo->nHeight);
+	  hashes_bn += pprev_algo->GetBlockWork();	  
+	}
+	CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
+	if (pprev_algo_time) {
+	  time_i = pprev_algo_time->GetMedianTimePast();
+	}
+	else {
+	  const CBlockIndex * blockindex_time = pprev_algo;
+	  while (blockindex_time && onFork(blockindex_time)) {
+	    blockindex_time = blockindex_time->pprev;
+	  }
+	  if (blockindex_time) {
+	    time_i = blockindex_time->GetBlockTime();
+	  }
+	}
+	pprev_algo = pprev_algo_time;
+	
+	if (time_f>time_i) {
+	  time_f -= time_i;
+	}
+	else {
+	  return std::numeric_limits<double>::max();
+	}
+	//LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
+	double hashes = ((double)hashes_bn.getulong())/((double)time_f);
+	//LogPrintf("hashes per sec = %f\n",hashes);
+	if (hashes>hashes_peak) hashes_peak = hashes;
+      }
+      return hashes_peak;
+      break;
+    }
+    blockindex = get_pprev_algo(blockindex,-1);
+  } while (blockindex);
+  return 0.;
+}
+
+double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used for the scaling factor calc
+  if (blockindex == NULL)
+    {
+      if (chainActive.Tip() == NULL)
+	return 0.;
+      else
+	blockindex = chainActive.Tip();
+    }
+  int algo_tip = GetAlgo(blockindex->nVersion);
+  if (algo_tip != algo) {
+    blockindex = get_pprev_algo(blockindex,algo);
+  }
+  if (!blockindex) {
+    return 0.;
+  }
+  do {
+    if (update_ssf(blockindex->nVersion)) {
+      const CBlockIndex * pcur_algo = get_pprev_algo(blockindex,-1);
+      if (!pcur_algo) return 0.;
+      int time_f = pcur_algo->GetMedianTimePast();
+      CBigNum hashes_bn = pcur_algo->GetBlockWork();
+      int time_i = 0;
+      const CBlockIndex * pprev_algo = pcur_algo;
+      for (int j=0; j<nSSF-1; j++) {
+	pprev_algo = get_pprev_algo(pprev_algo,-1);
+	if (pprev_algo) {
+	  time_i = pprev_algo->GetMedianTimePast();
+	}
+	else {
+	  return 0.;
+	}
+	hashes_bn += pprev_algo->GetBlockWork();
+      }
+      CBlockIndex * pprev_algo_time = get_pprev_algo(pprev_algo,-1);
+      if (pprev_algo_time) {
+	time_i = pprev_algo_time->GetMedianTimePast();
+      }
+      else {
+	const CBlockIndex * blockindex_time = pprev_algo;
+	while (blockindex_time && onFork(blockindex_time)) {
+	  blockindex_time = blockindex_time->pprev;
+	}
+	if (blockindex_time) time_i = blockindex_time->GetBlockTime();
+      }
+
+      if (time_f>time_i) {
+	time_f -= time_i;
+      }
+      else {
+	return std::numeric_limits<double>::max();
+      }
+      //LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
+      return ((double)hashes_bn.getulong())/((double)time_f);
+    }
+    blockindex = get_pprev_algo(blockindex,-1);
+  } while (blockindex);
+  return 0.;
+}  
+
+double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
+  if (blockindex == NULL)
+    {
+      if (chainActive.Tip() == NULL)
+	return 0.;
+      else
+	blockindex = chainActive.Tip();
+    }
+  if (blockindex->nHeight == 0) {
+    if (algo==-1) return 2.5;
+    return 20.;
+  }
+  if (algo>=0) {
+    int algo_tip = -1;
+    if (onFork(blockindex)) {
+      algo_tip = GetAlgo(blockindex->nVersion);
+    }
+    if (algo_tip != algo) {
+      blockindex = get_pprev_algo(blockindex,algo);
+    }
+  }
+  else {
+    if (!onFork(blockindex)) {
+      return ((double)blockindex->nMoneySupply)/100000000.;
+    }
+    return GetMoneySupply(blockindex,0)+GetMoneySupply(blockindex,1)+GetMoneySupply(blockindex,2)+GetMoneySupply(blockindex,3)+GetMoneySupply(blockindex,4)+GetMoneySupply(blockindex,5)+GetMoneySupply(blockindex,6)+GetMoneySupply(blockindex,7);
+  }
+  if (!blockindex) {
+    blockindex = chainActive.Tip();
+    while (blockindex && onFork(blockindex)) {
+      blockindex = blockindex->pprev;
+    }
+    return ((double)GetMoneySupply(blockindex,-1))/8.;
+  }
+  if (blockindex->nMoneySupply == 0) return 2.5;
+  return ((double)blockindex->nMoneySupply)/100000000.;
+}
+
+double GetBlockReward (CBlockIndex * blockindex, int algo) {
+  if (blockindex == NULL) {
+    if (chainActive.Tip() == NULL)
+      return 0.;
+    else
+      blockindex = chainActive.Tip();
+  }
+  if (algo<0) {
+    algo = GetAlgo(blockindex->nVersion);
+  }
+  auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+  if(!pblocktemplate.get())
+    return 0.;
+  CBlock *pblock = &pblocktemplate->block;
+  pblock->nVersion = 4;
+  pblock->SetAlgo(algo);
+  CBlockIndex indexDummy(*pblock);
+  indexDummy.pprev = blockindex;
+  indexDummy.nHeight = blockindex->nHeight + 1;
+  return ((double)GetBlockValue(&indexDummy,0))/100000000.;
+  
+}
+  
+int GetNBlocksUpdateSSF (const CBlockIndex * blockindex, const int algo) {
+  if (blockindex == NULL) {
+    if (chainActive.Tip() == NULL)
+      return 0.;
+    else
+      blockindex = chainActive.Tip();
+  }
+  int algo_tip = -1;
+  if (onFork(blockindex)) {
+    algo_tip = GetAlgo(blockindex->nVersion);
+  }
+  if (algo>=0 && algo_tip != algo) {
+    blockindex = get_pprev_algo(blockindex,algo);
+  }
+  if (!blockindex) return 0.;
+  if (blockindex->nHeight == 0) return 0.;
+  int n = nSSF;
+  do {
+    if (update_ssf(blockindex->nVersion)) {
+      break;
+    }
+    blockindex = get_pprev_algo(blockindex,-1);
+    n--;
+  } while (blockindex);
+  return n;
+}
+
+double GetAverageBlockSpacing (const CBlockIndex * blockindex, const int algo, const int averagingInterval) {
+  
+  if (averagingInterval <= 1) return 0.;
+
+  if (blockindex == NULL) {
+    if (chainActive.Tip() == NULL)
+      return 0.;
+    else
+      blockindex = chainActive.Tip();
+  }
+  
+  const CBlockIndex *BlockReading = blockindex;
+  int64_t CountBlocks = 0;
+  int64_t nActualTimespan = 0;
+  int64_t LastBlockTime = 0;
+  
+  for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
+    if (CountBlocks >= averagingInterval) { break; }
+    int block_algo = -1;
+    if (onFork(BlockReading)) {
+      block_algo = GetAlgo(BlockReading->nVersion);
+    }
+    if (algo >=0 && block_algo != algo) {
+      BlockReading = BlockReading->pprev;
+      continue;
+    }
+    CountBlocks++;
+    if(LastBlockTime > 0){
+      int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+      nActualTimespan += Diff;
+    }
+    LastBlockTime = BlockReading->GetBlockTime();
+
+    BlockReading = BlockReading->pprev;
+    
+  }
+  return ((double)nActualTimespan)/((double)averagingInterval)/60.;
+}
 
 Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 {
     Object result;
     result.push_back(Pair("hash", block.GetHash().GetHex()));
+    result.push_back(Pair("powhash",block.GetPoWHash().GetHex()));
     CMerkleTx txGen(block.vtx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations", (int)txGen.GetDepthInMainChain()));
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.nVersion));
+    int algo = GetAlgo(block.nVersion);
+    result.push_back(Pair("algo",GetAlgoName(algo)));
+    bool auxpow = block.IsAuxpow();
+    result.push_back(Pair("auxpow",auxpow));
+    if (auxpow) {
+      result.push_back(Pair("parentblockhash",block.auxpow->parentBlock.GetHash().GetHex()));
+      result.push_back(Pair("parentblockpowhash",block.auxpow->parentBlock.GetPoWHash().GetHex()));
+      if (algo==ALGO_CRYPTONIGHT) {
+	char prev_id [65];
+	std::vector<unsigned char> vector_rep = block.auxpow->parentBlock.vector_rep;
+	for (int i=0; i<32; i++) {
+	  // 7 is the typical offset in monero, but not fully general
+	  sprintf(prev_id+2*i,"%02x",vector_rep[i+7]);
+	}
+	result.push_back(Pair("parentblockprevid",prev_id));
+      }
+      
+    }
+    result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
+    result.push_back(Pair("SSF work", (int64_t)get_ssf_work(blockindex)));
+    result.push_back(Pair("SSF time",get_ssf_time(blockindex)));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
     Array txs;
     BOOST_FOREACH(const CTransaction&tx, block.vtx)
@@ -68,7 +366,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
     result.push_back(Pair("bits", HexBits(block.nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
+    result.push_back(Pair("difficulty", GetDifficulty(blockindex,algo)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
 
     if (blockindex->pprev)
@@ -111,23 +409,6 @@ Value getbestblockhash(const Array& params, bool fHelp)
 
     return chainActive.Tip()->GetBlockHash().GetHex();
 }
-
-Value getdifficulty(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
-            "getdifficulty\n"
-            "\nReturns the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
-            "\nResult:\n"
-            "n.nnn       (numeric) the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getdifficulty", "")
-            + HelpExampleRpc("getdifficulty", "")
-        );
-
-    return GetDifficulty();
-}
-
 
 Value getrawmempool(const Array& params, bool fHelp)
 {
@@ -462,7 +743,7 @@ Value getblockchaininfo(const Array& params, bool fHelp)
     obj.push_back(Pair("chain",         chain));
     obj.push_back(Pair("blocks",        (int)chainActive.Height()));
     obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
+    obj.push_back(Pair("difficulty",    (double)GetDifficulty(NULL,-1)));
     obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(chainActive.Tip())));
     obj.push_back(Pair("chainwork",     chainActive.Tip()->nChainWork.GetHex()));
     return obj;

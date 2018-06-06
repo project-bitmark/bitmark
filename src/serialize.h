@@ -53,7 +53,7 @@ enum
 };
 
 #define IMPLEMENT_SERIALIZE(statements)    \
-    unsigned int GetSerializeSize(int nType, int nVersion) const  \
+    unsigned int GetSerializeSize(int nType, int nVersion) const \
     {                                           \
         CSerActionGetSerializeSize ser_action;  \
         const bool fGetSize = true;             \
@@ -68,7 +68,7 @@ enum
         return nSerSize;                        \
     }                                           \
     template<typename Stream>                   \
-    void Serialize(Stream& s, int nType, int nVersion) const  \
+    void Serialize(Stream& s, int nType, int nVersion) const \
     {                                           \
         CSerActionSerialize ser_action;         \
         const bool fGetSize = false;            \

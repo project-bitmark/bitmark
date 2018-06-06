@@ -1056,13 +1056,14 @@ Value ListReceived(const Array& params, bool fByAccounts)
 
 Value listreceivedbyaddress(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
+    if (fHelp || params.size() > 3)
         throw runtime_error(
             "listreceivedbyaddress ( minconf includeempty )\n"
             "\nList balances by receiving address.\n"
             "\nArguments:\n"
             "1. minconf       (numeric, optional, default=1) The minimum number of confirmations before payments are included.\n"
-            "2. includeempty  (numeric, optional, dafault=false) Whether to include addresses that haven't received any payments.\n"
+            "2. include_empty  (boolean, optional, default=false) Whether to include addresses that haven't received any payments.\n"
+	    "3. include_watchonly (boolean, optional, default=false) Whether to include watch-only addresses.\n"
 
             "\nResult:\n"
             "[\n"
@@ -1086,13 +1087,14 @@ Value listreceivedbyaddress(const Array& params, bool fHelp)
 
 Value listreceivedbyaccount(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
+    if (fHelp || params.size() > 3)
         throw runtime_error(
             "listreceivedbyaccount ( minconf includeempty )\n"
             "\nList balances by account.\n"
             "\nArguments:\n"
             "1. minconf      (numeric, optional, default=1) The minimum number of confirmations before payments are included.\n"
-            "2. includeempty (boolean, optional, default=false) Whether to include accounts that haven't received any payments.\n"
+            "2. include_empty (boolean, optional, default=false) Whether to include accounts that haven't received any payments.\n"
+	    "3. include_watchonly (boolean, optional, default=false) Whether to include watch-only addresses.\n"
 
             "\nResult:\n"
             "[\n"

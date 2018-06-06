@@ -24,9 +24,14 @@ class CTransaction;
 
 static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 520; // bytes
 static const unsigned int MAX_OP_RETURN_RELAY = 40;      // bytes
-
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+
+template <typename T>
+std::vector<unsigned char> ToByteVector(const T& in)
+{
+  return std::vector<unsigned char>(in.begin(), in.end());
+}
 
 class scriptnum_error : public std::runtime_error
 {
@@ -197,6 +202,8 @@ enum
     SCRIPT_VERIFY_EVEN_S    = (1U << 2), // enforce even S values in signatures (depends on STRICTENC)
     SCRIPT_VERIFY_NOCACHE   = (1U << 3), // do not store results in signature cache (but do query it)
     SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY = (1U << 5), // support CHECKLOCKTIMEVERIFY opcode
+    SCRIPT_VERIFY_DERSIG = (1U << 6), // Require DER format for signatures
+    SCRIPT_VERIFY_LOW_S = (1U << 7), // further requirement on DER signatures
 };
 
 enum isminetype

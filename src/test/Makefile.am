@@ -1,5 +1,7 @@
 include $(top_srcdir)/src/Makefile.include
 
+CXX = g++ -fPIC -std=c++11
+
 AM_CPPFLAGS += -I$(top_srcdir)/src
 
 bin_PROGRAMS = test_bitmark
@@ -62,6 +64,7 @@ test_bitmark_SOURCES = \
   util_tests.cpp \
   scriptnum_tests.cpp \
   sighash_tests.cpp \
+  auxpow_tests.cpp \
   $(JSON_TEST_FILES) $(RAW_TEST_FILES)
 
 if ENABLE_WALLET

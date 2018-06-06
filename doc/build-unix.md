@@ -23,6 +23,7 @@ Dependencies
  qt          | GUI              | GUI toolkit
  protobuf    | Payments in GUI  | Data interchange format used for payment protocol
  libqrencode | QR codes in GUI  | Optional for generating QR codes
+ libsodium   | PoW algos        | Some of the new PoW algos require this
 
 [miniupnpc](http://miniupnp.free.fr/) may be used for UPnP port mapping.  It can be downloaded from [here](
 http://miniupnp.tuxfamily.org/files/).  UPnP support is compiled in and
@@ -54,6 +55,7 @@ Build requirements:
 	sudo apt-get install build-essential
 	sudo apt-get install libtool autotools-dev autoconf
 	sudo apt-get install libssl-dev
+	sudo apt-get install libsodium-dev
 
 for Ubuntu 12.04 and later:
 

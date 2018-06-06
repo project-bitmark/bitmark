@@ -102,7 +102,13 @@ extern void ShutdownRPCMining();
 extern int64_t nWalletUnlockTime;
 extern int64_t AmountFromValue(const json_spirit::Value& value);
 extern json_spirit::Value ValueFromAmount(int64_t amount);
-extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
+extern double GetDifficulty(const CBlockIndex* blockindex = NULL, const int algo = 0);
+extern double GetPeakHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0);
+extern double GetCurrentHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0);
+extern double GetMoneySupply(const CBlockIndex* blockindex = NULL, const int algo = -1);
+extern double GetBlockReward(CBlockIndex* blockindex = NULL, const int algo = 0);
+extern int GetNBlocksUpdateSSF(const CBlockIndex* blockindex = NULL, const int algo = 0);
+extern double GetAverageBlockSpacing(const CBlockIndex * blockindex = NULL, const int algo = -1, const int averagingInterval = 24);
 extern std::string HexBits(unsigned int nBits);
 extern std::string HelpRequiringPassphrase();
 extern std::string HelpExampleCli(std::string methodname, std::string args);
@@ -124,6 +130,8 @@ extern json_spirit::Value dumpwallet(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value importwallet(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
+extern json_spirit::Value setminingalgo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getminingalgo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
@@ -131,6 +139,7 @@ extern json_spirit::Value getmininginfo(const json_spirit::Array& params, bool f
 extern json_spirit::Value getwork(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblocktemplate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitblock(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getauxblock(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getnewaddress(const json_spirit::Array& params, bool fHelp); // in rpcwallet.cpp
 extern json_spirit::Value getaccountaddress(const json_spirit::Array& params, bool fHelp);
@@ -165,6 +174,7 @@ extern json_spirit::Value walletlock(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value encryptwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value validateaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value chaindynamics(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getwalletinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblockchaininfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkinfo(const json_spirit::Array& params, bool fHelp);
@@ -190,5 +200,8 @@ extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp)
 extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gettxout(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getblockspacing(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getblockreward(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getmoneysupply(const json_spirit::Array& params, bool fHelp);
 
 #endif

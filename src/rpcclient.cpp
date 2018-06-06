@@ -128,10 +128,13 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     //
     if (strMethod == "stop"                   && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getaddednodeinfo"       && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "setminingalgo"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getnetworkhashps"       && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getnetworkhashps"       && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getnetworkhashps"       && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<int64_t>(params[1]);
@@ -141,7 +144,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "listreceivedbyaddress"  && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "listreceivedbyaccount"  && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "listreceivedbyaccount"  && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "listreceivedbyaccount"  && n > 1) ConvertTo<bool>(params[2]);
+    if (strMethod == "listreceivedbyaccount"  && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getbalance"             && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getblockhash"           && n > 0) ConvertTo<int64_t>(params[0]);
@@ -191,6 +194,16 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "sendalert"              && n > 6) ConvertTo<boost::int64_t>(params[6]);
     if (strMethod == "sendalert"              && n > 7) ConvertTo<boost::int64_t>(params[7]);
     if (strMethod == "sendalert"              && n > 8) ConvertTo<boost::int64_t>(params[8]);
+    if (strMethod == "getblockspacing"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getblockspacing"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getblockspacing"            && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "getblockreward"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getblockreward"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getmoneysupply"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getmoneysupply"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getdifficulty"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getdifficulty"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "chaindynamics" && n>0) ConvertTo<int64_t>(params[0]);
     return params;
 }
 

@@ -44,7 +44,7 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
             "  \"proxy\": \"host:port\",     (string, optional) the proxy used by the server\n"
-            "  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n"
+            "  \"difficulty <algo>\": xxxxxx,       (numeric) the current difficulty for the algo <ALGO>\n"
             "  \"moneysupply\": xxxxxx,      (numeric) the total amount of coins distributed\n"
             "  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n"
             "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"
@@ -75,8 +75,15 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("timeoffset",    GetTimeOffset()));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
-    obj.push_back(Pair("moneysupply",   ValueFromAmount(chainActive.Tip()->nMoneySupply)));
+    obj.push_back(Pair("difficulty SCRYPT", (double)GetDifficulty(NULL,ALGO_SCRYPT)));
+    obj.push_back(Pair("difficulty SHA256D",    (double)GetDifficulty(NULL,ALGO_SHA256D)));
+    obj.push_back(Pair("difficulty YESCRYPT",    (double)GetDifficulty(NULL,ALGO_YESCRYPT)));
+    obj.push_back(Pair("difficulty ARGON2",    (double)GetDifficulty(NULL,ALGO_ARGON2)));
+    obj.push_back(Pair("difficulty X17",    (double)GetDifficulty(NULL,ALGO_X17)));
+    obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH)));
+    obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT)));
+    obj.push_back(Pair("moneysupply",    (double)GetMoneySupply(NULL,-1)));
     obj.push_back(Pair("testnet",       TestNet()));
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
@@ -410,4 +417,217 @@ Value sendalert(const Array& params, bool fHelp)
     if (alert.nCancel > 0)
         result.push_back(Pair("nCancel", alert.nCancel));
     return result;
+}
+
+Value getblockspacing(const Array& params, bool fHelp)
+{
+    if (fHelp)
+        throw runtime_error(
+            "getblockspacing (algo interval height )\n"
+            "Returns an object containing blockspacing info.\n"
+	    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 2 (scrypt) by default\n"
+            "2. \"interval\"     (numeric, optional) The interval in number of blocks, 24 by default\n"
+	    "3. \"height\"     (numeric, optional) The height for the endpoint of the interval, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    "  \"average block spacing\": xxxxx           (numeric)\n"
+	    "}\n"
+			    );
+
+    int algo = -1;
+    int interval = 24;
+    CBlockIndex * blockindex = NULL;
+    
+    if (params.size()>0) {
+      algo = params[0].get_int();
+      if (params.size()>1) {
+	interval = params[1].get_int();
+	if (params.size()>2) {
+	  int height = params[2].get_int();
+	  blockindex = chainActive.Tip();
+	  while (blockindex && blockindex->nHeight > height) {
+	    blockindex = blockindex->pprev;
+	  }
+	}
+      }
+    }
+    
+    Object obj;
+    obj.push_back(Pair("average block spacing",    (double)GetAverageBlockSpacing(blockindex,algo,interval)));
+
+    return obj;
+}
+
+Value getblockreward(const Array& params, bool fHelp) {
+  if (fHelp)
+    throw runtime_error(
+			"getblockreward (algo height )\n"
+			"Returns an object containing blockreward info.\n"
+	    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 2 (scrypt) by default\n"
+	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    " \"block reward\": xxxxx           (numeric)\n"
+	    "}\n"
+			);
+  
+  int algo = ALGO_SCRYPT;
+  CBlockIndex * blockindex = NULL;
+	   
+  if (params.size()>0) {
+    algo = params[0].get_int();
+    if (params.size()>1) {
+	int height = params[1].get_int();
+	blockindex = chainActive.Tip();
+	while (blockindex && blockindex->nHeight > height) {
+	  blockindex = blockindex->pprev;
+	}
+    }
+  }
+
+  Object obj;
+  obj.push_back(Pair("block reward",(double)GetBlockReward(blockindex,algo)));
+  return obj;
+}
+
+Value getmoneysupply(const Array& params, bool fHelp) {
+  if (fHelp)
+    throw runtime_error(
+			"getmoneysupply ( algo height )\n"
+			"Returns an object containing moneysupply info.\n"
+				    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 0 (overall) by default\n"
+	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    " \"money supply\": xxxxx           (numeric)\n"
+	    "}\n"
+			);
+
+  int algo = -1;
+  CBlockIndex * blockindex = NULL;
+
+  if (params.size()>0) {
+    algo = params[0].get_int();
+    if (params.size()>1) {
+      int height = params[1].get_int();
+      blockindex = chainActive.Tip();
+      while (blockindex && blockindex->nHeight > height) {
+	blockindex = blockindex->pprev;
+      }
+    }
+  }
+
+  Object obj;
+  obj.push_back(Pair("money supply",(double)GetMoneySupply(blockindex,algo)));
+  return obj;
+}
+
+Value getdifficulty (const Array& params, bool fHelp) {
+  if (fHelp)
+    throw runtime_error(
+			"getdifficulty ( algo height )\n"
+			"Returns an object containing difficulty info.\n"
+				    "\nArguments:\n"
+	    "1. \"algo\"     (numeric, optional) The algo, 2 (scrypt) by default\n"
+	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"	    
+	    "\nResult:\n"
+	    "{\n"
+	    " \"difficulty\": xxxxx           (numeric)\n"
+	    "}\n"
+			);
+
+  int algo = ALGO_SCRYPT;
+  CBlockIndex * blockindex = NULL;
+
+  if (params.size()>0) {
+    algo = params[0].get_int();
+    if (params.size()>1) {
+      int height = params[1].get_int();
+      blockindex = chainActive.Tip();
+      while (blockindex && blockindex->nHeight > height) {
+	blockindex = blockindex->pprev;
+      }
+    }
+  }
+
+  Object obj;
+  obj.push_back(Pair("difficulty",(double)GetDifficulty(blockindex,algo)));
+  return obj;
+}
+
+Value chaindynamics(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "chain dynamics (height)\n"
+            "Returns an object containing various state info.\n"
+            "}\n"
+	    "\nResult:\n"
+	    "{\n"
+	    " \"difficulty <algo>\": xxxxx           (numeric),\n"
+	    " \"peak hashrate <algo>\": xxxxx           (numeric),\n"
+	    " \"current hashrate <algo>\": xxxxx           (numeric),\n"
+	    " \"nblocks update SSF <algo>\": xxxxx           (numeric),\n"
+	    " \"average block spacing <algo>\": xxxxx           (numeric)\n"
+	    "}\n"
+        );
+
+    proxyType proxy;
+    GetProxy(NET_IPV4, proxy);
+
+    CBlockIndex * pindex = 0;
+    if (params.size()>0) {
+      int height = params[0].get_int();
+      pindex = chainActive.Tip();
+      while (pindex && pindex->nHeight > height) {
+	pindex = pindex->pprev;
+      }
+    }    
+    
+    Object obj;
+    obj.push_back(Pair("difficulty SCRYPT",    (double)GetDifficulty(pindex,ALGO_SCRYPT)));
+    obj.push_back(Pair("difficulty SHA256D",    (double)GetDifficulty(pindex,ALGO_SHA256D)));
+    obj.push_back(Pair("difficulty YESCRYPT",    (double)GetDifficulty(pindex,ALGO_YESCRYPT)));
+    obj.push_back(Pair("difficulty ARGON2",    (double)GetDifficulty(pindex,ALGO_ARGON2)));
+    obj.push_back(Pair("difficulty X17",    (double)GetDifficulty(pindex,ALGO_X17)));
+    obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(pindex,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(pindex,ALGO_EQUIHASH)));
+    obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(pindex,ALGO_CRYPTONIGHT)));
+    obj.push_back(Pair("peak hashrate SCRYPT",    (double)GetPeakHashrate(pindex,ALGO_SCRYPT)));
+    obj.push_back(Pair("peak hashrate SHA256D",    (double)GetPeakHashrate(pindex,ALGO_SHA256D)));
+    obj.push_back(Pair("peak hashrate YESCRYPT",    (double)GetPeakHashrate(pindex,ALGO_YESCRYPT)));
+    obj.push_back(Pair("peak hashrate ARGON2",    (double)GetPeakHashrate(pindex,ALGO_ARGON2)));
+    obj.push_back(Pair("peak hashrate X17",    (double)GetPeakHashrate(pindex,ALGO_X17)));
+    obj.push_back(Pair("peak hashrate LYRA2REv2",    (double)GetPeakHashrate(pindex,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("peak hashrate EQUIHASH",    (double)GetPeakHashrate(pindex,ALGO_EQUIHASH)));
+    obj.push_back(Pair("peak hashrate CRYPTONIGHT",    (double)GetPeakHashrate(pindex,ALGO_CRYPTONIGHT)));
+    obj.push_back(Pair("current hashrate SCRYPT",    (double)GetCurrentHashrate(pindex,ALGO_SCRYPT)));    
+    obj.push_back(Pair("current hashrate SHA256D",    (double)GetCurrentHashrate(pindex,ALGO_SHA256D)));
+    obj.push_back(Pair("current hashrate YESCRYPT",    (double)GetCurrentHashrate(pindex,ALGO_YESCRYPT)));
+    obj.push_back(Pair("current hashrate ARGON2",    (double)GetCurrentHashrate(pindex,ALGO_ARGON2)));
+    obj.push_back(Pair("current hashrate X17",    (double)GetCurrentHashrate(pindex,ALGO_X17)));
+    obj.push_back(Pair("current hashrate LYRA2REv2",    (double)GetCurrentHashrate(pindex,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("current hashrate EQUIHASH",    (double)GetCurrentHashrate(pindex,ALGO_EQUIHASH)));
+    obj.push_back(Pair("current hashrate CRYPTONIGHT",    (double)GetCurrentHashrate(pindex,ALGO_CRYPTONIGHT)));    
+    obj.push_back(Pair("nblocks update SSF SCRYPT",    (int)GetNBlocksUpdateSSF(pindex,ALGO_SCRYPT)));
+    obj.push_back(Pair("nblocks update SSF SHA256D",    (int)GetNBlocksUpdateSSF(pindex,ALGO_SHA256D)));
+    obj.push_back(Pair("nblocks update SSF YESCRYPT",    (int)GetNBlocksUpdateSSF(pindex,ALGO_YESCRYPT)));
+    obj.push_back(Pair("nblocks update SSF ARGON2",    (int)GetNBlocksUpdateSSF(pindex,ALGO_ARGON2)));
+    obj.push_back(Pair("nblocks update SSF X17",    (int)GetNBlocksUpdateSSF(pindex,ALGO_X17)));
+    obj.push_back(Pair("nblocks update SSF LYRA2REv2",    (int)GetNBlocksUpdateSSF(pindex,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("nblocks update SSF EQUIHASH",    (int)GetNBlocksUpdateSSF(pindex,ALGO_EQUIHASH)));
+    obj.push_back(Pair("nblocks update SSF CRYPTONIGHT",    (int)GetNBlocksUpdateSSF(pindex,ALGO_CRYPTONIGHT)));
+    obj.push_back(Pair("average block spacing SCRYPT",    (double)GetAverageBlockSpacing(pindex,ALGO_SCRYPT)));    
+    obj.push_back(Pair("average block spacing SHA256D",    (double)GetAverageBlockSpacing(pindex,ALGO_SHA256D)));
+    obj.push_back(Pair("average block spacing YESCRYPT",    (double)GetAverageBlockSpacing(pindex,ALGO_YESCRYPT)));
+    obj.push_back(Pair("average block spacing ARGON2",    (double)GetAverageBlockSpacing(pindex,ALGO_ARGON2)));
+    obj.push_back(Pair("average block spacing X17",    (double)GetAverageBlockSpacing(pindex,ALGO_X17)));
+    obj.push_back(Pair("average block spacing LYRA2REv2",    (double)GetAverageBlockSpacing(pindex,ALGO_LYRA2REv2)));
+    obj.push_back(Pair("average block spacing EQUIHASH",    (double)GetAverageBlockSpacing(pindex,ALGO_EQUIHASH)));
+    obj.push_back(Pair("average block spacing CRYPTONIGHT",    (double)GetAverageBlockSpacing(pindex,ALGO_CRYPTONIGHT)));    
+
+    return obj;
 }

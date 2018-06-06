@@ -178,10 +178,14 @@ CPPFLAGS="$CPPFLAGS -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_
 
 AC_LANG_PUSH([C++])
 
+AX_CHECK_COMPILE_FLAG([-std=c++11], [CXXFLAGS="$CXXFLAGS -std=c++11"])
+AX_CHECK_COMPILE_FLAG([-fPIC], [CXXFLAGS="$CXXFLAGS -fPIC"])
+CFLAGS="$CFLAGS -fPIC"
+
 ## CPU-specific flags
 case $host in
        i?86-*)
-	  CFLAGS="$CFLAGS -fPIC -msse -msse2"
+	  CFLAGS="$CFLAGS -msse -msse2"
 	  CXXFLAGS="$CXXFLAGS -msse -msse2"
        ;;
 esac

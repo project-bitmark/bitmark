@@ -48,11 +48,11 @@ inline uint256 KeccakHashCBTX(const T1 pbegin, const T1 pend)
   unsigned char md[200];
   unsigned char * input = (pbegin == pend ? pblank : (unsigned char*)&pbegin[0]);
   int input_size = (pend - pbegin) * sizeof(pbegin[0]);
-  LogPrintf("do keccakhashcbtx (%d) on\n",input_size);
+  /*LogPrintf("do keccakhashcbtx (%d) on\n",input_size);
   for (int i=0; i<input_size; i++) {
     LogPrintf("%02x",input[i]);
   }
-  LogPrintf("\n");
+  LogPrintf("\n");*/
   int ret = keccak((pbegin == pend ? pblank : (unsigned char*)&pbegin[0]),(pend - pbegin) * sizeof(pbegin[0]),md,200);
   const char * hash2 = "bc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a";
   const char * hash3 = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -60,17 +60,17 @@ inline uint256 KeccakHashCBTX(const T1 pbegin, const T1 pend)
     ret = sscanf(hash2+2*i,"%2hhx",md+32+i);
     ret = sscanf(hash3+2*i,"%2hhx",md+64+i);
   }
-  LogPrintf("do 2nd keccakhashcbtx on\n");
+  /*LogPrintf("do 2nd keccakhashcbtx on\n");
   for (int i=0; i<96; i++) {
     LogPrintf("%02x",md[i]);
   }
-  LogPrintf("\n");
+  LogPrintf("\n");*/
   ret = keccak(md,96,md,200);
-  LogPrintf("output=\n");
+  /*LogPrintf("output=\n");
   for (int i=0; i<32; i++) {
     LogPrintf("%02x",md[i]);
   }
-  LogPrintf("\n");
+  LogPrintf("\n");*/
   uint256 hash;
   memcpy(&hash,md,32);
   return hash;

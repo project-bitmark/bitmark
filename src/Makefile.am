@@ -1,8 +1,5 @@
 include Makefile.include
 
-CXX = g++ -fPIC -std=c++11
-CC = gcc -fPIC
-
 AM_CPPFLAGS += -I$(builddir)
 
 noinst_LIBRARIES = \

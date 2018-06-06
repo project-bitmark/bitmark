@@ -399,11 +399,11 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     if (parentBlock.vector_format) {
       int len = parentBlock.vector_rep.size();
       if (len > 1000) return error("parentBlock header too big");
-      LogPrintf("parentBlock vector (%d) = \n",len);
+      /*LogPrintf("parentBlock vector (%d) = \n",len);
       for (int i=0; i<len; i++) {
 	LogPrintf("%02x",parentBlock.vector_rep[i]);
       }
-      LogPrintf("\n");
+      LogPrintf("\n");*/
     }
     else {
       //LogPrintf("parentBlock.nVersion = %u\n",parentBlock.nVersion);
@@ -552,10 +552,9 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
     FILE* file = fopen(path.string().c_str(), "rb+");
     if (!file && !fReadOnly)
         file = fopen(path.string().c_str(), "wb+");
-    int counter = 0;
-    while (!file && counter < 10) {
+    /*int counter = 0;
+    while (!file && counter < 1) {
         LogPrintf("Unable to open file %s\n", path.string());
-
 	if (fReadOnly) {
 	  file = fopen(path.string().c_str(), "rb+");
 	}
@@ -564,8 +563,9 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 	}
         //return NULL;
 	counter ++;
-    }
+	}*/
     if (!file) {
+      LogPrintf("unable to open file %s\n",path.string());
       return NULL;
     }
     if (pos.nPos) {
@@ -651,7 +651,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
 // Based on tests with general purpose CPUs, except for SHA256 which was designed for simplicity and suited for ASICs, so given a factor of 16 decrease in weight.
 unsigned int GetAlgoWeight (const int algo) {
-  unsigned int weight = 8000;
+  unsigned int weight = 8000; // scrypt, lyra2rev2, and share this value
   switch (algo)
     {
     case ALGO_SHA256D:
@@ -659,9 +659,6 @@ unsigned int GetAlgoWeight (const int algo) {
       break;
     case ALGO_ARGON2:
       weight = 4000000;
-      break;
-    case ALGO_LYRA2REv2:
-      weight = 2800;
       break;
     case ALGO_EQUIHASH:
       weight = 8000000;

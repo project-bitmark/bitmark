@@ -152,10 +152,10 @@ void OverviewPage::setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 
     ui->labelUnconfirmed->setText(BitmarkUnits::formatWithUnit(unit, unconfirmedBalance));
     ui->labelImmature->setText(BitmarkUnits::formatWithUnit(unit, immatureBalance));
     ui->labelTotal->setText(BitmarkUnits::formatWithUnit(unit, balance + unconfirmedBalance + immatureBalance));
-    ui->labelWatchAvailable->setText(BitcoinUnits::formatWithUnit(unit, watchOnlyBalance));
-    ui->labelWatchPending->setText(BitcoinUnits::formatWithUnit(unit, watchUnconfBalance));
-    ui->labelWatchImmature->setText(BitcoinUnits::formatWithUnit(unit, watchImmatureBalance));
-    ui->labelWatchTotal->setText(BitcoinUnits::formatWithUnit(unit, watchOnlyBalance + watchUnconfBalance + watchImmatureBalance));
+    ui->labelWatchAvailable->setText(BitmarkUnits::formatWithUnit(unit, watchOnlyBalance));
+    ui->labelWatchPending->setText(BitmarkUnits::formatWithUnit(unit, watchUnconfBalance));
+    ui->labelWatchImmature->setText(BitmarkUnits::formatWithUnit(unit, watchImmatureBalance));
+    ui->labelWatchTotal->setText(BitmarkUnits::formatWithUnit(unit, watchOnlyBalance + watchUnconfBalance + watchImmatureBalance));
 
     // only show immature (newly mined) balance if it's non-zero, so as not to complicate things
     // for the non-mining users

@@ -1411,20 +1411,26 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
     int64_t PastBlocksMin = 25;
-    int64_t PastBlocksMax = 25;
+    int64_t PastBlocksMax = 25; // We have same max and min, just using same variables from old code
     int64_t CountBlocks = 0;
     CBigNum PastDifficultyAverage;
     CBigNum PastDifficultyAveragePrev;
+    CBigNum LastDifficultyAlgo;
     int64_t time_since_last_algo = -1;
     int64_t LastBlockTimeOtherAlgos = 0;
     unsigned int algoWeight = GetAlgoWeight(algo);
+
+    int lastInRow = 0; // starting from last block from algo to first occurence of another algo
+    bool lastInRowDone = false; // once another algo is found, stop the count
+
+    int nInRow = 0; // consecutive sequence of blocks from algo within the 25 block period
+    bool nInRowDone = false; // if an island of 9 or more is found, then stop the count
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
       return (Params().ProofOfWorkLimit()*algoWeight).GetCompact();
     }
 
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight >= nForkHeight - 1; i++) {
-
+    for (int i=0; BlockReading && BlockReading->nHeight >= nForkHeight - 1; i++) {
 
       if (!onFork(BlockReading)) { // last block before fork
 	if(LastBlockTime > 0){
@@ -1434,26 +1440,43 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	  time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetBlockTime();
 	}
 	CountBlocks++;
+	if (nInRow<9) {
+	  nInRow = 0;
+	}
+	else{
+	  nInRowDone = true;
+	}
 	break;
       }
 
       if (!LastBlockTimeOtherAlgos) {
 	LastBlockTimeOtherAlgos = BlockReading->GetMedianTimePast();
       }
+      
       int block_algo = GetAlgo(BlockReading->nVersion);
       if (block_algo != algo) { // Only consider blocks from same algo
 	BlockReading = BlockReading->pprev;
+	if (CountBlocks) lastInRowDone = true;
+	if (nInRow<9) {
+	  nInRow = 0;
+	}
+	else {
+	  nInRowDone = true;
+	}
 	continue;
       }
-	
+      if (!CountBlocks) LastDifficultyAlgo.SetCompact(BlockReading->nBits);
+
       CountBlocks++;
+      if (!nInRowDone) nInRow++;
+      if (!lastInRowDone) lastInRow++;
 
       if(CountBlocks <= PastBlocksMin) {
 	if (CountBlocks == 1) {
 	  PastDifficultyAverage.SetCompact(BlockReading->nBits);
 	  if (LastBlockTimeOtherAlgos > 0) time_since_last_algo = LastBlockTimeOtherAlgos - BlockReading->GetMedianTimePast();
 	  LastBlockTime = BlockReading->GetMedianTimePast();
-	   if (fDebug) LogPrintf("block time final = %d\n",LastBlockTime);
+	  if (fDebug) LogPrintf("block time final = %d\n",LastBlockTime);
 	}
 	else { PastDifficultyAverage = ((PastDifficultyAveragePrev * (CountBlocks-1)) + (CBigNum().SetCompact(BlockReading->nBits))) / CountBlocks; }
 	PastDifficultyAveragePrev = PastDifficultyAverage;
@@ -1467,16 +1490,41 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	break;
       }
       if (CountBlocks >= PastBlocksMax) {
-        if(LastBlockTime > 0){
-          if (fDebug) LogPrintf("block time initial %d\n",BlockReading->GetMedianTimePast());
-          nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
-        }
-        break;
+	if(LastBlockTime > 0){
+	  if (fDebug) LogPrintf("block time initial %d\n",BlockReading->GetMedianTimePast());
+	  nActualTimespan = (LastBlockTime - BlockReading->GetMedianTimePast());
+	}
+	break;
       }
+      
       BlockReading = BlockReading->pprev;
     }
+
+    int pastInRow = 0; // if not done counting, count the past blocks in row with algo starting at the boundary and going back
+    if ((nInRow && !nInRowDone || lastInRow && !lastInRowDone) && BlockReading) {
+      if (fDebug) LogPrintf("nInRow = %d and not done\n",nInRow);
+      const CBlockIndex * BlockPast = BlockReading->pprev;
+      while (BlockPast) {
+	if (GetAlgo(BlockPast->nVersion)!=algo||!onFork(BlockPast)) {
+	  break;
+	}
+	pastInRow++;
+	BlockPast = BlockPast->pprev;
+      }
+      if (!lastInRowDone) lastInRow += pastInRow;
+    }
     
-    CBigNum bnNew(PastDifficultyAverage);
+    CBigNum bnNew;
+    int lastInRowMod = lastInRow%9;
+    if (fDebug) LogPrintf("nInRow = %d lastInRow=%d\n",nInRow,lastInRow);
+    bool justHadSurge = nInRow>=9 || nInRow && pastInRow && (nInRow+pastInRow)>=9 && pastInRow%9!=0;
+    if (justHadSurge || time_since_last_algo>9600) {
+      if (fDebug) LogPrintf("bnNew = LastDifficultyAlgo\n");
+      bnNew = LastDifficultyAlgo;
+    }
+    else {
+      bnNew = PastDifficultyAverage;
+    }
     int64_t _nTargetTimespan = (CountBlocks-1) * DGWtimespan; //16 min target
 
     int64_t smultiplier = 1;
@@ -1487,17 +1535,23 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       nActualTimespan = 10*smultiplier*_nTargetTimespan;
       smultiply = true;
     }
-    
-    if (nActualTimespan < _nTargetTimespan/3)
+
+    if (fDebug && lastInRow >= 9 && !lastInRowMod) LogPrintf("activate surge protector\n");
+    if (nActualTimespan < _nTargetTimespan/3 || lastInRow >= 9 && !lastInRowMod)
       nActualTimespan = _nTargetTimespan/3;
     if (nActualTimespan > _nTargetTimespan*3)
       nActualTimespan = smultiplier*_nTargetTimespan*3;
     
-    if (CountBlocks >= PastBlocksMin ) {          
+    if (CountBlocks >= PastBlocksMin ) {
+      if (lastInRow>=9 && !lastInRowMod) {
+	bnNew /= 3;
+      }
+      else if (!justHadSurge) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
+      }
     }
-    else if (CountBlocks==1) {
+    else if (CountBlocks==1) { // first block of algo for fork
       if (fDebug) {
 	LogPrintf("CountBlocks = %d\n",CountBlocks);
 	LogPrintf("setting nBits to keep continuity of scrypt chain\n");
@@ -1510,7 +1564,12 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 	bnNew /= (8*weightScrypt);
       }
       else {
-	bnNew.SetCompact(0x1d00ffff); // for newer algos, use min diff times 128, weighted
+	if (TestNet()) {
+	  bnNew.SetCompact(BlockReading->nBits);
+	}
+	else {
+	  bnNew.SetCompact(0x1d00ffff); // for newer algos, use min diff times 128, weighted
+	}
 	bnNew *= algoWeight;
 	bnNew /= 128;
       }
@@ -1518,6 +1577,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
     }
     else {
       if (smultiply) bnNew *= smultiplier*3;
+      if (lastInRow>=9 && !lastInRowMod) bnNew /= 3;
     }
     
     if (bnNew > Params().ProofOfWorkLimit()*algoWeight){
@@ -1579,7 +1639,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 	  if (pindexLast->nHeight == 0 && (RegTest() || TestNet())) {
 	    return nProofOfWorkLimit;
 	  }
-	  //if (pindexLast->nHeight == 446499) return (Params().ProofOfWorkLimit()*GetAlgoWeight(ALGO_SCRYPT)).GetCompact(); // special rule for testing fork
 	  return pindexLast->nBits;
         }
 

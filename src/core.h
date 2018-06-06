@@ -34,7 +34,7 @@ class CTransaction;
 // todo cap this after taxation is accounted for, block reward dies after 36 changes
 static const int64_t MAX_MONEY = 28000000 * COIN;
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
-static const int64_t nForkHeightForce = 447120;
+static const int64_t nForkHeightForce = 452000; // not used
 
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
 class COutPoint
@@ -794,7 +794,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
 unsigned int GetAlgoWeight (const int algo);
 
-static const int64_t nForkHeight = 200; //446500
+static const int64_t nForkHeight = 200; // We set it in past so not really used for fork condition
 
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple

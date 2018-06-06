@@ -46,21 +46,23 @@ rpcpassword=YoUrSecreT-PaSsWoRd
 listen=1
 
 
-Note: Daniel J. Bernstein's libsodium cryptographic library is requred by Bitmark v0.9.7
+##Note: Daniel J. Bernstein's libsodium cryptographic library is requred by Bitmark v0.9.7
 
-Ubuntu 16 and higher may simply do
-sudo apt-get install libsodium-dev
+Ubuntu 16 and higher may simply do:
+
+ sudo apt-get install libsodium-dev
 
 otherwise, you may have to compile this library from scratch:
 
-git clone git://github.com/jedisct1/libsodium.git
-cd libsodium
-./autogen.sh
-./configure && make check
-sudo make install
-sudo ldconfig
+ git clone git://github.com/jedisct1/libsodium.git
+ cd libsodium
+ ./autogen.sh
+ ./configure && make check
+ sudo make install
+ sudo ldconfig
 
 
+## Mining
 You can mine all algorithms using our fork of cpuminer-multi (https://github.com/piratelinux/cpuminer-multi default linux branch), with the following command:
 
 `cpuminer -a <algo> -o http://localhost:19266 -u bitmarkrpc -p YoUrPaSsWoRd`

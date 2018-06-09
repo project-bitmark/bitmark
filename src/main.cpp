@@ -1597,7 +1597,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 }
 
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, int algo)
 {
   if (RegTest()) return Params().ProofOfWorkLimit().GetCompact();
     int nHeight = pindexLast->nHeight;
@@ -1677,9 +1677,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     }
 }
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast)
 {
-  return GetNextWorkRequired(pindexLast, pblock, ALGO_SCRYPT);
+  return GetNextWorkRequired(pindexLast, ALGO_SCRYPT);
 }
 
 bool IsInitialBlockDownload()
@@ -2878,7 +2878,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 
         // Check proof of work
 	int block_algo = GetAlgo(block.nVersion);
-	unsigned int next_work_required = GetNextWorkRequired(pindexPrev, &block, block_algo);
+	unsigned int next_work_required = GetNextWorkRequired(pindexPrev, block_algo);
         if (block.nBits != next_work_required) {
 	  LogPrintf("nbits = %d, required = %d\n",block.nBits,next_work_required);
 	  return state.DoS(100, error("AcceptBlock() : incorrect proof of work"),

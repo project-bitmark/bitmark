@@ -188,6 +188,9 @@ case $host in
 	  CFLAGS="$CFLAGS -msse -msse2"
 	  CXXFLAGS="$CXXFLAGS -msse -msse2"
        ;;
+       x86_64-*)
+	  CFLAGS="$CFLAGS -maes"
+       ;;
 esac
 
 use_pkgconfig=yes
@@ -221,6 +224,7 @@ case $host in
      AX_CHECK_LINK_FLAG([[-static]],[LDFLAGS="$LDFLAGS -static"])
      AX_CHECK_LINK_FLAG([[-static-libgcc]],[LDFLAGS="$LDFLAGS -static-libgcc"])
      AX_CHECK_LINK_FLAG([[-static-libstdc++]],[LDFLAGS="$LDFLAGS -static-libstdc++"])
+     AX_CHECK_LINK_FLAG([[-Wl,--stack,8388608]],[LDFLAGS="$LDFLAGS -Wl,--stack,8388608"])
 
      AC_PATH_PROG([MAKENSIS], [makensis], none)
      if test x$MAKENSIS = xnone; then

@@ -5021,7 +5021,7 @@ unsigned long get_ssf_work (const CBlockIndex * pindex) {
   CBigNum hashes_bn = pprev_algo->GetBlockWork();
   for (int i=0; i<nSSF; i++) {
     if (update_ssf(pprev_algo->nVersion)) {
-      return hashes_bn.getulong();
+      return (hashes_bn/1000000).getulong();
     }
     pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) return 0;

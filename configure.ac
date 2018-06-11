@@ -188,6 +188,9 @@ case $host in
 	  CFLAGS="$CFLAGS -msse -msse2"
 	  CXXFLAGS="$CXXFLAGS -msse -msse2"
        ;;
+       x86_64-*)
+	  CFLAGS="$CFLAGS -maes"
+       ;;
 esac
 
 use_pkgconfig=yes
@@ -221,10 +224,24 @@ case $host in
      AX_CHECK_LINK_FLAG([[-static]],[LDFLAGS="$LDFLAGS -static"])
      AX_CHECK_LINK_FLAG([[-static-libgcc]],[LDFLAGS="$LDFLAGS -static-libgcc"])
      AX_CHECK_LINK_FLAG([[-static-libstdc++]],[LDFLAGS="$LDFLAGS -static-libstdc++"])
+     AX_CHECK_LINK_FLAG([[-Wl,--stack,8388608]],[LDFLAGS="$LDFLAGS -Wl,--stack,8388608"])
 
      AC_PATH_PROG([MAKENSIS], [makensis], none)
      if test x$MAKENSIS = xnone; then
        AC_MSG_WARN("makensis not found. Cannot create installer.")
+     fi
+
+     AC_CHECK_PROG([CYGPATH], [cygpath], yes, no)
+     if test x$CYGPATH = xno; then
+       AC_MSG_WARN("cygpath not found.")
+     else
+       WINPATH_TOPSRCDIR=$(cygpath --windows $(realpath $srcdir))
+       WINPATH_INSTALLPREFIX=$(cygpath --windows $prefix)
+       WINPATH_MINGWHOSTPREFIX=$(cygpath --windows "/usr/$host/")
+
+       AC_SUBST(WINPATH_TOPSRCDIR)
+       AC_SUBST(WINPATH_INSTALLPREFIX)
+       AC_SUBST(WINPATH_MINGWHOSTPREFIX)
      fi
 
      AC_PATH_TOOL(WINDRES, windres, none)

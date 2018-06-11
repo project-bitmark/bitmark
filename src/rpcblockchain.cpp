@@ -18,7 +18,7 @@ using namespace std;
 
 void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex* blockindex, int algo)
+double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, bool next)
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
@@ -41,7 +41,11 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
       }
     }
     unsigned int nBits = 0;
-    unsigned int algoWeight = GetAlgoWeight(algo);
+    unsigned int algoWeight = 1;
+    if (weighted) algoWeight = GetAlgoWeight(algo);
+    if (next) {
+      nBits = GetNextWorkRequired(chainActive.Tip(),algo);
+    }
     if (blockindex && blockindex->nHeight>0) {
       nBits = blockindex->nBits;
     }
@@ -128,7 +132,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	  return std::numeric_limits<double>::max();
 	}
 	//LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
-	double hashes = ((double)hashes_bn.getulong())/((double)time_f);
+	double hashes = ((hashes_bn/time_f)/1000000).getulong();
 	//LogPrintf("hashes per sec = %f\n",hashes);
 	if (hashes>hashes_peak) hashes_peak = hashes;
       }
@@ -192,7 +196,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
 	return std::numeric_limits<double>::max();
       }
       //LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
-      return ((double)hashes_bn.getulong())/((double)time_f);
+      return ((hashes_bn/time_f)/1000000).getulong();
     }
     blockindex = get_pprev_algo(blockindex,-1);
   } while (blockindex);

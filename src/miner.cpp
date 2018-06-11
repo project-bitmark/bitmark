@@ -377,7 +377,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	//printf("create new block with hash prev = %s (height %d)\n",pblock->hashPrevBlock.GetHex().c_str(),pindexPrev->nHeight);
 
 	UpdateTime(*pblock, pindexPrev);
-	pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
+	pblock->nBits          = GetNextWorkRequired(pindexPrev, miningAlgo);
 	//LogPrintf("create block nBits = %s\n",CBigNum().SetCompact(pblock->nBits).getuint256().GetHex().c_str());
 	pblock->nNonce         = 0;
 	if (miningAlgo==ALGO_EQUIHASH) {

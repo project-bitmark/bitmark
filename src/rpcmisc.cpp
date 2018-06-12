@@ -45,6 +45,7 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
             "  \"proxy\": \"host:port\",     (string, optional) the proxy used by the server\n"
             "  \"difficulty <algo>\": xxxxxx,       (numeric) the current difficulty for the algo <ALGO>\n"
+// Difficulties for all algos
             "  \"moneysupply\": xxxxxx,      (numeric) the total amount of coins distributed\n"
             "  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n"
             "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"

@@ -1202,7 +1202,7 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
+int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees)
 {
     // for testnet
     int nHeight = pindex->nHeight;

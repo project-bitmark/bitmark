@@ -26,8 +26,9 @@ Bitmark aims to be a relatively stable, user focused, crypto currency, which ref
 
 **Balance**: Every aspect of Bitmark has been designed in order to balance the interests of everybody involved or associated with the project. This includes [Investor Public Mining (IPM)](https://github.com/project-bitmark/bitmark/wiki/IPM-Pool) which balances Investors, Miners, and Developers in a way that is mutually beneficial and which critically enables those at the core to provide the best network experience to those who rely on it, the users.
 
-* [Project Project - Documentation and Plan](https://github.com/project-bitmark/bitmark/wiki)
+* [Documentation and Plan](https://github.com/project-bitmark/bitmark/wiki)
 * [Discussion and Updates](https://bitcointalk.org/index.php?topic=660544.0)
+* [Block Explorer](http://explorer.bitmark.co)
 
 ## Getting Bitmark
 
@@ -77,7 +78,7 @@ You can also use the bitmark-cli command to mine. The last parameter is the algo
 
 `bitmark-cli setgenerate true <ncores> 3`
 
-For equihash, it is recommended to use the built in miner as the cpuminer is slow at the moment.
+For equihash and cryptonight, it is recommended to use the built in miner as the cpuminer is slow at the moment.
 
 There are currently 3 types of tests implemented.
 
@@ -89,4 +90,4 @@ There are currently 3 types of tests implemented.
 
 ## Merge Mining
 
-Also part of the hard fork is merge mining, a way to increase the hashpower security of the chain by allowing the mining of the chain simultaneously with another chain. All 8 algorithms are supported.
+Also part of the hard fork is merge mining, a way to increase the hashpower security of the chain by allowing the mining of the chain simultaneously with other chains. All 8 algorithms are supported.

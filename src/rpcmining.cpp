@@ -358,8 +358,6 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("testnet",          TestNet()));
 #ifdef ENABLE_WALLET
     obj.push_back(Pair("generate",         getgenerate(params, false)));
-    obj.push_back(Pair("pow_algo_id", miningAlgo));
-    obj.push_back(Pair("pow_algo",GetAlgoName(miningAlgo)));
     obj.push_back(Pair("hashespersec",     gethashespersec(params, false)));
 #endif
     return obj;

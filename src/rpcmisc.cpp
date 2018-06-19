@@ -12,6 +12,7 @@
 #include "netbase.h"
 #include "rpcserver.h"
 #include "util.h"
+#include "miner.h"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #include "walletdb.h"
@@ -44,8 +45,17 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
             "  \"proxy\": \"host:port\",     (string, optional) the proxy used by the server\n"
-            "  \"difficulty <algo>\": xxxxxx,       (numeric) the current difficulty for the algo <ALGO>\n"
-// Difficulties for all algos
+            "  \"pow_algo_id\": n            (numeric) The active mining algorithm id\n"
+            "  \"pow_algo\": \"name\"        (string) The active mining algorithm name\n"
+//            "  \"difficulty <algo>\": xxxxxx,       (numeric) the current difficulty for the algo <ALGO>\n"
+            "  \"difficulty_scrypt\": xxxxxx,   (numeric) the current scrypt difficulty\n"
+            "  \"difficulty_sha256d\": xxxxxx,  (numeric) the current sha256d difficulty\n"
+            "  \"difficulty_yescrypt\": xxxxxx, (numeric) the current yescrypt difficulty\n"
+            "  \"difficulty_argon2d\": xxxxxx,    (numeric) the current argon2d difficulty\n"
+            "  \"difficulty_x17\": xxxxxx,    (numeric) the current x17 difficulty\n"
+            "  \"difficulty_lyra2rev2\": xxxxxx,    (numeric) the current lyra2rev2 difficulty\n"
+            "  \"difficulty_equihash\": xxxxxx,  (numeric) the current equihash difficulty\n"
+            "  \"difficulty_cryptonight\": xxxxxx,  (numeric) the current cryptonight difficulty\n"
             "  \"moneysupply\": xxxxxx,      (numeric) the total amount of coins distributed\n"
             "  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n"
             "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"
@@ -76,6 +86,9 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("timeoffset",    GetTimeOffset()));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("pow_algo_id", miningAlgo));
+    obj.push_back(Pair("pow_algo",GetAlgoName(miningAlgo)));
+    obj.push_back(Pair("difficulty", (double)GetDifficulty(NULL,miningAlgo,true,true)));
     obj.push_back(Pair("difficulty SCRYPT", (double)GetDifficulty(NULL,ALGO_SCRYPT,true,true)));
     obj.push_back(Pair("difficulty SHA256D",    (double)GetDifficulty(NULL,ALGO_SHA256D,true,true)));
     obj.push_back(Pair("difficulty YESCRYPT",    (double)GetDifficulty(NULL,ALGO_YESCRYPT,true,true)));

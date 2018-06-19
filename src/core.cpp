@@ -649,9 +649,18 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   return true;
 }
 
-// Based on tests with general purpose CPUs, except for SHA256 which was designed for simplicity and suited for ASICs, so given a factor of 16 decrease in weight.
+// Based on tests with general purpose CPUs,
+//       ( Except for SHA256 which was designed for simplicity and suited for ASICs, 
+//       so given a factor of 16 decrease in weight. )
+//   Weighing gives more value to hashes from some algos over others,
+//      because, for example a Cryptonight hash is much more computationally expensive 
+//      than a SHA256d hash.
+//   Weights should ultimately reflect the market value of hashes by different algorithms;
+//      this will vary constantly (and more significantly long-term with hardware developement) 
+//   As of June, 2018 these values are closely reflective of market values seen on
+//      nicehash.com and miningrigrentals.com
 unsigned int GetAlgoWeight (const int algo) {
-  unsigned int weight = 8000; // scrypt, lyra2rev2, and share this value
+  unsigned int weight = 8000; // scrypt, lyra2rev2 and 17 share this value.
   switch (algo)
     {
     case ALGO_SHA256D:

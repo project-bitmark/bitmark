@@ -47,13 +47,13 @@ rpcpassword=YoUrSecreT-PaSsWoRd
 listen=1
 
 
-##Note: Daniel J. Bernstein's libsodium cryptographic library is requred by Bitmark v0.9.7
+##Note: libsodium cryptographic library is required by Bitmark v0.9.7
 
 Ubuntu 16 and higher may simply do:
 
  sudo apt-get install libsodium-dev
 
-otherwise, you may have to compile this library from scratch:
+otherwise, you may compile this library from sources::
 
  git clone git://github.com/jedisct1/libsodium.git
  cd libsodium

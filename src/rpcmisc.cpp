@@ -502,7 +502,7 @@ Value getblockreward(const Array& params, bool fHelp) {
   }
 
   Object obj;
-  obj.push_back(Pair("block reward",(double)GetBlockReward(blockindex,algo)));
+  obj.push_back(Pair("block reward",(double)GetBlockReward(blockindex,algo,false)));
   return obj;
 }
 

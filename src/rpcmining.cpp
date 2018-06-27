@@ -331,13 +331,11 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",           (int)chainActive.Height()));
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
-    obj.push_back(Pair("reward_next",      ValueFromAmount(GetBlockReward(chainActive.Tip(),miningAlgo)*100000000.)));
-    obj.push_back(Pair("reward_max",       ValueFromAmount(GetBlockValue(chainActive.Tip(),miningAlgo,true))));
+    obj.push_back(Pair("reward_next",      ValueFromAmount(GetBlockReward(chainActive.Tip(),miningAlgo,false)*100000000.)));
+    obj.push_back(Pair("reward_max",       ValueFromAmount(GetBlockReward(chainActive.Tip(),miningAlgo,true)*100000000.)));
     obj.push_back(Pair("pow_algo_id", miningAlgo));
     obj.push_back(Pair("pow_algo",GetAlgoName(miningAlgo)));
     //obj.push_back(Pair("hashrate_4max_reward", (uint64_t)35000000000));
-    obj.push_back(Pair("pow_algo_id", miningAlgo));
-    obj.push_back(Pair("pow_algo",GetAlgoName(miningAlgo)));
 //  difficulty is weighted in Bitmark to more meaningfully compare relative values of competing chains
 //                                       boolean for weighted / unweighted -------v
     obj.push_back(Pair("difficulty",      (double)GetDifficulty(NULL,miningAlgo,true,true)));

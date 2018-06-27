@@ -391,7 +391,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         indexDummy.pprev = pindexPrev;
         indexDummy.nHeight = pindexPrev->nHeight + 1;
 
-	pblock->vtx[0].vout[0].nValue = GetBlockValue(&indexDummy, nFees);
+	pblock->vtx[0].vout[0].nValue = GetBlockValue(&indexDummy, nFees, false);
 
         CCoinsViewCache viewNew(*pcoinsTip, true);
 
@@ -686,6 +686,9 @@ void static BitmarkMiner(CWallet *pwallet)
 		break;
 	      }
 	    }
+
+	    pblock->nNonce256 = (CBigNum(pblock->nNonce256) + 1).getuint256();
+	    nHashesDone += 1;
 	    
 	  }
 	  else while(true) {
@@ -760,9 +763,6 @@ void static BitmarkMiner(CWallet *pwallet)
 	  if (pindexPrev != chainActive.Tip())
 	    break;
 
-	  if (miningAlgo==ALGO_EQUIHASH) {
-	    pblock->nNonce256 = (CBigNum(pblock->nNonce256) + 1).getuint256();
-	  }
 	  // Update nTime every few seconds
 	  UpdateTime(*pblock, pindexPrev);
 	  nBlockTime = ByteReverse(pblock->nTime);

@@ -241,7 +241,7 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
 
-double GetBlockReward (CBlockIndex * blockindex, int algo) {
+double GetBlockReward (CBlockIndex * blockindex, int algo, bool noScale) {
   if (blockindex == NULL) {
     if (chainActive.Tip() == NULL)
       return 0.;
@@ -260,7 +260,7 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
   CBlockIndex indexDummy(*pblock);
   indexDummy.pprev = blockindex;
   indexDummy.nHeight = blockindex->nHeight + 1;
-  return ((double)GetBlockValue(&indexDummy,0))/100000000.;
+  return ((double)GetBlockValue(&indexDummy,0,noScale))/100000000.;
   
 }
   

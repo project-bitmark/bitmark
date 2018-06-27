@@ -1,4 +1,4 @@
-Bitmark 0.9.5 BETA
+Bitmark 0.9.7.1	BETA
 =====================
 
 Copyright (c) 2009-2018 Bitmark Developers
@@ -6,7 +6,7 @@ Copyright (c) 2009-2018 Bitmark Developers
 
 Setup
 ---------------------
-[Bitmark Core](http://bitmark.io/en/download) is the original Bitmark client and it builds the backbone of the network. It downloads and stores the entire history of Bitmark transactions (as of December 2017, less than 1 GiB of data); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more. Thankfully you only have to do this once. If you would like the process to go faster you can [download the blockchain directly](bootstrap.md).
+[Bitmark Core](http://bitmark.io/en/download) is the original Bitmark client and it builds the backbone of the network. It downloads and stores the entire history of Bitmark transactions (as of June 2018, less than 1 GiB of data); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more. Thankfully you only have to do this once. If you would like the process to go faster you can [download the blockchain directly](bootstrap.md).
 
 Running
 ---------------------
@@ -71,5 +71,4 @@ The Bitmark repo's [root README](https://github.com/project-bitmark/bitmark/blob
 License
 ---------------------
 Distributed under the [MIT/X11 software license](http://www.opensource.org/licenses/mit-license.php).
-This product includes software developed by the OpenSSL Project for use in the [OpenSSL Toolkit](http://www.openssl.org/). This product includes
-cryptographic software written by Eric Young ([eay@cryptsoft.com](mailto:eay@cryptsoft.com)), and UPnP software written by Thomas Bernard.
+This product includes software developed by the OpenSSL Project for use in the [OpenSSL Toolkit](http://www.openssl.org/). This product includes cryptographic software written by Eric Young ([eay@cryptsoft.com](mailto:eay@cryptsoft.com)), and UPnP software written by Thomas Bernard.

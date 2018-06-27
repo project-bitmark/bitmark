@@ -32,7 +32,8 @@ unsigned int pnSeed[] =
         0x2D2141A1,             // us.bitmark.io        IP = 45.33.65.161       joe
         0xCC447A12,             // tx.bitmark.io        IP = 204.68.122.18      tex
         0xCC447A07,             // seed.bitmark.mx      IP = 204.68.122.7       jules
-        0xCC447A0B              // one.zmark.org        IP = 204.68.122.11      per
+        0xCC447A0B,             // one.zmark.org        IP = 204.68.122.11      per
+	0x8BA2E8F2		// uk.bitmark.one	IP = 139.162.232.242	jim
 };
 
 class CMainParams : public CChainParams {

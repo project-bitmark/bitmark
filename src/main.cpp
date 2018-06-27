@@ -1202,7 +1202,7 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees)
+int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
     // for testnet
     int nHeight = pindex->nHeight;
@@ -1237,7 +1237,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees)
     }
 
     unsigned int scalingFactor = 0;
-    if (onFork(pindex)) {
+    if (onFork(pindex) && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
 	CBlockIndex * pprev_algo = pindex;
@@ -1250,6 +1250,9 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees)
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 	} while (pprev_algo);
       }
+    }
+    else {
+      scalingFactor = 0;
     }
 
     int64_t baseSubsidy = 0;
@@ -1405,7 +1408,7 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 
 unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
-    /* current difficulty formula, dash - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
+    /* current difficulty formula, DASH - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex *BlockLastSolved = pindexLast;
     const CBlockIndex *BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
@@ -1609,6 +1612,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, int algo)
       workAlgo = 1;
     }
 
+    // workAlgo functions here as post_fork boolean; 0: pre-fork, 1: post-fork
     if (workAlgo == 0) {
         unsigned int nProofOfWorkLimit = Params().ProofOfWorkLimit().GetCompact();
 
@@ -1673,6 +1677,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, int algo)
 
          return bnNew.GetCompact();
     } else {
+      // Post 8mPoW fork
       return DarkGravityWave(pindexLast,algo);
     }
 }

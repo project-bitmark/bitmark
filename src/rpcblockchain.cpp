@@ -355,9 +355,11 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 	  // 7 is the typical offset in monero, but not fully general
 	  sprintf(prev_id+2*i,"%02x",vector_rep[i+7]);
 	}
-	result.push_back(Pair("parentblockprevid",prev_id));
+	result.push_back(Pair("parentblockprevhash",prev_id));
       }
-      
+      else {
+	result.push_back(Pair("parentblockprevhash",block.auxpow->parentBlock.hashPrevBlock.GetHex()));
+      }
     }
     result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
     result.push_back(Pair("SSF work", (int64_t)get_ssf_work(blockindex)));

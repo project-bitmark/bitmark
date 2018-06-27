@@ -11,7 +11,7 @@ This repository contains the Bitmark cryptograpic currency software, and a wiki 
 
 [![Join the chat at https://gitter.im/project-bitmark/bitmark](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/project-bitmark/bitmark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Bitmark aims to be a relatively stable, user focused, crypto currency, which refines and implements maturing innovations from the crypto currency sector.
+Bitmark aims to be a relatively stable, user focused crypto currency, which refines and implements maturing innovations from the crypto currency sector.
 
 ### Overview
 **Technically**: Light and stable with a modern codebase, [maturing features from the alternative currency sector](https://github.com/project-bitmark/bitmark/wiki#maturing-innovations) which *benefit* users added on a faster timeline than bitcoin. Think of it more as [standardization rather than innovation](https://github.com/project-bitmark/bitmark/wiki#relatively-stable).
@@ -36,9 +36,11 @@ All Bitmark software releases are published through the github release process, 
 
 ## Eight Algortihm mPoW Hard Fork (v0.9.7)
 
-We are now releasing the hard fork that allows for multiple proof-of-work algorithms (SCRYPT, SHA256D, YESCRYPT, ARGON2D, X17, LYRA2REv2, EQUIHASH, CRYPTONIGHT). Each algorithm has its difficulty adjusted independently, with a target spacing of 16 min (for a combined average of  2 min as per the Bitmark specification). 
-The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is now dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 720/8=90 blocks). 
-The difficulty adjustment algorithm is Dark Gravity Wave v3, customized for multi algo usage. It also includes special retargeting rules, the Surge Protector and The Resurrector. The Surge Protector activates if there is a string of 9 blocks in-a-row by the same algorithm. The Resurrector activates if blocks from one algo are halted for over 160 minutes.
+The hard fork for multiple proof-of-work algorithms (SCRYPT, SHA256D, YESCRYPT, ARGON2D, X17, LYRA2REv2, EQUIHASH, CRYPTONIGHT) under DGWv3 was adopted by the Bitmark community by supermajority consensus after block 450946. The first block where v0.9.7 rules are in effect is 450947. 
+
+Each algorithm has its difficulty adjusted independently, with a target spacing of 16 min (for a combined average of  2 min as per the Bitmark specification). 
+The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 90 blocks per algo, which is approximately once a day ). 
+The difficulty adjustment algorithm is Dark Gravity Wave v3, customized for multi algo usage. It has special difficulty retargeting rules, the Surge Protector and the Resurrector. Surge Protector activates if there is a string of 9 blocks in-a-row by the same algorithm. Resurrector activates if blocks from one algo are halted for over 160 minutes.
 
 Download the current version from 'Master' branch, and put the following settings in your bitmark.conf
 
@@ -51,16 +53,16 @@ listen=1
 
 Ubuntu 16 and higher may simply do:
 
- sudo apt-get install libsodium-dev
+  sudo apt-get install libsodium-dev
 
 otherwise, you may compile this library from sources::
 
- git clone git://github.com/jedisct1/libsodium.git
- cd libsodium
- ./autogen.sh
- ./configure && make check
- sudo make install
- sudo ldconfig
+  git clone git://github.com/jedisct1/libsodium.git
+  cd libsodium
+  ./autogen.sh
+  ./configure && make check
+  sudo make install
+  sudo ldconfig
 
 
 ## Mining

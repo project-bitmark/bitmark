@@ -53,7 +53,7 @@ Installing the dependencies using MacPorts is very straightforward.
 
 Optional: install Qt4
 
-    sudo port install qt4-mac qrencode protobuf-cpp
+    sudo port install qt4-mac qrencode protobuf-cpp py-appscript
 
 ### Building `bitmarkd`
 

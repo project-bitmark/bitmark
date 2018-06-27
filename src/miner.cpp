@@ -628,7 +628,7 @@ void static BitmarkMiner(CWallet *pwallet)
 					      pblock->nNonce256.begin(),
 					      pblock->nNonce256.size());
 	    std::function<bool(std::vector<unsigned char>)> validBlock =
-	      [&pblock, &hashTarget, &pwallet, &reservekey, &cs_main, &cancelSolver] (std::vector<unsigned char> soln) {
+	      [&pblock, &hashTarget, &pwallet, &reservekey, &cancelSolver] (std::vector<unsigned char> soln) {
 	      pblock->nSolution = soln;
 	      //solutionTargetChecks.increment();
 
@@ -656,7 +656,7 @@ void static BitmarkMiner(CWallet *pwallet)
 	      return true;
 	    };
 
-	    std::function<bool(EhSolverCancelCheck)> cancelled = [&cs_main, &cancelSolver](EhSolverCancelCheck pos) {
+	    std::function<bool(EhSolverCancelCheck)> cancelled = [&cancelSolver](EhSolverCancelCheck pos) {
 	      LOCK(cs_main);
 	      return cancelSolver;
 	    };

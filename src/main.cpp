@@ -1202,7 +1202,7 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
+int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
     // for testnet
     int nHeight = pindex->nHeight;
@@ -1237,7 +1237,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
     }
 
     unsigned int scalingFactor = 0;
-    if (onFork(pindex)) {
+    if (onFork(pindex) && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
 	CBlockIndex * pprev_algo = pindex;
@@ -1250,6 +1250,9 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 	} while (pprev_algo);
       }
+    }
+    else {
+      scalingFactor = 0;
     }
 
     int64_t baseSubsidy = 0;

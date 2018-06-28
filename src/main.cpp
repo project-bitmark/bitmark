@@ -2258,12 +2258,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       }
     }
 
-    int64_t block_value_needed = GetBlockValue(pindex, nFees);
+    int64_t block_value_needed = GetBlockValue(pindex, nFees, false);
     
     if (block.vtx[0].GetValueOut() > block_value_needed)
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees)),
+                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees, false)),
                                REJECT_INVALID, "bad-cb-amount");
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {

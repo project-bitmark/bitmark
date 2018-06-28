@@ -106,9 +106,9 @@ extern double GetDifficulty(const CBlockIndex* blockindex = NULL, const int algo
 extern double GetPeakHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0);
 extern double GetCurrentHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0);
 extern double GetMoneySupply(const CBlockIndex* blockindex = NULL, const int algo = -1);
-extern double GetBlockReward(CBlockIndex* blockindex = NULL, const int algo = 0);
+extern double GetBlockReward(CBlockIndex* blockindex = NULL, const int algo = 0, const bool noScale = false);
 extern int GetNBlocksUpdateSSF(const CBlockIndex* blockindex = NULL, const int algo = 0);
-extern double GetAverageBlockSpacing(const CBlockIndex * blockindex = NULL, const int algo = -1, const int averagingInterval = 24);
+extern double GetAverageBlockSpacing(const CBlockIndex * blockindex = NULL, const int algo = -1, const int averagingInterval = 25);
 extern std::string HexBits(unsigned int nBits);
 extern std::string HelpRequiringPassphrase();
 extern std::string HelpExampleCli(std::string methodname, std::string args);

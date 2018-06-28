@@ -164,7 +164,6 @@ libbitmark_common_a_SOURCES = \
   Sponge.c \
   sph_sha2big.c \
   ar2/argon2.c \
-  ar2/bench.c \
   ar2/core.c \
   ar2/encoding.c \
   ar2/genkat.c \

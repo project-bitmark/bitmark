@@ -193,6 +193,8 @@ case $host in
        ;;
 esac
 
+AM_CONDITIONAL([BUILD_ARGON2_OPTIMIZED], [ @<:@@<:@ x$host_cpu == x*"86"* @:>@@:>@ ])
+
 use_pkgconfig=yes
 case $host in
   *mingw*)

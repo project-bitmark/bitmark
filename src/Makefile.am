@@ -164,12 +164,9 @@ libbitmark_common_a_SOURCES = \
   Sponge.c \
   sph_sha2big.c \
   ar2/argon2.c \
-  ar2/bench.c \
   ar2/core.c \
   ar2/encoding.c \
   ar2/genkat.c \
-  ar2/opt.c \
-  ar2/ref.c \
   ar2/run.c \
   ar2/test.c \
   ar2/thread.c \
@@ -194,6 +191,12 @@ libbitmark_common_a_SOURCES = \
   yescrypt/yescrypt-platform.c \
   yescrypt/sha256_Y.c \
   $(BITMARK_CORE_H)
+
+if BUILD_ARGON2_OPTIMIZED
+libbitmark_common_a_SOURCES += ar2/opt.c
+else
+libbitmark_common_a_SOURCES += ar2/ref.c
+endif
 
 if GLIBC_BACK_COMPAT
 libbitmark_common_a_SOURCES += compat/glibc_compat.cpp

@@ -843,14 +843,14 @@ Value getauxblock(const Array& params, bool fHelp)
   assert(params.size() == 2);
   uint256 hash;
   const char * hash_str = params[0].get_str().c_str();
-  LogPrintf("getauxblock hash_str = %s\n",hash_str);
+  if (fDebug) LogPrintf("getauxblock hash_str = %s\n",hash_str);
   hash.SetHex(params[0].get_str());
   const std::map<uint256, CBlock*>::iterator mit = mapNewBlock.find(hash);
   if (strlen(hash_str)>0 && mit == mapNewBlock.end())
     throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
   CBlock& block = *mit->second;
   const char * block_str = params[1].get_str().c_str();
-  LogPrintf("getauxblock block_str = %s\n",block_str);
+  if (fDebug) LogPrintf("getauxblock block_str = %s\n",block_str);
   const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
   CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
   CAuxPow pow;

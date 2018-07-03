@@ -472,6 +472,7 @@ void ParseParameters(int argc, const char* const argv[])
             strValue = str.substr(is_index+1);
             str = str.substr(0, is_index);
         }
+	if (fDebug) LogPrintf("str = %s\n",str.c_str());
 #ifdef WIN32
         boost::to_lower(str);
         if (boost::algorithm::starts_with(str, "/"))
@@ -479,7 +480,12 @@ void ParseParameters(int argc, const char* const argv[])
 #endif
         if (str[0] != '-')
             break;
-
+	
+	if (!str.compare(std::string("-algo"))) {
+	  if (fDebug) LogPrintf("set algo to miningalgo");
+	  str = std::string("-miningalgo");
+	}
+	
         mapArgs[str] = strValue;
         mapMultiArgs[str].push_back(strValue);
     }
@@ -1033,9 +1039,13 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
         string strKey = string("-") + it->string_key;
         if (mapSettingsRet.count(strKey) == 0)
         {
-            mapSettingsRet[strKey] = it->value[0];
-            // interpret nofoo=1 as foo=0 (and nofoo=0 as foo=1) as long as foo not set)
-            InterpretNegativeSetting(strKey, mapSettingsRet);
+	  if (!strKey.compare(string("-algo"))) {
+	    if (fDebug) LogPrintf("set algo to miningalgo");
+	    strKey = string("-miningalgo");
+	  }
+	  mapSettingsRet[strKey] = it->value[0];
+	  // interpret nofoo=1 as foo=0 (and nofoo=0 as foo=1) as long as foo not set)
+	  InterpretNegativeSetting(strKey, mapSettingsRet);
         }
         mapMultiSettingsRet[strKey].push_back(it->value[0]);
     }

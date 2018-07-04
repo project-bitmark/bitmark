@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
+// Modified Code: Copyright (c) 2014-2018 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -18,7 +18,7 @@ using namespace std;
 
 void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex* blockindex, int algo)
+double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, bool next)
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
@@ -41,7 +41,11 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo)
       }
     }
     unsigned int nBits = 0;
-    unsigned int algoWeight = GetAlgoWeight(algo);
+    unsigned int algoWeight = 1;
+    if (weighted) algoWeight = GetAlgoWeight(algo);
+    if (next) {
+      nBits = GetNextWorkRequired(chainActive.Tip(),algo);
+    }
     if (blockindex && blockindex->nHeight>0) {
       nBits = blockindex->nBits;
     }
@@ -128,7 +132,7 @@ double GetPeakHashrate (const CBlockIndex* blockindex, int algo) {
 	  return std::numeric_limits<double>::max();
 	}
 	//LogPrintf("hashes = %f, time = %f\n",(double)hashes_bn.getulong(),(double)time_f);
-	double hashes = ((double)hashes_bn.getulong())/((double)time_f);
+	double hashes = ((hashes_bn/time_f)/1000000).getulong();
 	//LogPrintf("hashes per sec = %f\n",hashes);
 	if (hashes>hashes_peak) hashes_peak = hashes;
       }
@@ -192,7 +196,7 @@ double GetCurrentHashrate (const CBlockIndex* blockindex, int algo) { //as used 
 	return std::numeric_limits<double>::max();
       }
       //LogPrintf("return %lu / %f\n",(double)hashes_bn.getulong(),(double)time_f);
-      return ((double)hashes_bn.getulong())/((double)time_f);
+      return ((hashes_bn/time_f)/1000000).getulong();
     }
     blockindex = get_pprev_algo(blockindex,-1);
   } while (blockindex);
@@ -237,7 +241,7 @@ double GetMoneySupply (const CBlockIndex* blockindex, int algo) {
   return ((double)blockindex->nMoneySupply)/100000000.;
 }
 
-double GetBlockReward (CBlockIndex * blockindex, int algo) {
+double GetBlockReward (CBlockIndex * blockindex, int algo, bool noScale) {
   if (blockindex == NULL) {
     if (chainActive.Tip() == NULL)
       return 0.;
@@ -256,7 +260,7 @@ double GetBlockReward (CBlockIndex * blockindex, int algo) {
   CBlockIndex indexDummy(*pblock);
   indexDummy.pprev = blockindex;
   indexDummy.nHeight = blockindex->nHeight + 1;
-  return ((double)GetBlockValue(&indexDummy,0))/100000000.;
+  return ((double)GetBlockValue(&indexDummy,0,noScale))/100000000.;
   
 }
   
@@ -351,9 +355,11 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
 	  // 7 is the typical offset in monero, but not fully general
 	  sprintf(prev_id+2*i,"%02x",vector_rep[i+7]);
 	}
-	result.push_back(Pair("parentblockprevid",prev_id));
+	result.push_back(Pair("parentblockprevhash",prev_id));
       }
-      
+      else {
+	result.push_back(Pair("parentblockprevhash",block.auxpow->parentBlock.hashPrevBlock.GetHex()));
+      }
     }
     result.push_back(Pair("SSF height",get_ssf_height(blockindex)));
     result.push_back(Pair("SSF work", (int64_t)get_ssf_work(blockindex)));

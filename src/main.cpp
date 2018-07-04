@@ -1202,7 +1202,7 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
+int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
     // for testnet
     int nHeight = pindex->nHeight;
@@ -1237,7 +1237,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
     }
 
     unsigned int scalingFactor = 0;
-    if (onFork(pindex)) {
+    if (onFork(pindex) && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
 	CBlockIndex * pprev_algo = pindex;
@@ -1250,6 +1250,9 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool scale)
 	  pprev_algo = get_pprev_algo(pprev_algo,-1);
 	} while (pprev_algo);
       }
+    }
+    else {
+      scalingFactor = 0;
     }
 
     int64_t baseSubsidy = 0;
@@ -1405,7 +1408,7 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 
 unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 
-    /* current difficulty formula, dash - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
+    /* current difficulty formula, DASH - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex *BlockLastSolved = pindexLast;
     const CBlockIndex *BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
@@ -1597,7 +1600,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
 }
 
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, int algo)
 {
   if (RegTest()) return Params().ProofOfWorkLimit().GetCompact();
     int nHeight = pindexLast->nHeight;
@@ -1609,6 +1612,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
       workAlgo = 1;
     }
 
+    // workAlgo functions here as post_fork boolean; 0: pre-fork, 1: post-fork
     if (workAlgo == 0) {
         unsigned int nProofOfWorkLimit = Params().ProofOfWorkLimit().GetCompact();
 
@@ -1673,13 +1677,14 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
          return bnNew.GetCompact();
     } else {
+      // Post 8mPoW fork
       return DarkGravityWave(pindexLast,algo);
     }
 }
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast)
 {
-  return GetNextWorkRequired(pindexLast, pblock, ALGO_SCRYPT);
+  return GetNextWorkRequired(pindexLast, ALGO_SCRYPT);
 }
 
 bool IsInitialBlockDownload()
@@ -2253,12 +2258,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       }
     }
 
-    int64_t block_value_needed = GetBlockValue(pindex, nFees);
+    int64_t block_value_needed = GetBlockValue(pindex, nFees, false);
     
     if (block.vtx[0].GetValueOut() > block_value_needed)
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees)),
+                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees, false)),
                                REJECT_INVALID, "bad-cb-amount");
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
@@ -2878,7 +2883,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 
         // Check proof of work
 	int block_algo = GetAlgo(block.nVersion);
-	unsigned int next_work_required = GetNextWorkRequired(pindexPrev, &block, block_algo);
+	unsigned int next_work_required = GetNextWorkRequired(pindexPrev, block_algo);
         if (block.nBits != next_work_required) {
 	  LogPrintf("nbits = %d, required = %d\n",block.nBits,next_work_required);
 	  return state.DoS(100, error("AcceptBlock() : incorrect proof of work"),
@@ -5021,7 +5026,7 @@ unsigned long get_ssf_work (const CBlockIndex * pindex) {
   CBigNum hashes_bn = pprev_algo->GetBlockWork();
   for (int i=0; i<nSSF; i++) {
     if (update_ssf(pprev_algo->nVersion)) {
-      return hashes_bn.getulong();
+      return (hashes_bn/1000000).getulong();
     }
     pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) return 0;

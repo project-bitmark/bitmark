@@ -162,9 +162,9 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, b
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
 bool onFork(const CBlockIndex* pindex);
-int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool scale = true);
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock);
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo);
+int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool noScale = false);
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast);
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, int algo);
 
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev);
 

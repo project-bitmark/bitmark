@@ -472,6 +472,7 @@ void ParseParameters(int argc, const char* const argv[])
             strValue = str.substr(is_index+1);
             str = str.substr(0, is_index);
         }
+	if (fDebug) LogPrintf("str = %s\n",str.c_str());
 #ifdef WIN32
         boost::to_lower(str);
         if (boost::algorithm::starts_with(str, "/"))
@@ -479,7 +480,12 @@ void ParseParameters(int argc, const char* const argv[])
 #endif
         if (str[0] != '-')
             break;
-
+	
+	if (!str.compare(std::string("-algo"))) {
+	  if (fDebug) LogPrintf("set algo to miningalgo");
+	  str = std::string("-miningalgo");
+	}
+	
         mapArgs[str] = strValue;
         mapMultiArgs[str].push_back(strValue);
     }
@@ -1033,9 +1039,13 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
         string strKey = string("-") + it->string_key;
         if (mapSettingsRet.count(strKey) == 0)
         {
-            mapSettingsRet[strKey] = it->value[0];
-            // interpret nofoo=1 as foo=0 (and nofoo=0 as foo=1) as long as foo not set)
-            InterpretNegativeSetting(strKey, mapSettingsRet);
+	  if (!strKey.compare(string("-algo"))) {
+	    if (fDebug) LogPrintf("set algo to miningalgo");
+	    strKey = string("-miningalgo");
+	  }
+	  mapSettingsRet[strKey] = it->value[0];
+	  // interpret nofoo=1 as foo=0 (and nofoo=0 as foo=1) as long as foo not set)
+	  InterpretNegativeSetting(strKey, mapSettingsRet);
         }
         mapMultiSettingsRet[strKey].push_back(it->value[0]);
     }
@@ -1115,24 +1125,41 @@ bool TruncateFile(FILE *file, unsigned int length) {
 #endif
 }
 
-// this function tries to raise the file descriptor limit to the requested number.
-// It returns the actual file descriptor limit (which may be more or less than nMinFD)
+/**
+ * this function tries to raise the file descriptor limit to the most that we can support.
+ * It returns the actual file descriptor limit (which may be more or less than nMinFD).
+ */
 int RaiseFileDescriptorLimit(int nMinFD) {
 #if defined(WIN32)
     return 2048;
 #else
     struct rlimit limitFD;
     if (getrlimit(RLIMIT_NOFILE, &limitFD) != -1) {
+        // first request at least the amount passed in
         if (limitFD.rlim_cur < (rlim_t)nMinFD) {
             limitFD.rlim_cur = nMinFD;
             if (limitFD.rlim_cur > limitFD.rlim_max)
                 limitFD.rlim_cur = limitFD.rlim_max;
             setrlimit(RLIMIT_NOFILE, &limitFD);
-            getrlimit(RLIMIT_NOFILE, &limitFD);
         }
-        return limitFD.rlim_cur;
+        // then try to raise to the max we can
+        if (limitFD.rlim_cur < limitFD.rlim_max) {
+            limitFD.rlim_cur = limitFD.rlim_max;
+            setrlimit(RLIMIT_NOFILE, &limitFD);
+        }
+
+        if (getrlimit(RLIMIT_NOFILE, &limitFD) != -1) {
+            if (limitFD.rlim_cur < (rlim_t)nMinFD) {
+                LogPrintf("RaiseFileDescriptorLimit: could not raise limit to %lu fds, only %lu\n",
+                          (unsigned long)nMinFD,
+                          (unsigned long)limitFD.rlim_cur);
+            }
+            return limitFD.rlim_cur;
+        }
     }
-    return nMinFD; // getrlimit failed, assume it's fine
+    LogPrintf("RaiseFileDescriptorLimit error: getrlimit(RLIMIT_NOFILE) returned %s\n", strerror(errno));
+
+    return nMinFD; // getrlimit failed, try to proceed
 #endif
 }
 

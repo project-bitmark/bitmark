@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
+// Modified Code: Copyright (c) 2014-2018 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -227,7 +227,8 @@ static const CRPCCommand vRPCCommands[] =
     /* Overall control/query calls */
     { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "gi",                     &getinfo,                true,      false,      false }, /* uses wallet if enabled */
-    { "chaindynamics", &chaindynamics, true, false, false},
+    { "chaindynamics", 		&chaindynamics, 	 true, 	    false, 	false},
+    { "cd", 			&chaindynamics, 	 true, 	    false, 	false},
     { "help",                   &help,                   true,      true,       false },
     { "stop",                   &stop,                   true,      true,       false },
 
@@ -256,10 +257,10 @@ static const CRPCCommand vRPCCommands[] =
     { "gbbh",                   &getbestblockhash,       true,      false,      false },
     { "getblockcount",          &getblockcount,          true,      false,      false },
     { "gbc",                    &getblockcount,          true,      false,      false },
-    { "getblock",               &getblock,               true,     false,      false },
-    { "gb",                     &getblock,               true,     false,      false },
-    { "getblockhash",           &getblockhash,           true,     false,      false },
-    { "gbh",                    &getblockhash,           true,     false,      false },
+    { "getblock",               &getblock,               true,      false,      false },
+    { "gb",                     &getblock,               true,      false,      false },
+    { "getblockhash",           &getblockhash,           true,      false,      false },
+    { "gbh",                    &getblockhash,           true,      false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "grmp",                   &getrawmempool,          true,      false,      false },
     { "gettxout",               &gettxout,               true,      false,      false },
@@ -269,9 +270,12 @@ static const CRPCCommand vRPCCommands[] =
     { "verifychain",            &verifychain,            true,      false,      false },
     { "vc",                     &verifychain,            true,      false,      false },
     { "getblockspacing",        &getblockspacing,        true,      false,      false },
-    { "getblockreward",        &getblockreward,        true,      false,      false },
-    { "getmoneysupply",        &getmoneysupply,        true,      false,      false },
-    { "getdifficulty",        &getdifficulty,        true,      false,      false },
+    { "gbs",        		&getblockspacing,        true,      false,      false },
+    { "getblockreward",         &getblockreward,         true,      false,      false },
+    { "gbr",         		&getblockreward,         true,      false,      false },
+    { "getmoneysupply",         &getmoneysupply,         true,      false,      false },
+    { "gms",         		&getmoneysupply,         true,      false,      false },
+    { "getdifficulty",          &getdifficulty,          true,      false,      false },
     { "gd",                     &getdifficulty,          true,      false,      false },
 
     /* Mining */
@@ -284,6 +288,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitblock",            &submitblock,            true,     false,      false },
     { "sb",                     &submitblock,            true,     false,      false },
     { "getauxblock",            &getauxblock,            true,     false,      false },
+    { "gab",            	&getauxblock,            true,     false,      false },
 
     /* Raw transactions */
     { "createrawtransaction",   &createrawtransaction,   true,     false,      false },
@@ -881,8 +886,8 @@ void ServiceConnection(AcceptedConnection *conn)
             conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << std::flush;
             break;
         }
-        if (mapHeaders["connection"] == "close")
-            fRun = false;
+        if (mapHeaders["connection"] == "close" || (!GetBoolArg("-rpckeepalive", true)))
+	  fRun = false;
 
         JSONRequest jreq;
         try

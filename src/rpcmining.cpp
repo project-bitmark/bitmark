@@ -302,7 +302,19 @@ Value getmininginfo(const Array& params, bool fHelp)
             "  \"reward_next\": nnn,        (numeric) The next block reward\n"
             "  \"reward_max\": nnn,         (numeric) The maximum block reward\n"
             "  \"hashrate_4max_reward\": nnn, (numeric) The hashrate required for max reward\n"
-            "  \"difficulty\": xxx.xxxxx    (numeric) The current difficulty\n"
+            "  \"pow_algo_id\": n           (numeric) The active mining algorithm id\n"
+            "  \"pow_algo\": \"name\"       (string) The active mining algorithm name\n"
+            "  \"difficulty\": xxx.xxxxx    (numeric) The current (weighted) difficulty\n"
+//		unweighted "simple" difficulty.
+            "  \"sdifficulty\": xxx.xxxxx    (numeric) The current (unweighted) difficulty\n"
+            "  \"difficulty_scrypt\": xxxxxx,   (numeric) the current scrypt difficulty\n"
+            "  \"difficulty_sha256d\": xxxxxx,  (numeric) the current sha256d difficulty\n"
+            "  \"difficulty_yescrypt\": xxxxxx, (numeric) the current yescrypt difficulty\n"
+            "  \"difficulty_argon2d\": xxxxxx,    (numeric) the current argon2d difficulty\n"
+            "  \"difficulty_x17\": xxxxxx,    (numeric) the current x17 difficulty\n"
+            "  \"difficulty_lyra2rev2\": xxxxxx,    (numeric) the current lyra2rev2 difficulty\n"
+            "  \"difficulty_equihash\": xxxxxx,  (numeric) the current equihash difficulty\n"
+            "  \"difficulty_cryptonight\": xxxxxx,  (numeric) the current cryptonight difficulty\n"
             "  \"errors\": \"...\"          (string) Current errors\n"
             "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)\n"
             "  \"genproclimit\": n          (numeric) The processor limit for generation. -1 if no generation. (see getgenerate or setgenerate calls)\n"
@@ -319,10 +331,24 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",           (int)chainActive.Height()));
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
-    obj.push_back(Pair("reward_next",      ValueFromAmount(GetBlockReward(chainActive.Tip(),0)*100000000.)));
-    obj.push_back(Pair("reward_max",       ValueFromAmount(GetBlockValue(chainActive.Tip(), 0, false))));
-    obj.push_back(Pair("hashrate_4max_reward", (uint64_t)35000000000));
-    obj.push_back(Pair("difficulty",       (double)GetDifficulty(NULL,-1)));
+    obj.push_back(Pair("reward_next",      ValueFromAmount(GetBlockReward(chainActive.Tip(),miningAlgo,false)*100000000.)));
+    obj.push_back(Pair("reward_max",       ValueFromAmount(GetBlockReward(chainActive.Tip(),miningAlgo,true)*100000000.)));
+    obj.push_back(Pair("pow_algo_id", miningAlgo));
+    obj.push_back(Pair("pow_algo",GetAlgoName(miningAlgo)));
+    //obj.push_back(Pair("hashrate_4max_reward", (uint64_t)35000000000));
+//  difficulty is weighted in Bitmark to more meaningfully compare relative values of competing chains
+//                                       boolean for weighted / unweighted -------v
+    obj.push_back(Pair("difficulty",      (double)GetDifficulty(NULL,miningAlgo,true,true)));
+//  sdifficulty: the "simple", unweighted difficulty
+    obj.push_back(Pair("sdifficulty",       (double)GetDifficulty(NULL,miningAlgo,false,true)));
+    obj.push_back(Pair("difficulty SCRYPT", (double)GetDifficulty(NULL,ALGO_SCRYPT,true,true)));
+    obj.push_back(Pair("difficulty SHA256D",    (double)GetDifficulty(NULL,ALGO_SHA256D,true,true)));
+    obj.push_back(Pair("difficulty YESCRYPT",    (double)GetDifficulty(NULL,ALGO_YESCRYPT,true,true)));
+    obj.push_back(Pair("difficulty ARGON2",    (double)GetDifficulty(NULL,ALGO_ARGON2,true,true)));
+    obj.push_back(Pair("difficulty X17",    (double)GetDifficulty(NULL,ALGO_X17,true,true)));
+    obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2,true,true)));
+    obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH,true,true)));
+    obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT,true,true)));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
     obj.push_back(Pair("genproclimit",     (int)GetArg("-genproclimit", -1)));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
@@ -330,8 +356,6 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("testnet",          TestNet()));
 #ifdef ENABLE_WALLET
     obj.push_back(Pair("generate",         getgenerate(params, false)));
-    obj.push_back(Pair("algo", miningAlgo));
-    obj.push_back(Pair("algoname",GetAlgoName(miningAlgo)));
     obj.push_back(Pair("hashespersec",     gethashespersec(params, false)));
 #endif
     return obj;
@@ -819,14 +843,14 @@ Value getauxblock(const Array& params, bool fHelp)
   assert(params.size() == 2);
   uint256 hash;
   const char * hash_str = params[0].get_str().c_str();
-  LogPrintf("getauxblock hash_str = %s\n",hash_str);
+  if (fDebug) LogPrintf("getauxblock hash_str = %s\n",hash_str);
   hash.SetHex(params[0].get_str());
   const std::map<uint256, CBlock*>::iterator mit = mapNewBlock.find(hash);
   if (strlen(hash_str)>0 && mit == mapNewBlock.end())
     throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
   CBlock& block = *mit->second;
   const char * block_str = params[1].get_str().c_str();
-  LogPrintf("getauxblock block_str = %s\n",block_str);
+  if (fDebug) LogPrintf("getauxblock block_str = %s\n",block_str);
   const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
   CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
   CAuxPow pow;

@@ -377,7 +377,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	//printf("create new block with hash prev = %s (height %d)\n",pblock->hashPrevBlock.GetHex().c_str(),pindexPrev->nHeight);
 
 	UpdateTime(*pblock, pindexPrev);
-	pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, miningAlgo);
+	pblock->nBits          = GetNextWorkRequired(pindexPrev, miningAlgo);
 	//LogPrintf("create block nBits = %s\n",CBigNum().SetCompact(pblock->nBits).getuint256().GetHex().c_str());
 	pblock->nNonce         = 0;
 	if (miningAlgo==ALGO_EQUIHASH) {
@@ -391,7 +391,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         indexDummy.pprev = pindexPrev;
         indexDummy.nHeight = pindexPrev->nHeight + 1;
 
-	pblock->vtx[0].vout[0].nValue = GetBlockValue(&indexDummy, nFees);
+	pblock->vtx[0].vout[0].nValue = GetBlockValue(&indexDummy, nFees, false);
 
         CCoinsViewCache viewNew(*pcoinsTip, true);
 
@@ -686,6 +686,9 @@ void static BitmarkMiner(CWallet *pwallet)
 		break;
 	      }
 	    }
+
+	    pblock->nNonce256 = (CBigNum(pblock->nNonce256) + 1).getuint256();
+	    nHashesDone += 1;
 	    
 	  }
 	  else while(true) {
@@ -760,9 +763,6 @@ void static BitmarkMiner(CWallet *pwallet)
 	  if (pindexPrev != chainActive.Tip())
 	    break;
 
-	  if (miningAlgo==ALGO_EQUIHASH) {
-	    pblock->nNonce256 = (CBigNum(pblock->nNonce256) + 1).getuint256();
-	  }
 	  // Update nTime every few seconds
 	  UpdateTime(*pblock, pindexPrev);
 	  nBlockTime = ByteReverse(pblock->nTime);

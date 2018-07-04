@@ -705,7 +705,7 @@ bool Equihash<N,K>::IsValidSolution(const eh_HashState& base_state, std::vector<
         return false;
     }
 
-    LogPrintf("good solution size\n");
+    //LogPrintf("good solution size\n");
     
     std::vector<FullStepRow<FinalFullWidth>> X;
     X.reserve(1 << K);

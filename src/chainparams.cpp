@@ -19,6 +19,10 @@ using namespace boost::assign;
 // Main network
 //
 
+
+// 	Note: 	If you are able and  wish to run a Bitmark permanent Seed Node and/or DNS Seeder, 
+//		    please contact  ops@bitmark.io
+
 // Hard-Coded (Fixed) Network Nodes
 unsigned int pnSeed[] =
 {
@@ -78,17 +82,21 @@ public:
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
-        // DNS Seeders - Verified, December 15, 2017 - dBKeys
+
+// 	Note: 	If you are able and  wish to run a Bitmark permanent Seed Node and/or DNS Seeder, 
+//		    please contact  ops@bitmark.io
+
+	// DNS Seeders - Verified,   July 14 2018    - dBKeys
 
         vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));
         vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));
         vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));
         vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));
-        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));
-        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));
-        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));
-        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));
         vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));
+        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));
+        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));
+        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));
+        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);

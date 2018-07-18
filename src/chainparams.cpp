@@ -37,7 +37,8 @@ unsigned int pnSeed[] =
         0xCC447A12,             // tx.bitmark.io        IP = 204.68.122.18      tex
         0xCC447A07,             // seed.bitmark.mx      IP = 204.68.122.7       jules
         0xCC447A0B,             // one.zmark.org        IP = 204.68.122.11      per
-	0x8BA2E8F2		// uk.bitmark.one	IP = 139.162.232.242	jim
+	0x8BA2E8F2,		// uk.bitmark.one	IP = 139.162.232.242	jim
+	0x32741C88,		// mining.mymarks.io	IP = 50.116.28.136	vic
 };
 
 class CMainParams : public CChainParams {
@@ -86,17 +87,19 @@ public:
 // 	Note: 	If you are able and  wish to run a Bitmark permanent Seed Node and/or DNS Seeder, 
 //		    please contact  ops@bitmark.io
 
-	// DNS Seeders - Verified,   July 14 2018    - dBKeys
-
-        vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));
-        vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));
-        vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));
-        vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));
-        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));
-        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));
-        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));
-        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));
-        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));
+	// DNS Seeders - Verified,   July 18 2018    - dBKeys
+	
+	//                               Domain            Sub-Domain          Name Served  by   machine:
+        vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));    // explorer.bitmark.io
+        vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));    // jp.bitmark.io
+        vSeeds.push_back(CDNSSeedData("bitmark.one",  "guide.bitmark.one"));	// mining.mymarks.co
+        vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));    // seed.bitmark.co
+        vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));	// uk.bitmark.one
+        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));    // bitmark.chainetics.com
+        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));	// seed.bitmark.mx
+        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));	// vps.bitmark.co
+        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));	// audit.bitmark.io
+        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));	// xina.bitmark.mx
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);

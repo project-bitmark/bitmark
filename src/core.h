@@ -978,6 +978,18 @@ public:
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
 
+    // Get Average Work of latest 50 Blocks
+    CBigNum GetBlockWorkAv() const
+    {
+      CBigNum work = 0;
+      const CBlockIndex * pindex = this;
+      for (int i=0; i<50; i++) {
+      work += pindex->GetBlockWork();
+      pindex = pindex->pprev;
+      }
+      return work/50;
+    }
+
     bool CheckIndex() const
     {
         return true;

@@ -978,6 +978,17 @@ public:
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
 
+    CBigNum GetBlockWorkAv() const
+    {
+      CBigNum work = 0;
+      const CBlockIndex * pindex = this;
+      for (int i=0; i<50; i++) {
+	work += pindex->GetBlockWork();
+	pindex = pindex->pprev;
+      }
+      return work/50;
+    }
+
     bool CheckIndex() const
     {
         return true;

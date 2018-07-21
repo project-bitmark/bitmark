@@ -982,11 +982,14 @@ public:
     {
       CBigNum work = 0;
       const CBlockIndex * pindex = this;
+      int n = 0;
       for (int i=0; i<50; i++) {
 	work += pindex->GetBlockWork();
+	n++;
 	pindex = pindex->pprev;
+	if (!pindex) break;
       }
-      return work/50;
+      return work/n;
     }
 
     bool CheckIndex() const

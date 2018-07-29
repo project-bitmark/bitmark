@@ -68,11 +68,6 @@ bool AppInit(int argc, char* argv[])
         // If Qt is used, parameters/bitmark.conf are parsed in qt/bitmark.cpp's main()
         ParseParameters(argc, argv);
 
-	if (IsArgSet("-version"))
-	{
-	    strUsage += FormatParagraph(LicenseInfo());
-	    return true;
-	} 
         if (!boost::filesystem::is_directory(GetDataDir(false)))
         {
             fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", mapArgs["-datadir"].c_str());

@@ -62,6 +62,8 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
+        nForkHeight2 = 495000;
+
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
         CTransaction txNew;
@@ -162,6 +164,8 @@ public:
 	nEquihashN = 200;
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
+
+        nForkHeight2 = 17000;
 
 	const char* pszTimestamp = "Testing Testnet";
 	CTransaction txNew;

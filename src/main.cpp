@@ -1202,6 +1202,18 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
+int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent) {
+    static const int PRECISION = 100000;
+
+    int64_t minNativeBlockRewardPercent = 100 - maxNativeBlockReductionPercent;
+
+    int64_t nativeBlockRewardCapturePercent = PRECISION * (100 * nativeBlockReward - minNativeBlockRewardPercent * baseSubsidy) /
+                                                          (100 * baseSubsidy - minNativeBlockRewardPercent * baseSubsidy);
+
+    return baseSubsidy / 10 + (nativeBlockRewardCapturePercent * baseSubsidy / 10) / PRECISION;
+}
+
+
 int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
     // for testnet
@@ -1372,7 +1384,20 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     }
     // total of 2757989473108000 coins emitted
     if (!scalingFactor) return nFees + baseSubsidy;
-    return nFees + baseSubsidy - ((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getuint() / 2;
+
+    int64_t maxNativeBlockReductionPercent = Params().CEM_MaxNativeBlockRewardReduction(nHeight);
+    int64_t reduction = (int64_t)((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getulong() * maxNativeBlockReductionPercent / 100;
+    int64_t nativeBlockReward = baseSubsidy - reduction;
+
+    // Fork2
+    if (Params().OnFork2(nHeight)) {
+        int64_t nextBlockReward = pindex->IsAuxpow() ? calculateAuxBlockReward(baseSubsidy, nativeBlockReward, maxNativeBlockReductionPercent) : nativeBlockReward;
+        return nextBlockReward + nFees;
+    }
+
+    // Fork1
+    return nativeBlockReward + nFees;
+
 }
 
 static const int64_t nTargetTimespan = 24*60*60; // one day
@@ -1726,13 +1751,13 @@ void CheckForkWarningConditions()
 
     if (pindexBestForkTip || (pindexBestInvalid && pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (chainActive.Tip()->GetBlockWorkAv() * 30).getuint256()))
     {
-        if (!fLargeWorkForkFound)
+        if (!fLargeWorkForkFound && pindexBestForkBase)
         {
         	std::string warning = std::string("'Warning: Large-work fork detected, forking after block ") +
         			pindexBestForkBase->phashBlock->ToString() + std::string("'");
         	CAlert::Notify(warning, true);
         }
-        if (pindexBestForkTip)
+        if (pindexBestForkTip && pindexBestForkBase)
         {
             LogPrintf("CheckForkWarningConditions: Warning: Large valid fork found\n  forking the chain at height %d (%s)\n  lasting to height %d (%s).\nChain state database corruption likely.\n",
                    pindexBestForkBase->nHeight, pindexBestForkBase->phashBlock->ToString(),
@@ -4961,8 +4986,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
   CBlockIndex * pprev_algo = pindex;
   CBigNum hashes_peak = CBigNum(0);
   CBigNum hashes_cur = CBigNum(0);
-  for (int i=0; i<365; i++) { // use at most a year's worth of history
-    //LogPrintf("i=%d\n",i);
+  for (int i=0; i< Params().CEM_WindowLength(pindex->nHeight); i++) {
     pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) {
       break;

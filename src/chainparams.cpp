@@ -62,7 +62,7 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 500083;  // Candidates for Aug 14 release: 500083, 500111
+        nForkHeight2 = 500321;  // Candidates for Aug 14 release: 500083, 500111, 500321
 
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";

@@ -2359,6 +2359,8 @@ bool static WriteChainState(CValidationState &state) {
     return true;
 }
 
+double sumReward = 0;
+
 // Update chainActive and related internal data structures.
 void static UpdateTip(CBlockIndex *pindexNew) {
     chainActive.SetTip(pindexNew);
@@ -2373,6 +2375,12 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
     LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
+    double nReward = ((double)GetBlockValue(chainActive.Tip(), 0))/100000000;
+    sumReward += nReward;
+    char buff[500];
+    snprintf(buff, sizeof(buff), "%d %d %f %f\n", chainActive.Height(), chainActive.Tip()->GetBlockTime(), nReward, sumReward);
+
+    LogPrintf1(buff);
     //char * blocktime = (char *)malloc(50);
     //sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
     //LogPrintTest(blocktime,"timingtest.log");

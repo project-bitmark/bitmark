@@ -113,9 +113,11 @@ void SetupEnvironment();
 bool LogAcceptCategory(const char* category);
 /* Send a string to the log output */
 int LogPrintStr(const std::string &str);
+int LogPrintStr1(const std::string &str);
 
 #define strprintf tfm::format
 #define LogPrintf(...) LogPrint(NULL, __VA_ARGS__)
+#define LogPrintf1(...) LogPrint1(__VA_ARGS__)
 
 /* When we switch to C++11, this can be switched to variadic templates instead
  * of this macro-based construction (see tinyformat.h).
@@ -146,6 +148,12 @@ static inline int LogPrint(const char* category, const char* format)
     if(!LogAcceptCategory(category)) return 0;
     return LogPrintStr(format);
 }
+
+static inline int LogPrint1(const char* format)
+{
+    return LogPrintStr1(format);
+}
+
 static inline bool error(const char* format)
 {
     LogPrintStr(std::string("ERROR: ") + format + "\n");

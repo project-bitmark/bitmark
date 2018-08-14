@@ -62,7 +62,7 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 511111;  // Fork #1 Candidate ForkHeights for August 2018 Release: 500083, 500111, 500321, 511111
+        nForkHeight2 = 511111;  // Fork #2 Candidate ForkHeights for August 30 2018 Release
 
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";

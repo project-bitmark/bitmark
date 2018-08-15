@@ -1210,8 +1210,9 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
     // for testnet
     int nHeight = pindex->nHeight;
+    bool onForkNow = onFork(pindex);
 
-    if (!onFork(pindex)) {
+    if (!onForkNow) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1241,7 +1242,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     }
 
     CBigNum scalingFactor = CBigNum(0);
-    if (onFork(pindex) && !noScale) {
+    if (onForkNow && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor.getuint()) { // find the key block and recalculate
 	CBlockIndex * pprev_algo = pindex;
@@ -2109,9 +2110,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
+
+    bool onForkNow = onFork(pindex);
     
     // Force min version after fork
-    if (onFork(pindex) && block.nVersion<4) {
+    if (onForkNow && block.nVersion<4) {
       LogPrintf("version<4 and after fork\n");
       return false;
     }
@@ -2122,7 +2125,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     }
     
     // Check SSF
-    if (onFork(pindex)) { //new multi algo blocks are identified like this
+    if (onForkNow) { //new multi algo blocks are identified like this
       CBlockIndex * pprev_algo = pindex;
       if (update_ssf(pindex->nVersion)) {
 	for (int i=0; i<nSSF; i++) {
@@ -2197,7 +2200,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
       }
 
-    if (onFork(pindex)) {
+    if (onForkNow) {
       flags |= SCRIPT_VERIFY_DERSIG;
     }
 
@@ -2258,7 +2261,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     CBlockIndex * pprev_algo = 0;
     if (!fJustCheck) pprev_algo = get_pprev_algo(pindex,-1);
-    if (!fJustCheck && onFork(pindex)) { // set scaling factor
+    if (!fJustCheck && onForkNow) { // set scaling factor
       if (update_ssf(pindex->nVersion)) {
 	pindex->subsidyScalingFactor = get_ssf(pindex);
       }
@@ -2290,7 +2293,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     // Increment the nMoneySupply to include this blocks subsidy
     
-    if (onFork(pindex)) {
+    if (onForkNow) {
       if (pprev_algo) {
 	pindex->nMoneySupply = pprev_algo->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }

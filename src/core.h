@@ -924,6 +924,11 @@ public:
       return false;
     }
 
+    bool onFork2() const {
+      if (this->nHeight >= nForkHeight && IsSuperMajority(5,this->pprev,75,100)) return true;
+      return false;
+    }
+
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;

@@ -1202,6 +1202,10 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
+bool onFork2(const CBlockIndex * pindex) {
+  return pindex->onFork2();
+}
+
 int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
     // for testnet
@@ -1236,10 +1240,10 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
       emitted = NUM_ALGOS * get_mpow_ms_correction(pindex);
     }
 
-    unsigned int scalingFactor = 0;
+    CBigNum scalingFactor = CBigNum(0);
     if (onFork(pindex) && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
-      if (!scalingFactor) { // find the key block and recalculate
+      if (!scalingFactor.getuint()) { // find the key block and recalculate
 	CBlockIndex * pprev_algo = pindex;
 	do {
 	  if (update_ssf(pprev_algo->nVersion)) {
@@ -1549,7 +1553,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (lastInRow>=9 && !lastInRowMod) {
 	bnNew /= 3;
       }
-      else if (!justHadSurge) {
+      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajority(5,pindexLast,75,100)) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }
@@ -2107,8 +2111,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         return false;
     
     // Force min version after fork
-    if (onFork(pindex) && block.nVersion<CBlock::CURRENT_VERSION) {
-      LogPrintf("nVersion<=2 and after fork\n");
+    if (onFork(pindex) && block.nVersion<4) {
+      LogPrintf("version<4 and after fork\n");
+      return false;
+    }
+
+    if (onFork2(pindex) && GetBlockVersion(block.nVersion)<5) {
+      LogPrintf("version<5 and after fork\n");
       return false;
     }
     
@@ -2263,7 +2272,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (block.vtx[0].GetValueOut() > block_value_needed)
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees, false)),
+                               block.vtx[0].GetValueOut(), block_value_needed),
                                REJECT_INVALID, "bad-cb-amount");
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
@@ -4955,8 +4964,8 @@ bool update_ssf (int nVersion) {
   return nVersion & BLOCK_VERSION_UPDATE_SSF;
 }
 
-unsigned int get_ssf (CBlockIndex * pindex) {
-  unsigned int scalingFactor = 0; // ensures that it has no effect
+CBigNum get_ssf (CBlockIndex * pindex) {
+  CBigNum scalingFactor = CBigNum(0); // ensures that it has no effect
   CBlockIndex * pprev_algo = pindex;
   CBigNum hashes_peak = CBigNum(0);
   CBigNum hashes_cur = CBigNum(0);
@@ -5003,7 +5012,12 @@ unsigned int get_ssf (CBlockIndex * pindex) {
     if (i==0) hashes_cur = hashes;
   }
   if (hashes_peak > CBigNum(0) && hashes_cur != hashes_peak) {
-    scalingFactor = ((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint(); // a 9-10 digit integer
+    if (onFork2(pindex)) {
+      scalingFactor = (100000000*hashes_peak)/(hashes_peak-hashes_cur);
+    }
+    else {
+      scalingFactor = CBigNum(((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint());
+    }
   }
   //LogPrintf("return scaling factor %lu\n",scalingFactor);
   return scalingFactor;

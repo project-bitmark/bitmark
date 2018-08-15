@@ -40,7 +40,7 @@ enum
 
 class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow in CBlockHeader
  public:
-  static const int CURRENT_VERSION=4;
+  static const int CURRENT_VERSION=5;
   int nVersion;
   uint256 hashPrevBlock;
   uint256 hashMerkleRoot;

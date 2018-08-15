@@ -820,7 +820,7 @@ public:
     int64_t nMoneySupply;
 
     // the scaling factor for the block
-    unsigned int subsidyScalingFactor;
+    CBigNum subsidyScalingFactor;
     
     // Which # file this block is stored in (blk?????.dat)
     int nFile;

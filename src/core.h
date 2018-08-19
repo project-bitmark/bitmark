@@ -820,7 +820,7 @@ public:
     int64_t nMoneySupply;
 
     // the scaling factor for the block
-    unsigned int subsidyScalingFactor;
+    CBigNum subsidyScalingFactor;
     
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
@@ -924,6 +924,11 @@ public:
       return false;
     }
 
+    bool onFork2() const {
+      if (this->nHeight >= nForkHeight && IsSuperMajority(5,this->pprev,950,1000)) return true;
+      return false;
+    }
+
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
@@ -977,7 +982,7 @@ public:
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
-
+  
     // Get Average Work of latest 50 Blocks
     CBigNum GetBlockWorkAv() const
     {
@@ -988,7 +993,7 @@ public:
         work += pindex->GetBlockWork();
         n++;
         pindex = pindex->pprev;
-        if (!pindex) break; 
+        if (!pindex) break;
       }
       return work/n;
     }

@@ -55,7 +55,6 @@ void DetectShutdownThread(boost::thread_group* threadGroup)
 //
 bool AppInit(int argc, char* argv[])
 {
-  printf("appinit\n");
     boost::thread_group threadGroup;
     boost::thread* detectShutdownThread = NULL;
 
@@ -110,7 +109,7 @@ bool AppInit(int argc, char* argv[])
             std::string strUsage = _("Bitmark Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n";
             fprintf(stdout, "%s", strUsage.c_str());
             return false;
-          }
+          } 
 
         // Command-line RPC
         bool fCommandLine = false;
@@ -183,7 +182,6 @@ bool AppInit(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-  printf("main");
     SetupEnvironment();
 
     bool fRet = false;

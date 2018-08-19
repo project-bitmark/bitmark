@@ -341,6 +341,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.nVersion));
+    result.push_back(Pair("coreversion",GetBlockVersion(block.nVersion)));
     int algo = GetAlgo(block.nVersion);
     result.push_back(Pair("algo",GetAlgoName(algo)));
     bool auxpow = block.IsAuxpow();

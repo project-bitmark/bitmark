@@ -925,7 +925,7 @@ public:
     }
 
     bool onFork2() const {
-      if (this->nHeight >= nForkHeight && IsSuperMajority(5,this->pprev,75,100)) return true;
+      if (this->nHeight >= nForkHeight && IsSuperMajority(5,this->pprev,950,1000)) return true;
       return false;
     }
 

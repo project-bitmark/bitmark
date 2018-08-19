@@ -340,6 +340,14 @@ inline bool IsSwitchChar(char c)
 }
 
 /**
+ * Return true if the given argument has been manually set
+ *
+ * @param strArg Argument to get (e.g. "-foo")
+ * @return true if the argument has been set
+ */
+bool sArgSet(const std::string& strArg);
+
+/**
  * Return string argument or default value
  *
  * @param strArg Argument to get (e.g. "-foo")

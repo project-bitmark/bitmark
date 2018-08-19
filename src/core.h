@@ -982,17 +982,18 @@ public:
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
-
+  
+    // Get Average Work of latest 50 Blocks
     CBigNum GetBlockWorkAv() const
     {
       CBigNum work = 0;
       const CBlockIndex * pindex = this;
       int n = 0;
       for (int i=0; i<50; i++) {
-	work += pindex->GetBlockWork();
-	n++;
-	pindex = pindex->pprev;
-	if (!pindex) break;
+        work += pindex->GetBlockWork();
+        n++;
+        pindex = pindex->pprev;
+        if (!pindex) break;
       }
       return work/n;
     }

@@ -2381,6 +2381,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     sumReward += nReward;
     char buff[500];
     snprintf(buff, sizeof(buff), "%d %d %.8f %.8f\n", chainActive.Height(), chainActive.Tip()->GetBlockTime(), nReward, sumReward);
+    LogPrintf1(buff);
     //char * blocktime = (char *)malloc(50);
     //sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
     //LogPrintTest(blocktime,"timingtest.log");

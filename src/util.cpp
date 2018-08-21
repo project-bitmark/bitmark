@@ -248,7 +248,7 @@ static void DebugPrintInit1()
     assert(mutexDebugLog1 == NULL);
 
     boost::filesystem::path pathDebug1 = GetDataDir() / "MARKS.emission.log";
-    fileout = fopen(pathDebug1.string().c_str(), "a");
+    fileout1 = fopen(pathDebug1.string().c_str(), "a");
     if (fileout1) setbuf(fileout1, NULL); // unbuffered
 
     mutexDebugLog1 = new boost::mutex();

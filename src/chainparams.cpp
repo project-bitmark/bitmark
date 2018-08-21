@@ -62,9 +62,9 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 511111;  // Fork #2 Candidate ForkHeights for August 30 2018 Release
+        nForkHeight2 = 511111;  // Fork #2 ForkHeight - Bitmark v0.9.8.0 Release - Estimated: August 30 2018
 
-        // Build the genesis block.
+        // Build the Genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
         CTransaction txNew;
         txNew.vin.resize(1);

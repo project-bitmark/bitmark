@@ -35,7 +35,33 @@ Bitmark aims to be a relatively stable, user focused crypto currency, which refi
 
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
 
-## Eight Algortihm mPoW Hard Fork (v0.9.7)
+## CEM Increased Effectiveness & Authority - Equitable AuxPoW Blocks Subsidies - Hard Fork #2 - (v0.9.8.0)
+
+There are two major changes in Bitmark v0.9.8
+
+1) 	
+	A more effective Coin Emission Modulation policy. Instead of ruling over only one-half the full epoch reward, CEM v0.2 now has reduction authority over 80% of the epoch reward.
+
+2) 	
+	Block Rewards for Merge-Mined Blocks are now 20% of the CEM v0.2 modulated subsidy value. The rationale is that Merge-Mined blocks are much less expensive to mine.
+  
+Native rewards may range from 20% to 100% of the Epoch maximum (currently 15 MARKS) under CEM v0.2.  
+This is scaled to the range 10% to 20% for merged mined blocks
+For example if a native reward is 9 MARKS, which is in the middle of the 3 - 15 MARKS range, it will be  scaled for merge-mined blocks to 2.25 BTM, which is in the middle of range from 1.5 to 3BTM
+
+## CEM - Coin Emission Modulation, version 0.2
+
+The Coin Emission Modulation algorithm look at a past window of hashrate history, and chooses the hightest hashrate it finds as measure to compare the current hashrate against. When current hashrate is at or above this level, the epoch's full block reward subsidy will be given; but if the current hash rate is below, then the block reward gets  proportionately reduced, down to a certain minimum.  CEM tracks the hash rate for each PoW algo independently.
+
+	(Hard Fork #1, which introduced multiple proof-of-work algorithms (SCRYPT, SHA256D, YESCRYPT, ARGON2D, X17, LYRA2REv2, EQUIHASH, CRYPTONIGHT) under DGWv3 was adopted by the Bitmark community by supermajority consensus after block 450946. The first block where v0.9.7 rules are in effect is 450947.) Fork #1 have been very succesful.  The blockchain is flowing in a secure and steady. Transactions are processed expediently, and CEM v0.1 has tempered coin emission with reduced subsidies when hashrate dips.
+
+	This fork, Hard Fork #2 will build on the success of CEM 0.1 by increasing the portion of the block reward over which the Coin Emission Modulation algorithm has reduction authority. This hard fork is to take effect on block 511,111. The Bitmark Foundation wishes that the blockchain retain a measure of independent and native mining. 
+	We appreciate the extra hashrate and chain security brought by merge-miners and thank the Mining Pools which have added Bitmark to their mining operations. Because merge-mining costs are already established and mostly fixed when Bitmark  (or any other AuxPoW chain) is added through an AuxPoW-enabled algo to an existing mining operation, the extra work to obtain Bitmarks is relatively small.  AuxPoW block rewards should be equitable when compared with the work to mine blockas natively. 
+We seek to find middle ground between the security value to the Bitmark chain and the marginal cost of production to merge-miners.
+	Our goal is to foster native mining and to foster interest in the Bitmark project while still making it profitable and attractive for merge-miners of larger chains to contribute to Bitmark’s blockchain security. Any miner who wishes to receive the native CEM block subsidy may of course simply mine the chain natively. 
+
+
+## Eight Algortihm mPoW - Hard Fork #1 (v0.9.7)
 
 The hard fork for multiple proof-of-work algorithms (SCRYPT, SHA256D, YESCRYPT, ARGON2D, X17, LYRA2REv2, EQUIHASH, CRYPTONIGHT) under DGWv3 was adopted by the Bitmark community by supermajority consensus after block 450946. The first block where v0.9.7 rules are in effect is 450947. 
 
@@ -50,7 +76,7 @@ rpcpassword=YoUrSecreT-PaSsWoRd
 listen=1
 
 
-##Note: libsodium cryptographic library is required by Bitmark v0.9.7
+##Note: libsodium cryptographic library is required by Bitmark v0.9.7 and above
 
 Ubuntu 16 and higher may simply do:
 

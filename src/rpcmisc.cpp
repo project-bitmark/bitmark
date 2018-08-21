@@ -464,7 +464,9 @@ Value getblockspacing(const Array& params, bool fHelp)
 	interval = params[1].get_int();
 	if (params.size()>2) {
 	  int height = params[2].get_int();
+
 	  blockindex = chainActive.Tip();
+          // walk the blockindex back until it matches requested height.
 	  while (blockindex && blockindex->nHeight > height) {
 	    blockindex = blockindex->pprev;
 	  }

@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014, 2015, 2016 - Project Bitmark
+// Modified Code: Copyright (c) 2014-2018 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -62,7 +62,9 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        // Build the genesis block.
+        nForkHeight2 = 511111;  // Fork #2 ForkHeight - Bitmark v0.9.8.0 Release - Estimated: August 30 2018
+
+        // Build the Genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
         CTransaction txNew;
         txNew.vin.resize(1);
@@ -162,6 +164,8 @@ public:
 	nEquihashN = 200;
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
+
+        nForkHeight2 = 17000;
 
 	const char* pszTimestamp = "Testing Testnet";
 	CTransaction txNew;

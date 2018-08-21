@@ -221,10 +221,14 @@ uint256 GetRandHash()
 // the mutex).
 
 static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
+static boost::once_flag debugPrintInitFlag1 = BOOST_ONCE_INIT;
 // We use boost::call_once() to make sure these are initialized in
 // in a thread-safe manner the first time it is called:
 static FILE* fileout = NULL;
+static FILE* fileout1 = NULL;
+
 static boost::mutex* mutexDebugLog = NULL;
+static boost::mutex* mutexDebugLog1 = NULL;
 
 static void DebugPrintInit()
 {
@@ -238,6 +242,17 @@ static void DebugPrintInit()
     mutexDebugLog = new boost::mutex();
 }
 
+static void DebugPrintInit1()
+{
+    assert(fileout1 == NULL);
+    assert(mutexDebugLog1 == NULL);
+
+    boost::filesystem::path pathDebug1 = GetDataDir() / "MARKS.emission.log";
+    fileout = fopen(pathDebug1.string().c_str(), "a");
+    if (fileout1) setbuf(fileout1, NULL); // unbuffered
+
+    mutexDebugLog1 = new boost::mutex();
+}
 bool LogAcceptCategory(const char* category)
 {
     if (category != NULL)
@@ -304,6 +319,22 @@ int LogPrintStr(const std::string &str)
     }
 
     return ret;
+}
+
+int LogPrintStr1(const std::string &str)
+{
+	int ret = 0;  // Returns total number of characters written
+
+	boost::call_once(&DebugPrintInit1, debugPrintInitFlag1);
+
+	if (fileout1 == NULL)
+       	     return ret;
+
+	boost::mutex::scoped_lock scoped_lock(*mutexDebugLog1);
+
+        ret = fwrite(str.data(), 1, str.size(), fileout1);
+
+        return ret;
 }
 
 string FormatMoney(int64_t n, bool fPlus)

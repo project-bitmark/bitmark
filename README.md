@@ -48,7 +48,7 @@ There are two major changes in Bitmark v0.9.8
   
 Native rewards may range from 20% to 100% of the Epoch maximum (currently 15 MARKS) under CEM v0.2 :  3 --> 15 MARKS.
 This is scaled in the range of 10% to 20% for merged mined blocks.
-For example if a native reward is 9 MARKS, which is in the middle of the 3 - 15 MARKS range, it will be  scaled for merge-mined blocks to 2.25 BTM, which is in the middle of range from 1.5 to 3BTM
+For example if a native reward is 9 MARKS, which is in the middle of the 3 - 15 MARKS range, it will be  scaled for merge-mined blocks to 2.25 MARKS, which is in the middle of range from 1.5 to 3 MARKS
 
 ## CEM - Coin Emission Modulation, version 0.2
 

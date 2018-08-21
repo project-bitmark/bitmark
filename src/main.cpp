@@ -1202,11 +1202,13 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
+// returns reward in a range from 10% - to minimum native block reward (currently 20%).
 int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent) {
     static const int PRECISION = 100000;
 
     int64_t minNativeBlockRewardPercent = 100 - maxNativeBlockReductionPercent;
 
+    // [0-1]
     int64_t nativeBlockRewardCapturePercent = PRECISION * (100 * nativeBlockReward - minNativeBlockRewardPercent * baseSubsidy) /
                                                           (100 * baseSubsidy - minNativeBlockRewardPercent * baseSubsidy);
 

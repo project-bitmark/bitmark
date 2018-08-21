@@ -41,13 +41,13 @@ All Bitmark software releases are published through the github release process, 
 There are two major changes in Bitmark v0.9.8
 
 1) 	
-	A more effective Coin Emission Modulation policy. Instead of ruling over only one-half the full epoch reward, CEM v0.2 now has reduction authority over 80% of the epoch reward.
+	A more effective Coin Emission Modulation policy. Instead of ruling over only one-half the full epoch reward, CEM v0.2 now has reduction authority over 80% of the epoch reward.  A more forgiving Coin Emission policy. The time window, which remembers high hashrate peaks, is reduced from 1 year to 30 days.
 
 2) 	
 	Block Rewards for Merge-Mined Blocks are now 20% of the CEM v0.2 modulated subsidy value. The rationale is that Merge-Mined blocks are much less expensive to mine.
   
-Native rewards may range from 20% to 100% of the Epoch maximum (currently 15 MARKS) under CEM v0.2.  
-This is scaled to the range 10% to 20% for merged mined blocks
+Native rewards may range from 20% to 100% of the Epoch maximum (currently 15 MARKS) under CEM v0.2 :  3 --> 15 MARKS.
+This is scaled in the range of 10% to 20% for merged mined blocks.
 For example if a native reward is 9 MARKS, which is in the middle of the 3 - 15 MARKS range, it will be  scaled for merge-mined blocks to 2.25 BTM, which is in the middle of range from 1.5 to 3BTM
 
 ## CEM - Coin Emission Modulation, version 0.2

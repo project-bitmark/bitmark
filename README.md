@@ -36,7 +36,7 @@ Bitmark aims to be a relatively stable, user focused crypto currency, which refi
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
 
 ## Hard Fork #2 - (v0.9.8.0)
-## CEM Increased Effectiveness & Authority - Equitable AuxPoW Blocks Subsidies - 
+## CEM Increased Effectiveness & Authority - Equitable AuxPoW Block Subsidies
 
 There are two major changes in Bitmark v0.9.8
 

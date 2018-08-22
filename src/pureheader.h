@@ -21,7 +21,7 @@ enum {
   ALGO_CRYPTONIGHT = 7
 };
 
-/* Use the rightmost 8 bits for standard version number, 9th bit for merge mining, 10-12 th bits for POW algo, 13 th bit for update scaling factor flag */
+/* Use the rightmost 8 bits for standard version number, 9th bit for merge mining, 10-12 th bits for POW algo, 13 th bit for update scaling factor flag, 14-16 th bits for protocol variant */
 enum
   {
     BLOCK_VERSION_AUXPOW = (1 << 8),
@@ -35,12 +35,13 @@ enum
     BLOCK_VERSION_EQUIHASH = (6 << 9),
     BLOCK_VERSION_CRYPTONIGHT = (7 << 9),
     BLOCK_VERSION_UPDATE_SSF = (1 << 12),
+    BLOCK_VERSION_VARIANT = (1 << 13),
     BLOCK_VERSION_CHAIN = (1 << 16)
   };
 
 class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow in CBlockHeader
  public:
-  static const int CURRENT_VERSION=5;
+  static const int CURRENT_VERSION=4;
   int nVersion;
   uint256 hashPrevBlock;
   uint256 hashMerkleRoot;
@@ -273,6 +274,19 @@ class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow 
   inline bool IsAuxpow() const
   {
     return nVersion & BLOCK_VERSION_AUXPOW;
+  }
+
+  inline void SetVariant(bool variant)
+  {
+    if (variant)
+      nVersion |= BLOCK_VERSION_VARIANT;
+    else
+      nVersion &= ~BLOCK_VERSION_VARIANT;
+  }
+  
+  inline bool IsVariant() const
+  {
+    return nVersion & BLOCK_VERSION_VARIANT;
   }
   
 };

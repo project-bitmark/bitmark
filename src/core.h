@@ -925,7 +925,7 @@ public:
     }
 
     bool onFork2() const {
-      if (this->nHeight >= nForkHeight && IsSuperMajority(5,this->pprev,950,1000)) return true;
+      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant(4,true,this->pprev,950,1000)) return true;
       return false;
     }
 
@@ -1030,6 +1030,14 @@ public:
      * in the last nToCheck blocks, starting at pstart and going backwards.
      */
     static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart,
+                                unsigned int nRequired, unsigned int nToCheck);
+
+    /**
+     * Returns true if there are nRequired or more blocks of minVersion or above
+     * in the last nToCheck blocks, starting at pstart and going backwards,
+     * with variant matching as well.
+     */
+    static bool IsSuperMajorityVariant(int minVersion, bool variant, const CBlockIndex* pstart,
                                 unsigned int nRequired, unsigned int nToCheck);
 
     std::string ToString() const
@@ -1395,6 +1403,8 @@ extern CChain chainActive;
 
 /* Get base version number */
 int GetBlockVersion (const int nVersion);
+
+bool GetBlockVariant (const int nVersion);
 
 //#include "coins.h"
 

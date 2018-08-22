@@ -335,15 +335,28 @@ int GetBlockVersion (const int nVersion) {
   return nVersion & 255;
 }
 
+bool GetBlockVariant (const int nVersion) {
+  return nVersion & BLOCK_VERSION_VARIANT;
+}
+
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
-  /* force the fork after a certain height */
-  //if (minVersion==4 && pstart->nHeight>=nForkHeightForce-1) return true;
-  
   unsigned int nFound = 0;
   for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
     {
       if (GetBlockVersion(pstart->nVersion) >= minVersion)
+	++nFound;
+      pstart = pstart->pprev;
+    }
+  return (nFound >= nRequired);
+}
+
+bool CBlockIndex::IsSuperMajorityVariant(int minVersion, bool variant, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
+{
+  unsigned int nFound = 0;
+  for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
+    {
+      if (GetBlockVersion(pstart->nVersion) >= minVersion && GetBlockVariant(pstart->nVersion)==variant)
 	++nFound;
       pstart = pstart->pprev;
     }

@@ -1554,7 +1554,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (lastInRow>=9 && !lastInRowMod) {
 	bnNew /= 3;
       }
-      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajority(5,pindexLast,950,1000)) {
+      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajorityVariant(4,true,pindexLast,950,1000)) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }

@@ -2116,12 +2116,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     
     // Force min version after fork
     if (onForkNow && block.nVersion<4) {
-      LogPrintf("version<4 and after fork\n");
+      LogPrintf("version<4 and after fork 1\n");
       return false;
     }
 
-    if (onFork2(pindex) && GetBlockVersion(block.nVersion)<5) {
-      LogPrintf("version<5 and after fork\n");
+    if (onFork2(pindex) && (GetBlockVersion(block.nVersion)<4 || !GetBlockVariant(block.nVersion))) {
+      LogPrintf("version<4.1 and after fork 2\n");
       return false;
     }
     

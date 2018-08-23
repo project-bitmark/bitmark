@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
+// Modified Code: Copyright (c) 2014-2018 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -227,6 +227,8 @@ static const CRPCCommand vRPCCommands[] =
     /* Overall control/query calls */
     { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "gi",                     &getinfo,                true,      false,      false }, /* uses wallet if enabled */
+    { "chaindynamics", 		&chaindynamics, 	 true, 	    false, 	false},
+    { "cd", 			&chaindynamics, 	 true, 	    false, 	false},
     { "help",                   &help,                   true,      true,       false },
     { "stop",                   &stop,                   true,      true,       false },
 
@@ -255,12 +257,10 @@ static const CRPCCommand vRPCCommands[] =
     { "gbbh",                   &getbestblockhash,       true,      false,      false },
     { "getblockcount",          &getblockcount,          true,      false,      false },
     { "gbc",                    &getblockcount,          true,      false,      false },
-    { "getblock",               &getblock,               true,     false,      false },
-    { "gb",                     &getblock,               true,     false,      false },
-    { "getblockhash",           &getblockhash,           true,     false,      false },
-    { "gbh",                    &getblockhash,           true,     false,      false },
-    { "getdifficulty",          &getdifficulty,          true,      false,      false },
-    { "gd",                     &getdifficulty,          true,      false,      false },
+    { "getblock",               &getblock,               true,      false,      false },
+    { "gb",                     &getblock,               true,      false,      false },
+    { "getblockhash",           &getblockhash,           true,      false,      false },
+    { "gbh",                    &getblockhash,           true,      false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "grmp",                   &getrawmempool,          true,      false,      false },
     { "gettxout",               &gettxout,               true,      false,      false },
@@ -269,6 +269,14 @@ static const CRPCCommand vRPCCommands[] =
     { "gtxosi",                 &gettxoutsetinfo,        true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
     { "vc",                     &verifychain,            true,      false,      false },
+    { "getblockspacing",        &getblockspacing,        true,      false,      false },
+    { "gbs",        		&getblockspacing,        true,      false,      false },
+    { "getblockreward",         &getblockreward,         true,      false,      false },
+    { "gbr",         		&getblockreward,         true,      false,      false },
+    { "getmoneysupply",         &getmoneysupply,         true,      false,      false },
+    { "gms",         		&getmoneysupply,         true,      false,      false },
+    { "getdifficulty",          &getdifficulty,          true,      false,      false },
+    { "gd",                     &getdifficulty,          true,      false,      false },
 
     /* Mining */
     { "getblocktemplate",       &getblocktemplate,       true,      false,      false },
@@ -279,6 +287,8 @@ static const CRPCCommand vRPCCommands[] =
     { "gnhps",                  &getnetworkhashps,       true,      false,      false },
     { "submitblock",            &submitblock,            true,     false,      false },
     { "sb",                     &submitblock,            true,     false,      false },
+    { "getauxblock",            &getauxblock,            true,     false,      false },
+    { "gab",            	&getauxblock,            true,     false,      false },
 
     /* Raw transactions */
     { "createrawtransaction",   &createrawtransaction,   true,     false,      false },
@@ -339,6 +349,7 @@ static const CRPCCommand vRPCCommands[] =
     { "importprivkey",          &importprivkey,          true,     false,      true },
     { "ipk",                    &importprivkey,          true,     false,      true },
     { "importwallet",           &importwallet,           true,     false,      true },
+    { "importaddress",          &importaddress,          true,     false,      true },
     { "iw",                     &importwallet,           true,     false,      true },
     { "keypoolrefill",          &keypoolrefill,          true,      false,      true },
     { "kpr",                    &keypoolrefill,          true,      false,      true },
@@ -388,6 +399,8 @@ static const CRPCCommand vRPCCommands[] =
     { "ghps",                   &gethashespersec,        true,      false,      false },
     { "getwork",                &getwork,                true,      false,      true  },
     { "gw",                     &getwork,                true,      false,      true  },
+    { "setminingalgo",            &setminingalgo,            true,      true,       false },
+    { "getminingalgo",            &getminingalgo,            true,      true,       false },
     { "setgenerate",            &setgenerate,            true,      true,       false },
     { "sg",                     &setgenerate,            true,      true,       false },
 #endif // ENABLE_WALLET
@@ -508,8 +521,8 @@ private:
 void ServiceConnection(AcceptedConnection *conn);
 
 // Forward declaration required for RPCListen
-template <typename Protocol, typename SocketAcceptorService>
-static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
+template <typename Protocol>
+static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol> > acceptor,
                              ssl::context& context,
                              bool fUseSSL,
                              boost::shared_ptr< AcceptedConnection > conn,
@@ -518,8 +531,8 @@ static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, 
 /**
  * Sets up I/O resources to accept and handle a new connection.
  */
-template <typename Protocol, typename SocketAcceptorService>
-static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
+template <typename Protocol>
+static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol> > acceptor,
                    ssl::context& context,
                    const bool fUseSSL)
 {
@@ -529,7 +542,7 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketA
     acceptor->async_accept(
             conn->sslStream.lowest_layer(),
             conn->peer,
-            boost::bind(&RPCAcceptHandler<Protocol, SocketAcceptorService>,
+            boost::bind(&RPCAcceptHandler<Protocol>,
                 acceptor,
                 boost::ref(context),
                 fUseSSL,
@@ -541,8 +554,8 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketA
 /**
  * Accept and handle incoming connection.
  */
-template <typename Protocol, typename SocketAcceptorService>
-static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
+template <typename Protocol>
+static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol> > acceptor,
                              ssl::context& context,
                              const bool fUseSSL,
                              boost::shared_ptr< AcceptedConnection > conn,
@@ -609,7 +622,7 @@ void StartRPCThreads()
 
     assert(rpc_io_service == NULL);
     rpc_io_service = new asio::io_service();
-    rpc_ssl_context = new ssl::context(*rpc_io_service, ssl::context::sslv23);
+    rpc_ssl_context = new ssl::context( ssl::context::sslv23);
 
     const bool fUseSSL = GetBoolArg("-rpcssl", false);
 
@@ -628,7 +641,7 @@ void StartRPCThreads()
         else LogPrintf("ThreadRPCServer ERROR: missing server private key file %s\n", pathPKFile.string());
 
         string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
-        SSL_CTX_set_cipher_list(rpc_ssl_context->impl(), strCiphers.c_str());
+        SSL_CTX_set_cipher_list(rpc_ssl_context->native_handle(), strCiphers.c_str());
     }
 
     // Try a dual IPv6/IPv4 socket, falling back to separate IPv4 and IPv6 sockets
@@ -873,8 +886,8 @@ void ServiceConnection(AcceptedConnection *conn)
             conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << std::flush;
             break;
         }
-        if (mapHeaders["connection"] == "close")
-            fRun = false;
+        if (mapHeaders["connection"] == "close" || (!GetBoolArg("-rpckeepalive", true)))
+	  fRun = false;
 
         JSONRequest jreq;
         try

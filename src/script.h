@@ -24,6 +24,14 @@ class CTransaction;
 
 static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 520; // bytes
 static const unsigned int MAX_OP_RETURN_RELAY = 40;      // bytes
+/** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
+static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+
+template <typename T>
+std::vector<unsigned char> ToByteVector(const T& in)
+{
+  return std::vector<unsigned char>(in.begin(), in.end());
+}
 
 class scriptnum_error : public std::runtime_error
 {
@@ -46,7 +54,10 @@ public:
         m_value = n;
     }
 
-    explicit CScriptNum(const std::vector<unsigned char>& vch)
+    static const size_t nDefaultMaxNumSize = 4;
+
+    explicit CScriptNum(const std::vector<unsigned char>& vch,
+                        const size_t nMaxNumSize = nDefaultMaxNumSize)
     {
         if (vch.size() > nMaxNumSize)
             throw scriptnum_error("CScriptNum(const std::vector<unsigned char>&) : overflow");
@@ -151,7 +162,6 @@ public:
         return result;
     }
 
-    static const size_t nMaxNumSize = 4;
 
 private:
     static int64_t set_vch(const std::vector<unsigned char>& vch)
@@ -191,7 +201,20 @@ enum
     SCRIPT_VERIFY_STRICTENC = (1U << 1), // enforce strict conformance to DER and SEC2 for signatures and pubkeys
     SCRIPT_VERIFY_EVEN_S    = (1U << 2), // enforce even S values in signatures (depends on STRICTENC)
     SCRIPT_VERIFY_NOCACHE   = (1U << 3), // do not store results in signature cache (but do query it)
+    SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY = (1U << 5), // support CHECKLOCKTIMEVERIFY opcode
+    SCRIPT_VERIFY_DERSIG = (1U << 6), // Require DER format for signatures
+    SCRIPT_VERIFY_LOW_S = (1U << 7), // further requirement on DER signatures
 };
+
+enum isminetype
+{
+    ISMINE_NO = 0,
+    ISMINE_WATCH_ONLY = 1,
+    ISMINE_SPENDABLE = 2,
+    ISMINE_ALL = ISMINE_WATCH_ONLY | ISMINE_SPENDABLE
+};
+/** used for bitflags of isminetype */
+typedef uint8_t isminefilter;
 
 enum txnouttype
 {
@@ -793,8 +816,8 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet);
 int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned char> >& vSolutions);
 bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType);
-bool IsMine(const CKeyStore& keystore, const CScript& scriptPubKey);
-bool IsMine(const CKeyStore& keystore, const CTxDestination &dest);
+isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey);
+isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest);
 void ExtractAffectedKeys(const CKeyStore &keystore, const CScript& scriptPubKey, std::vector<CKeyID> &vKeys);
 bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet);
 bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<CTxDestination>& addressRet, int& nRequiredRet);

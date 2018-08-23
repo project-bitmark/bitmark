@@ -570,8 +570,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     // Continue to put "/P2SH/" in the coinbase to monitor
     // BIP16 support.
     // This can be removed eventually...
-    const char* pszP2SH = "/P2SH/";
-    COINBASE_FLAGS << std::vector<unsigned char>(pszP2SH, pszP2SH+strlen(pszP2SH));
+    //const char* pszP2SH = "/P2SH/";
+    //COINBASE_FLAGS << std::vector<unsigned char>(pszP2SH, pszP2SH+strlen(pszP2SH));
 
     // Fee-per-kilobyte amount considered the same as "free"
     // If you are mining, be careful setting this:
@@ -857,7 +857,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 if (fReindex)
                     pblocktree->WriteReindexing(true);
-
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
                     break;

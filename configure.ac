@@ -2,10 +2,10 @@ dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR, 0)
 define(_CLIENT_VERSION_MINOR, 9)
-define(_CLIENT_VERSION_REVISION, 5)
-define(_CLIENT_VERSION_BUILD, 0)
+define(_CLIENT_VERSION_REVISION, 7)
+define(_CLIENT_VERSION_BUILD, 3)
 define(_CLIENT_VERSION_IS_RELEASE, true)
-define(_COPYRIGHT_YEAR, 2015)
+define(_COPYRIGHT_YEAR, 2018)
 AC_INIT([Bitmark Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[info@bitmark.org],[bitmark])
 AC_CONFIG_AUX_DIR([src/build-aux])
 AC_CONFIG_MACRO_DIR([src/m4])
@@ -39,6 +39,8 @@ AM_INIT_AUTOMAKE([no-define subdir-objects foreign])
 dnl faketime messes with timestamps and causes configure to be re-run.
 dnl --disable-maintainer-mode can be used to bypass this.
 AM_MAINTAINER_MODE([enable])
+
+AM_PROG_AS
 
 dnl make the compilation flags quiet unless V=1 is used
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -109,6 +111,18 @@ AC_ARG_ENABLE([glibc-back-compat],
 
 AC_ARG_WITH([protoc-bindir],[AS_HELP_STRING([--with-protoc-bindir=BIN_DIR],[specify protoc bin path])], [protoc_bin_path=$withval], [])
 
+AC_ARG_WITH([macports],
+  [AS_HELP_STRING([--with-macports],
+  [use MacPorts for building on OS X (default is yes if port executable is found)])],
+  [use_macports=$withval],
+  [use_macports=auto])
+
+AC_ARG_WITH([homebrew],
+  [AS_HELP_STRING([--with-homebrew],
+  [use Homebrew for building on OS X (default is yes if brew executable is found)])],
+  [use_homebrew=$withval],
+  [use_homebrew=auto])
+
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/bitmark-config.h])
@@ -164,6 +178,23 @@ CPPFLAGS="$CPPFLAGS -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_
 
 AC_LANG_PUSH([C++])
 
+AX_CHECK_COMPILE_FLAG([-std=c++11], [CXXFLAGS="$CXXFLAGS -std=c++11"])
+AX_CHECK_COMPILE_FLAG([-fPIC], [CXXFLAGS="$CXXFLAGS -fPIC"])
+CFLAGS="$CFLAGS -fPIC"
+
+## CPU-specific flags
+case $host in
+       i?86-*)
+	  CFLAGS="$CFLAGS -msse -msse2"
+	  CXXFLAGS="$CXXFLAGS -msse -msse2"
+       ;;
+       x86_64-*)
+	  CFLAGS="$CFLAGS -maes"
+       ;;
+esac
+
+AM_CONDITIONAL([BUILD_ARGON2_OPTIMIZED], [ @<:@@<:@ x$host_cpu == x*"86"* @:>@@:>@ ])
+
 use_pkgconfig=yes
 case $host in
   *mingw*)
@@ -195,10 +226,24 @@ case $host in
      AX_CHECK_LINK_FLAG([[-static]],[LDFLAGS="$LDFLAGS -static"])
      AX_CHECK_LINK_FLAG([[-static-libgcc]],[LDFLAGS="$LDFLAGS -static-libgcc"])
      AX_CHECK_LINK_FLAG([[-static-libstdc++]],[LDFLAGS="$LDFLAGS -static-libstdc++"])
+     AX_CHECK_LINK_FLAG([[-Wl,--stack,8388608]],[LDFLAGS="$LDFLAGS -Wl,--stack,8388608"])
 
      AC_PATH_PROG([MAKENSIS], [makensis], none)
      if test x$MAKENSIS = xnone; then
        AC_MSG_WARN("makensis not found. Cannot create installer.")
+     fi
+
+     AC_CHECK_PROG([CYGPATH], [cygpath], yes, no)
+     if test x$CYGPATH = xno; then
+       AC_MSG_WARN("cygpath not found.")
+     else
+       WINPATH_TOPSRCDIR=$(cygpath --windows $(realpath $srcdir))
+       WINPATH_INSTALLPREFIX=$(cygpath --windows $prefix)
+       WINPATH_MINGWHOSTPREFIX=$(cygpath --windows "/usr/$host/")
+
+       AC_SUBST(WINPATH_TOPSRCDIR)
+       AC_SUBST(WINPATH_INSTALLPREFIX)
+       AC_SUBST(WINPATH_MINGWHOSTPREFIX)
      fi
 
      AC_PATH_TOOL(WINDRES, windres, none)
@@ -224,21 +269,28 @@ case $host in
      if  test x$cross_compiling != xyes; then
        BUILD_OS=darwin
        AC_CHECK_PROG([PORT],port, port)
-       if test x$PORT = xport; then
+       if test x$PORT = xport && test x$use_macports != xno; then
          dnl add default macports paths
          CPPFLAGS="$CPPFLAGS -isystem /opt/local/include -I/opt/local/include/db48"
          LIBS="$LIBS -L/opt/local/lib -L/opt/local/lib/db48"
+         use_macports=yes
        fi
 
        AC_CHECK_PROG([BREW],brew, brew)
-       if test x$BREW = xbrew; then
+       if test x$BREW = xbrew && test x$use_homebrew != xno; then
          dnl add default homebrew paths
          openssl_prefix=`$BREW --prefix openssl`
          bdb_prefix=`$BREW --prefix berkeley-db4`
          export PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
          CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
          LIBS="$LIBS -L$bdb_prefix/lib"
+         use_homebrew=yes
        fi
+
+       if test x$use_homebrew = xyes && test x$use_macports = xyes; then
+         AC_MSG_ERROR(["Homebrew and MacPorts cannot be used simultaneously. Please disable one of them"])
+       fi
+
      else
        case $build_os in
          *darwin*)
@@ -341,7 +393,6 @@ fi
 if test x$use_hardening != xno; then
   AX_CHECK_COMPILE_FLAG([-Wstack-protector],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -Wstack-protector"])
   AX_CHECK_COMPILE_FLAG([-fstack-protector-all],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -fstack-protector-all"])
-  AX_CHECK_COMPILE_FLAG([-fPIE],[HARDENED_CXXFLAGS="$HARDENED_CXXFLAGS -fPIE"])
 
   AX_CHECK_PREPROC_FLAG([-D_FORTIFY_SOURCE=2],[
     AX_CHECK_PREPROC_FLAG([-U_FORTIFY_SOURCE],[
@@ -525,6 +576,7 @@ if test x$use_pkgconfig = xyes; then
     [
       PKG_CHECK_MODULES([SSL], [libssl], [INCLUDES="$INCLUDES $SSL_CFLAGS"; LIBS="$LIBS $SSL_LIBS"], [AC_MSG_ERROR(openssl  not found.)])
       PKG_CHECK_MODULES([CRYPTO], [libcrypto], [INCLUDES="$INCLUDES $CRYPTO_CFLAGS"; LIBS="$LIBS $CRYPTO_LIBS"], [AC_MSG_ERROR(libcrypto  not found.)])
+      PKG_CHECK_MODULES([SODIUM], [libsodium], [INCLUDES="$INCLUDES $SODIUM_CFLAGS"; LIBS="$LIBS $SODIUM_LIBS"], [AC_MSG_ERROR(libsodium  not found.)])      
       BITMARK_QT_CHECK([PKG_CHECK_MODULES([PROTOBUF], [protobuf], [have_protobuf=yes], [BITMARK_QT_FAIL(libprotobuf not found)])])
       if test x$use_qr != xno; then
         BITMARK_QT_CHECK([PKG_CHECK_MODULES([QR], [libqrencode], [have_qrencode=yes], [have_qrencode=no])])
@@ -537,6 +589,7 @@ else
 
   AC_CHECK_HEADER([openssl/ssl.h],, AC_MSG_ERROR(libssl headers missing),)
   AC_CHECK_LIB([ssl],         [main],, AC_MSG_ERROR(libssl missing))
+  AC_CHECK_LIB([sodium], [crypto_generichash_blake2b_update],, AC_MSG_ERROR(libsodium missing))
 
   BITMARK_QT_CHECK(AC_CHECK_LIB([protobuf] ,[main],,BITMARK_QT_FAIL(libprotobuf not found)))
   if test x$use_qr != xno; then
@@ -691,7 +744,7 @@ AC_SUBST(COPYRIGHT_YEAR, _COPYRIGHT_YEAR)
 
 AC_SUBST(USE_UPNP)
 AC_SUBST(USE_QRCODE)
-AC_SUBST(INCLUDES)
+AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(BOOST_LIBS)
 AC_SUBST(TESTDEFS)
 AC_SUBST(LEVELDB_TARGET_FLAGS)

@@ -11,7 +11,6 @@
 #include "bitmark-config.h"
 #endif
 
-#include "bignum.h"
 #include "chainparams.h"
 #include "coins.h"
 #include "core.h"
@@ -57,8 +56,6 @@ static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
 static const int COINBASE_MATURITY = 720;
-/** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
-static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 /** Maximum number of script-checking threads allowed */
 static const int MAX_SCRIPTCHECK_THREADS = 16;
 /** -par default (number of script-checking threads, 0 = auto) */
@@ -84,7 +81,6 @@ static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
 
-
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
@@ -103,10 +99,8 @@ extern unsigned int nCoinCacheSize;
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
 
-
 class CCoinsDB;
 class CBlockTreeDB;
-struct CDiskBlockPos;
 class CTxUndo;
 class CScriptCheck;
 class CValidationState;
@@ -136,7 +130,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 /** Check whether enough disk space is available for an incoming block */
 bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
 /** Open a block file (blk?????.dat) */
-FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
+//FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 /** Open an undo file (rev?????.dat) */
 FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 /** Import blocks from an external file */
@@ -157,8 +151,6 @@ bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
-/** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
-bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 /** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
@@ -169,8 +161,10 @@ std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
-int64_t GetBlockValue(int nHeight, int64_t nFees);
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock);
+bool onFork(const CBlockIndex* pindex);
+int64_t GetBlockValue(CBlockIndex* pindexPrev, int64_t nFees, bool noScale = false);
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast);
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, int algo);
 
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev);
 
@@ -185,51 +179,12 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
 void Misbehaving(NodeId nodeid, int howmuch);
 
-
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fRejectInsaneFee=false);
 
-
-
-
-
-
-
-
 struct CNodeStateStats {
     int nMisbehavior;
-};
-
-struct CDiskBlockPos
-{
-    int nFile;
-    unsigned int nPos;
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(nFile));
-        READWRITE(VARINT(nPos));
-    )
-
-    CDiskBlockPos() {
-        SetNull();
-    }
-
-    CDiskBlockPos(int nFileIn, unsigned int nPosIn) {
-        nFile = nFileIn;
-        nPos = nPosIn;
-    }
-
-    friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
-        return (a.nFile == b.nFile && a.nPos == b.nPos);
-    }
-
-    friend bool operator!=(const CDiskBlockPos &a, const CDiskBlockPos &b) {
-        return !(a == b);
-    }
-
-    void SetNull() { nFile = -1; nPos = 0; }
-    bool IsNull() const { return (nFile == -1); }
 };
 
 struct CDiskTxPos : public CDiskBlockPos
@@ -253,8 +208,6 @@ struct CDiskTxPos : public CDiskBlockPos
         nTxOffset = 0;
     }
 };
-
-
 
 enum GetMinFee_mode
 {
@@ -296,7 +249,6 @@ unsigned int GetLegacySigOpCount(const CTransaction& tx);
  */
 unsigned int GetP2SHSigOpCount(const CTransaction& tx, CCoinsViewCache& mapInputs);
 
-
 inline bool AllowFree(double dPriority)
 {
     // Large (in bytes) low-priority (new, small-coin) transactions
@@ -308,7 +260,7 @@ inline bool AllowFree(double dPriority)
 // This does not modify the UTXO set. If pvChecks is not NULL, script checks are pushed onto it
 // instead of being performed inline.
 bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCache &view, bool fScriptChecks = true,
-                 unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC,
+                 unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
                  std::vector<CScriptCheck> *pvChecks = NULL);
 
 // Apply the effects of this transaction on the UTXO set represented by view
@@ -394,7 +346,6 @@ public:
     }
 };
 
-
 /** Closure representing one script verification
  *  Note that this stores references to the spending transaction */
 class CScriptCheck
@@ -422,66 +373,6 @@ public:
         std::swap(nHashType, check.nHashType);
     }
 };
-
-/** A transaction with a merkle branch linking it to the block chain. */
-class CMerkleTx : public CTransaction
-{
-private:
-    int GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const;
-
-public:
-    uint256 hashBlock;
-    std::vector<uint256> vMerkleBranch;
-    int nIndex;
-
-    // memory only
-    mutable bool fMerkleVerified;
-
-
-    CMerkleTx()
-    {
-        Init();
-    }
-
-    CMerkleTx(const CTransaction& txIn) : CTransaction(txIn)
-    {
-        Init();
-    }
-
-    void Init()
-    {
-        hashBlock = 0;
-        nIndex = -1;
-        fMerkleVerified = false;
-    }
-
-
-    IMPLEMENT_SERIALIZE
-    (
-        nSerSize += SerReadWrite(s, *(CTransaction*)this, nType, nVersion, ser_action);
-        nVersion = this->nVersion;
-        READWRITE(hashBlock);
-        READWRITE(vMerkleBranch);
-        READWRITE(nIndex);
-    )
-
-
-    int SetMerkleBranch(const CBlock* pblock=NULL);
-
-    // Return depth of transaction in blockchain:
-    // -1  : not in blockchain, and not in memory pool (conflicted transaction)
-    //  0  : in memory pool, waiting to be included in a block
-    // >=1 : this many blocks deep in the main chain
-    int GetDepthInMainChain(CBlockIndex* &pindexRet) const;
-    int GetDepthInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
-    bool IsInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChainINTERNAL(pindexRet) > 0; }
-    int GetBlocksToMaturity() const;
-    bool AcceptToMemoryPool(bool fLimitFree=true);
-};
-
-
-
-
 
 /** Data structure that represents a partial merkle tree.
  *
@@ -579,13 +470,10 @@ public:
     uint256 ExtractMatches(std::vector<uint256> &vMatch);
 };
 
-
-
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
-
 
 /** Functions for validating blocks and updating the block tree */
 
@@ -607,8 +495,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = t
 // Store block on disk
 // if dbp is provided, the file is known to already reside on disk
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp = NULL);
-
-
 
 class CBlockFileInfo
 {
@@ -661,284 +547,6 @@ public:
          if (nTimeIn > nTimeLast)
              nTimeLast = nTimeIn;
      }
-};
-
-enum BlockStatus {
-    BLOCK_VALID_UNKNOWN      =    0,
-    BLOCK_VALID_HEADER       =    1, // parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max, timestamp not in future
-    BLOCK_VALID_TREE         =    2, // parent found, difficulty matches, timestamp >= median previous, checkpoint
-    BLOCK_VALID_TRANSACTIONS =    3, // only first tx is coinbase, 2 <= coinbase input script length <= 100, transactions valid, no duplicate txids, sigops, size, merkle root
-    BLOCK_VALID_CHAIN        =    4, // outputs do not overspend inputs, no double spends, coinbase output ok, immature coinbase spends, BIP30
-    BLOCK_VALID_SCRIPTS      =    5, // scripts/signatures ok
-    BLOCK_VALID_MASK         =    7,
-
-    BLOCK_HAVE_DATA          =    8, // full block available in blk*.dat
-    BLOCK_HAVE_UNDO          =   16, // undo data available in rev*.dat
-    BLOCK_HAVE_MASK          =   24,
-
-    BLOCK_FAILED_VALID       =   32, // stage after last reached validness failed
-    BLOCK_FAILED_CHILD       =   64, // descends from failed block
-    BLOCK_FAILED_MASK        =   96
-};
-
-/** The block chain is a tree shaped structure starting with the
- * genesis block at the root, with each block potentially having multiple
- * candidates to be the next block. A blockindex may have multiple pprev pointing
- * to it, but at most one of them can be part of the currently active branch.
- */
-class CBlockIndex
-{
-public:
-    // pointer to the hash of the block, if any. memory is owned by this CBlockIndex
-    const uint256* phashBlock;
-
-    // pointer to the index of the predecessor of this block
-    CBlockIndex* pprev;
-
-    // height of the entry in the chain. The genesis block has height 0
-    int nHeight;
-
-    // track the amount of coins emitted since genesis block, allowing us to determine max block reward
-    int64_t nMoneySupply;
-
-    // Which # file this block is stored in (blk?????.dat)
-    int nFile;
-
-    // Byte offset within blk?????.dat where this block's data is stored
-    unsigned int nDataPos;
-
-    // Byte offset within rev?????.dat where this block's undo data is stored
-    unsigned int nUndoPos;
-
-    // (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
-    uint256 nChainWork;
-
-    // Number of transactions in this block.
-    // Note: in a potential headers-first mode, this number cannot be relied upon
-    unsigned int nTx;
-
-    // (memory only) Number of transactions in the chain up to and including this block
-    unsigned int nChainTx; // change to 64-bit type when necessary; won't happen before 2030
-
-    // Verification status of this block. See enum BlockStatus
-    unsigned int nStatus;
-
-    // block header
-    int nVersion;
-    uint256 hashMerkleRoot;
-    unsigned int nTime;
-    unsigned int nBits;
-    unsigned int nNonce;
-
-    // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
-    uint32_t nSequenceId;
-
-    CBlockIndex()
-    {
-        phashBlock = NULL;
-        pprev = NULL;
-        nHeight = 0;
-        nMoneySupply = 0;
-        nFile = 0;
-        nDataPos = 0;
-        nUndoPos = 0;
-        nChainWork = 0;
-        nTx = 0;
-        nChainTx = 0;
-        nStatus = 0;
-        nSequenceId = 0;
-
-        nVersion       = 0;
-        hashMerkleRoot = 0;
-        nTime          = 0;
-        nBits          = 0;
-        nNonce         = 0;
-    }
-
-    CBlockIndex(CBlockHeader& block)
-    {
-        phashBlock = NULL;
-        pprev = NULL;
-        nHeight = 0;
-        nMoneySupply = 0;
-        nFile = 0;
-        nDataPos = 0;
-        nUndoPos = 0;
-        nChainWork = 0;
-        nTx = 0;
-        nChainTx = 0;
-        nStatus = 0;
-        nSequenceId = 0;
-
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
-    }
-
-    CDiskBlockPos GetBlockPos() const {
-        CDiskBlockPos ret;
-        if (nStatus & BLOCK_HAVE_DATA) {
-            ret.nFile = nFile;
-            ret.nPos  = nDataPos;
-        }
-        return ret;
-    }
-
-    CDiskBlockPos GetUndoPos() const {
-        CDiskBlockPos ret;
-        if (nStatus & BLOCK_HAVE_UNDO) {
-            ret.nFile = nFile;
-            ret.nPos  = nUndoPos;
-        }
-        return ret;
-    }
-
-    CBlockHeader GetBlockHeader() const
-    {
-        CBlockHeader block;
-        block.nVersion       = nVersion;
-        if (pprev)
-            block.hashPrevBlock = pprev->GetBlockHash();
-        block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
-        return block;
-    }
-
-    uint256 GetBlockHash() const
-    {
-        return *phashBlock;
-    }
-
-    int64_t GetBlockTime() const
-    {
-        return (int64_t)nTime;
-    }
-
-    CBigNum GetBlockWork() const
-    {
-        CBigNum bnTarget;
-        bnTarget.SetCompact(nBits);
-        if (bnTarget <= 0)
-            return 0;
-        return (CBigNum(1)<<256) / (bnTarget+1);
-    }
-
-    bool CheckIndex() const
-    {
-        return true;
-    }
-
-    enum { nMedianTimeSpan=11 };
-
-    int64_t GetMedianTimePast() const
-    {
-        int64_t pmedian[nMedianTimeSpan];
-        int64_t* pbegin = &pmedian[nMedianTimeSpan];
-        int64_t* pend = &pmedian[nMedianTimeSpan];
-
-        const CBlockIndex* pindex = this;
-        for (int i = 0; i < nMedianTimeSpan && pindex; i++, pindex = pindex->pprev)
-            *(--pbegin) = pindex->GetBlockTime();
-
-        std::sort(pbegin, pend);
-        return pbegin[(pend - pbegin)/2];
-    }
-
-    int64_t GetMedianTime() const;
-
-    /**
-     * Returns true if there are nRequired or more blocks of minVersion or above
-     * in the last nToCheck blocks, starting at pstart and going backwards.
-     */
-    static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart,
-                                unsigned int nRequired, unsigned int nToCheck);
-
-    std::string ToString() const
-    {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
-            pprev, nHeight,
-            hashMerkleRoot.ToString().c_str(),
-            GetBlockHash().ToString().c_str());
-    }
-
-    void print() const
-    {
-        LogPrintf("%s\n", ToString().c_str());
-    }
-};
-
-
-
-/** Used to marshal pointers into hashes for db storage. */
-class CDiskBlockIndex : public CBlockIndex
-{
-public:
-    uint256 hashPrev;
-
-    CDiskBlockIndex() {
-        hashPrev = 0;
-    }
-
-    explicit CDiskBlockIndex(CBlockIndex* pindex) : CBlockIndex(*pindex) {
-        hashPrev = (pprev ? pprev->GetBlockHash() : 0);
-    }
-
-    IMPLEMENT_SERIALIZE
-    (
-        if (!(nType & SER_GETHASH))
-            READWRITE(VARINT(nVersion));
-
-        READWRITE(VARINT(nHeight));
-        READWRITE(VARINT(nMoneySupply));
-        READWRITE(VARINT(nStatus));
-        READWRITE(VARINT(nTx));
-        if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
-            READWRITE(VARINT(nFile));
-        if (nStatus & BLOCK_HAVE_DATA)
-            READWRITE(VARINT(nDataPos));
-        if (nStatus & BLOCK_HAVE_UNDO)
-            READWRITE(VARINT(nUndoPos));
-
-        // block header
-        READWRITE(this->nVersion);
-        READWRITE(hashPrev);
-        READWRITE(hashMerkleRoot);
-        READWRITE(nTime);
-        READWRITE(nBits);
-        READWRITE(nNonce);
-    )
-
-    uint256 GetBlockHash() const
-    {
-        CBlockHeader block;
-        block.nVersion        = nVersion;
-        block.hashPrevBlock   = hashPrev;
-        block.hashMerkleRoot  = hashMerkleRoot;
-        block.nTime           = nTime;
-        block.nBits           = nBits;
-        block.nNonce          = nNonce;
-        return block.GetHash();
-    }
-
-
-    std::string ToString() const
-    {
-        std::string str = "CDiskBlockIndex(";
-        str += CBlockIndex::ToString();
-        str += strprintf("\n                hashBlock=%s, hashPrev=%s)",
-            GetBlockHash().ToString().c_str(),
-            hashPrev.ToString().c_str());
-        return str;
-    }
-
-    void print() const
-    {
-        LogPrintf("%s\n", ToString().c_str());
-    }
 };
 
 /** Capture information about block/transaction validation */
@@ -1004,66 +612,6 @@ public:
     std::string GetRejectReason() const { return strRejectReason; }
 };
 
-/** An in-memory indexed chain of blocks. */
-class CChain {
-private:
-    std::vector<CBlockIndex*> vChain;
-
-public:
-    /** Returns the index entry for the genesis block of this chain, or NULL if none. */
-    CBlockIndex *Genesis() const {
-        return vChain.size() > 0 ? vChain[0] : NULL;
-    }
-
-    /** Returns the index entry for the tip of this chain, or NULL if none. */
-    CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[vChain.size() - 1] : NULL;
-    }
-
-    /** Returns the index entry at a particular height in this chain, or NULL if no such height exists. */
-    CBlockIndex *operator[](int nHeight) const {
-        if (nHeight < 0 || nHeight >= (int)vChain.size())
-            return NULL;
-        return vChain[nHeight];
-    }
-
-    /** Compare two chains efficiently. */
-    friend bool operator==(const CChain &a, const CChain &b) {
-        return a.vChain.size() == b.vChain.size() &&
-               a.vChain[a.vChain.size() - 1] == b.vChain[b.vChain.size() - 1];
-    }
-
-    /** Efficiently check whether a block is present in this chain. */
-    bool Contains(const CBlockIndex *pindex) const {
-        return (*this)[pindex->nHeight] == pindex;
-    }
-
-    /** Find the successor of a block in this chain, or NULL if the given index is not found or is the tip. */
-    CBlockIndex *Next(const CBlockIndex *pindex) const {
-        if (Contains(pindex))
-            return (*this)[pindex->nHeight + 1];
-        else
-            return NULL;
-    }
-
-    /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
-    int Height() const {
-        return vChain.size() - 1;
-    }
-
-    /** Set/initialize a chain with a given tip. Returns the forking point. */
-    CBlockIndex *SetTip(CBlockIndex *pindex);
-
-    /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
-    CBlockLocator GetLocator(const CBlockIndex *pindex = NULL) const;
-
-    /** Find the last common block between this chain and a locator. */
-    CBlockIndex *FindFork(const CBlockLocator &locator) const;
-};
-
-/** The currently-connected chain of blocks. */
-extern CChain chainActive;
-
 /** The currently best known chain of headers (some of which may be invalid). */
 extern CChain chainMostWork;
 
@@ -1079,11 +627,6 @@ struct CBlockTemplate
     std::vector<int64_t> vTxFees;
     std::vector<int64_t> vTxSigOps;
 };
-
-
-
-
-
 
 /** Used to relay blocks as header + vector<merkle branch>
  * to filtered nodes.
@@ -1112,7 +655,6 @@ public:
     )
 };
 
-
 class CWalletInterface {
 protected:
     virtual void SyncTransaction(const uint256 &hash, const CTransaction &tx, const CBlock *pblock) =0;
@@ -1125,5 +667,32 @@ protected:
     friend void ::UnregisterWallet(CWalletInterface*);
     friend void ::UnregisterAllWallets();
 };
+
+/* Get Proof of Work Algo for the block from the block's nVersion */
+int GetAlgo (int nVersion);
+
+/* Get name of algo from its number */
+const char * GetAlgoName (int algo);
+
+/* Get previous CBlockIndex pointer that has the same POW algo as p */
+CBlockIndex * get_pprev_algo (const CBlockIndex * p, int use_algo = 0);
+
+/* Get correction to money supply for multi POW blocks (1/5 of money supply before fork) */
+int64_t get_mpow_ms_correction (CBlockIndex * p);
+
+/* Check if this block requires an update to the subsidy scaling factor, using the block's nVersion */
+bool update_ssf (int nVersion);
+
+/* Calculate the subsidy scaling factor for the CBlockIndex pointer */
+CBigNum get_ssf (CBlockIndex * pindex);
+
+/* Get the number of blocks since the last update of the subsidy scaling factor */
+int get_ssf_height (const CBlockIndex * pindex);
+
+/* Get the accumulated work since the last update of the subsidy scaling factor */
+unsigned long get_ssf_work (const CBlockIndex * pindex);
+
+/* Get the accumulated time since the last update of the subsidy scaling factor */
+double get_ssf_time (const CBlockIndex * pindex);
 
 #endif

@@ -50,34 +50,36 @@ namespace Checkpoints
         ( 42020, uint256("c795bf104a235632bd768d82c8d5097358247d59aed3cc7dccb04df651a08fa9"))
         ( 44750, uint256("d33f726c5771bcae22580cdbf40cee2e2414c7196dacbffd34a09cb852f31ca3"))
         ( 46190, uint256("926dfff0792133f87c497327c1bfdc1245af8c4ea41f9795edab042b0676b52c"))
-        ( 46519, uint256("5f0daab303063ec6bf2ee63bc666ac37f36647cbd2018280df845ab87169744a"))
-        ;
+      ( 46519, uint256("5f0daab303063ec6bf2ee63bc666ac37f36647cbd2018280df845ab87169744a"))
+      ( 363838, uint256("43ecdc8de768235547f834ffa670304aca28c46b83385adbe59477f2409f68c6"))
+      ( 446399, uint256("f6d49ebc768025e300083d133d1bc1bf4e05b0878685c16237739d569cb9dcfe"))
+      ;
     static const CCheckpointData data = {
         &mapCheckpoints,
-        1423331604, // * UNIX timestamp of last checkpoint block
-        73293,   	// * total number of transactions between genesis and last checkpoint
+        1525291237, // * UNIX timestamp of last checkpoint block
+        1085558,   	// * total number of transactions between genesis and last checkpoint
                     //   (the tx=... number in the SetBestChain debug.log lines)
         2500.0      // * estimated number of transactions per day after checkpoint
     };
 
     static MapCheckpoints mapCheckpointsTestnet =
         boost::assign::map_list_of
-        ( 0, uint256("1d6329aeff3ff6786635afd5d6715b24667329cfda199bd7a1d6626d81a4573c"))
+        ( 0, uint256("4095fd0ebc18fa070a75e12376a161d864de1589f5a92bd780e2479f8d0003d5"))
         ;
     static const CCheckpointData dataTestnet = {
         &mapCheckpointsTestnet,
-        1405274408,
+        1526922055,
         0,
         300
     };
 
     static MapCheckpoints mapCheckpointsRegtest =
         boost::assign::map_list_of
-        ( 0, uint256("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"))
+        ( 0, uint256("168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"))
         ;
     static const CCheckpointData dataRegtest = {
         &mapCheckpointsRegtest,
-        0,
+        1405274400,
         0,
         0
     };

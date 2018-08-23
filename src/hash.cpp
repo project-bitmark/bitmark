@@ -1,6 +1,50 @@
 #include "hash.h"
+#include "scrypt.h"
+#include "argon2.h"
+#include "hashx17.h"
+#include "Lyra2RE.h"
+#include "cryptonight/crypto/hash-ops.h"
+#include "yescrypt/yescrypt.h"
 
-inline uint32_t ROTL32 ( uint32_t x, int8_t r )
+uint32_t murmur3_32(const uint8_t* key, size_t len, uint32_t seed) {
+  uint32_t h = seed;
+  if (len > 3) {
+    const uint32_t* key_x4 = (const uint32_t*) key;
+    size_t i = len >> 2;
+    do {
+      uint32_t k = *key_x4++;
+      k *= 0xcc9e2d51;
+      k = (k << 15) | (k >> 17);
+      k *= 0x1b873593;
+      h ^= k;
+      h = (h << 13) | (h >> 19);
+      h = (h * 5) + 0xe6546b64;
+    } while (--i);
+    key = (const uint8_t*) key_x4;
+  }
+  if (len & 3) {
+    size_t i = len & 3;
+    uint32_t k = 0;
+    key = &key[i - 1];
+    do {
+      k <<= 8;
+      k |= *key--;
+    } while (--i);
+    k *= 0xcc9e2d51;
+    k = (k << 15) | (k >> 17);
+    k *= 0x1b873593;
+    h ^= k;
+  }
+  h ^= len;
+  h ^= h >> 16;
+  h *= 0x85ebca6b;
+  h ^= h >> 13;
+  h *= 0xc2b2ae35;
+  h ^= h >> 16;
+  return h;
+}
+
+inline uint32_t MROTL32 ( uint32_t x, int8_t r )
 {
     return (x << r) | (x >> (32 - r));
 }
@@ -23,11 +67,11 @@ unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char
         uint32_t k1 = blocks[i];
 
         k1 *= c1;
-        k1 = ROTL32(k1,15);
+        k1 = MROTL32(k1,15);
         k1 *= c2;
 
         h1 ^= k1;
-        h1 = ROTL32(h1,13); 
+        h1 = MROTL32(h1,13); 
         h1 = h1*5+0xe6546b64;
     }
 
@@ -42,7 +86,7 @@ unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char
     case 3: k1 ^= tail[2] << 16;
     case 2: k1 ^= tail[1] << 8;
     case 1: k1 ^= tail[0];
-            k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+            k1 *= c1; k1 = MROTL32(k1,15); k1 *= c2; h1 ^= k1;
     };
 
     //----------
@@ -96,4 +140,42 @@ int HMAC_SHA512_Final(unsigned char *pmd, HMAC_SHA512_CTX *pctx)
     SHA512_Final(buf, &pctx->ctxInner);
     SHA512_Update(&pctx->ctxOuter, buf, 64);
     return SHA512_Final(pmd, &pctx->ctxOuter);
+}
+
+void hash_scrypt(const char * input, char * output) {
+  scrypt_1024_1_1_256(input,output);
+}
+
+void hash_easy (const char* input, char * output) {
+
+  for (int i=0; i<7; i++) {
+    uint32_t hashpart = murmur3_32((uint8_t*)input+10*i,10,((uint32_t*)input)[16-2*i]);
+    //LogPrintf("murmur %d = %u\n",i,hashpart);
+    ((uint32_t*)output)[i] = hashpart;
+  }
+  ((uint32_t*)output)[7] = 0;
+}
+
+void hash_argon2(const char * input, char * output) {
+  argon2d_hash_raw(1,4096,1,input,80,input,80,output,32);
+}
+
+uint256 hash_x17(const char * begin, const char * end) {
+  return HashX17(begin,end);
+}
+
+void hash_lyra2rev2(const char * input, char * output) {
+  lyra2re2_hash(input,output);
+}
+
+void hash_equihash(const char * input, char * output) {
+  //lyra2re2_hash(input,output);
+}
+
+void hash_cryptonight(const char * input, char * output, int len) {
+  cn_slow_hash((const void*)input,len,(char*)output,1,0);
+}
+
+void hash_yescrypt(const char * input, char * output) {
+  yescrypt_hash(input,output);
 }

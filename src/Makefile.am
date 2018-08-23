@@ -52,7 +52,9 @@ BITMARK_CORE_H = \
   netbase.h \
   net.h \
   noui.h \
+  pow.h \
   protocol.h \
+  pureheader.h \
   rpcclient.h \
   rpcprotocol.h \
   rpcserver.h \
@@ -129,6 +131,8 @@ libbitmark_common_a_SOURCES = \
   hash.cpp \
   key.cpp \
   netbase.cpp \
+  pow.cpp \
+  pureheader.cpp \
   protocol.cpp \
   rpcprotocol.cpp \
   script.cpp \
@@ -136,7 +140,63 @@ libbitmark_common_a_SOURCES = \
   sync.cpp \
   util.cpp \
   version.cpp \
+  groestl.c \
+  blake.c \
+  blake2s-ref.c \
+  bmw.c \
+  cubehash.c \
+  echo.c \
+  jh.c \
+  keccak.c \
+  luffa.c \
+  shavite.c \
+  simd.c \
+  skein.c \
+  hamsi.c \
+  whirlpool.c \
+  shabal.c \
+  fugue.c \
+  sync.cpp \
+  sha2.c \
+  haval.c \
+  Lyra2.c \
+  Lyra2RE.c \
+  Sponge.c \
+  sph_sha2big.c \
+  ar2/argon2.c \
+  ar2/core.c \
+  ar2/encoding.c \
+  ar2/genkat.c \
+  ar2/run.c \
+  ar2/test.c \
+  ar2/thread.c \
+  ar2/blake2/blake2b.c \
+  equihash.cpp \
+  equihash.tcc \
+  cryptonight/crypto/slow-hash.c \
+  cryptonight/crypto/oaes_lib.c \
+  cryptonight/common/c_keccak.c \
+  cryptonight/crypto/aesb.c \
+  cryptonight/crypto/hash.c \
+  cryptonight/crypto/hash-extra-blake.c \
+  cryptonight/crypto/hash-extra-groestl.c \
+  cryptonight/crypto/hash-extra-jh.c \
+  cryptonight/crypto/hash-extra-skein.c \
+  cryptonight/crypto/blake256.c \
+  cryptonight/crypto/groestl.c \
+  cryptonight/crypto/jh.c \
+  cryptonight/crypto/skein.c \
+  yescrypt/yescryptcommon.c \
+  yescrypt/yescrypt-best.c \
+  yescrypt/yescrypt-platform.c \
+  yescrypt/sha256_Y.c \
   $(BITMARK_CORE_H)
+
+if BUILD_ARGON2_OPTIMIZED
+libbitmark_common_a_SOURCES += ar2/opt.c
+else
+libbitmark_common_a_SOURCES += ar2/ref.c
+endif
 
 if GLIBC_BACK_COMPAT
 libbitmark_common_a_SOURCES += compat/glibc_compat.cpp
@@ -157,6 +217,7 @@ bitmarkd_LDADD = \
   libbitmark_common.a \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
+
 if ENABLE_WALLET
 bitmarkd_LDADD += libbitmark_wallet.a
 endif

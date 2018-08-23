@@ -36,6 +36,9 @@ dependencies immediately - no other work required. If you're unsure, read
 the instructions through first in order to assess what you want to do.
 Homebrew is a little more popular among those newer to OS X.
 
+If you have both Homebrew and MacPorts installed, make sure to disable one of
+them using appropriate configure options --without-homebrew or --without-macports.
+
 The installation of the actual dependencies is covered in the Instructions
 sections below.
 
@@ -50,7 +53,7 @@ Installing the dependencies using MacPorts is very straightforward.
 
 Optional: install Qt4
 
-    sudo port install qt4-mac qrencode protobuf-cpp
+    sudo port install qt4-mac qrencode protobuf-cpp py-appscript
 
 ### Building `bitmarkd`
 
@@ -106,6 +109,16 @@ PATH.
 3.  It is a good idea to build and run the unit tests, too:
 
         make check
+
+
+Building .dmg package
+---------------------
+Run "make deploy" in order to prepare .dmg package from Bitmark-Qt.app bundle.
+You may have to set QTDIR environment variable first, for example:
+
+        export QTDIR=/opt/local/libexec/qt4/share
+        make deploy
+
 
 Creating a release build
 ------------------------

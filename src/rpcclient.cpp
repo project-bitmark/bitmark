@@ -40,7 +40,7 @@ Object CallRPC(const string& strMethod, const Array& params)
     // Connect to localhost
     bool fUseSSL = GetBoolArg("-rpcssl", false);
     asio::io_service io_service;
-    ssl::context context(io_service, ssl::context::sslv23);
+    ssl::context context(ssl::context::sslv23);
     context.set_options(ssl::context::no_sslv2 | ssl::context::no_sslv3);
     asio::ssl::stream<asio::ip::tcp::socket> sslStream(io_service, context);
     SSLIOStreamDevice<asio::ip::tcp> d(sslStream, fUseSSL);
@@ -128,19 +128,25 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     //
     if (strMethod == "stop"                   && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getaddednodeinfo"       && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "setminingalgo"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getnetworkhashps"       && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getnetworkhashps"       && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getnetworkhashps"       && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getreceivedbyaccount"   && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "listreceivedbyaddress"  && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "listreceivedbyaddress"  && n > 1) ConvertTo<bool>(params[1]);
+    if (strMethod == "listreceivedbyaddress"  && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "listreceivedbyaccount"  && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "listreceivedbyaccount"  && n > 1) ConvertTo<bool>(params[1]);
+    if (strMethod == "listreceivedbyaccount"  && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getbalance"             && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getblockhash"           && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "move"                   && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "move"                   && n > 3) ConvertTo<int64_t>(params[3]);
@@ -148,10 +154,13 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "sendfrom"               && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "listtransactions"       && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "listtransactions"       && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "listtransactions"       && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "listaccounts"           && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "listaccounts"           && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "listsinceblock"         && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "sendmany"               && n > 1) ConvertTo<Object>(params[1]);
     if (strMethod == "sendmany"               && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "addmultisigaddress"     && n > 0) ConvertTo<int64_t>(params[0]);
@@ -173,6 +182,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "lockunspent"            && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "importprivkey"          && n > 2) ConvertTo<bool>(params[2]);
+    if (strMethod == "importaddress"          && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<int64_t>(params[0]);
@@ -184,6 +194,16 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "sendalert"              && n > 6) ConvertTo<boost::int64_t>(params[6]);
     if (strMethod == "sendalert"              && n > 7) ConvertTo<boost::int64_t>(params[7]);
     if (strMethod == "sendalert"              && n > 8) ConvertTo<boost::int64_t>(params[8]);
+    if (strMethod == "getblockspacing"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getblockspacing"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getblockspacing"            && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "getblockreward"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getblockreward"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getmoneysupply"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getmoneysupply"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "getdifficulty"            && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getdifficulty"            && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "chaindynamics" && n>0) ConvertTo<int64_t>(params[0]);
     return params;
 }
 

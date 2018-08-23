@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
+// Modified Code: Copyright (c) 2014, 2015, 2016 - Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -19,10 +19,28 @@ using namespace boost::assign;
 // Main network
 //
 
+// Hard-Coded (Fixed) Network Nodes
 unsigned int pnSeed[] =
 {
-	0xac1f1f0a, 0xae240982, 0x253b1359
+//      0xac1f1f0a,             // *** inoperative: historical IP with IBM / SoftLayer  ***
+//      0x253b1359,             // *** inoperative: historical IP with IBM / SoftLayer  *** 
+//      0xAE240982,             // *** inoperative: historical IP with IBM / SoftLayer  ***
+	0xADFFFC8C,		// seed.bitmark.co	IP = 173.255.252.140	sam
+        0x8BA2805C,             // eu.bitmark.io        IP = 139.162.128.92     frank
+        0x5E89B1E3,             // ge.bitmark.io        IP = 94.137.177.227     anton
+        0x8BA27A8A,             // jp.bitmark.io        IP = 139.162.122.138    akio
+        0x2D2141A1,             // us.bitmark.io        IP = 45.33.65.161       joe
+//        0xCC447A12,             // tx.bitmark.io        IP = 204.68.122.18      tex
+//        0xCC447A07,             // seed.bitmark.mx      IP = 204.68.122.7       jules
+//        0xCC447A0B,             // one.zmark.org        IP = 204.68.122.11      per
+	0x8BA2E8F2,		// uk.bitmark.one	IP = 139.162.232.242	jim
+	0x32741C88,		// mining.mymarks.io	IP = 50.116.28.136	vic
 };
+
+unsigned int pnSeedTest[] =
+  {
+    0x5E172153,
+  };
 
 class CMainParams : public CChainParams {
 public:
@@ -39,6 +57,11 @@ public:
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
         nSubsidyHalvingInterval = 788000;
+	fStrictChainId = true;
+	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = false;
 
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
@@ -56,19 +79,31 @@ public:
         genesis.nBits    = 0x1d00ffff;
         genesis.nNonce   = 14385103;
 
-        hashGenesisBlock = genesis.GetHash();
-
+        hashGenesisBlock = genesis.GetHash();	
+	
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
-        // todo add more dns seeders
-        vSeeds.push_back(CDNSSeedData("bitmark.co", "seed.bitmark.co"));
+	// DNS Seeders - Verified,   July 18 2018    - dBKeys
+	
+	//                               Domain            Sub-Domain          Name Served  by   machine:
+        //vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));    // explorer.bitmark.io		139.162.35.170
+        //vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));    // jp.bitmark.io		139.162.122.138
+        //vSeeds.push_back(CDNSSeedData("bitmark.one",  "guide.bitmark.one"));	// mining.mymarks.co		198.58.105.225
+        //vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));    // seed.bitmark.co		173.255.252.140
+        //vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));	// uk.bitmark.one		139.162.232.242
+//        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));  // bitmark.chainetics.com	216.240.168.227
+//        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));	// seed.bitmark.mx		204.68.122.7
+//        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));	// vps.bitmark.co		204.68.122.22
+//        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));	// audit.bitmark.io		204.68.122.12
+//        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));	// xina.bitmark.mx		204.68.122.41
+	vSeeds.push_back(CDNSSeedData("bitmark.cc","seed.bitmark.cc")); // explorer.bitmark.cc 94.23.33.83
 
-        base58Prefixes[PUBKEY_ADDRESS] = list_of(85); // b
-        base58Prefixes[SCRIPT_ADDRESS] = list_of(5);
-        base58Prefixes[SECRET_KEY] =     list_of(213);
-        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E);
-        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+        base58Prefixes[SECRET_KEY] =    std::vector<unsigned char>(1,213);
+        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
         // Convert the pnSeeds array into usable address objects.
         for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
@@ -83,7 +118,7 @@ public:
             CAddress addr(CService(ip, GetDefaultPort()));
             addr.nTime = GetTime() - GetRand(nOneWeek) - nOneWeek;
             vFixedSeeds.push_back(addr);
-        }
+	    }
     }
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
@@ -100,7 +135,7 @@ static CMainParams mainParams;
 
 
 //
-// Testnet (v3)
+// Testnet (v4)
 //
 class CTestNetParams : public CMainParams {
 public:
@@ -114,27 +149,57 @@ public:
         pchMessageStart[1] = 0x11;
         pchMessageStart[2] = 0x09;
         pchMessageStart[3] = 0x07;
+
         vAlertPubKey = ParseHex("0468770c9d451dd5d6d373ae6096d4ab0705c4ab66e55cc25c40788580039bd04b7672322b9bd26ce22a3ad95f490d7d188a905ce30246b2425eca8cc5102190d0");
         nDefaultPort = 19265;
         nRPCPort = 19266;
-        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20);
-        strDataDir = "testnet3";
+        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
+        strDataDir = "testnet4";
+	fStrictChainId = true;
+	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = false;
 
-        genesis.nTime = 1405274408;
+	const char* pszTimestamp = "Testing Testnet";
+	CTransaction txNew;
+        txNew.vin.resize(1);
+        txNew.vout.resize(1);
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vout[0].nValue = 20 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04f88a76429dad346a10ecb5d36fcbf50bc2e009870e20c1a6df8db743e0b994afc1f91e079be8acc380b0ee7765519906e3d781519e9db48259f64160104939d8") << OP_CHECKSIG;
+        genesis.vtx[0] = txNew;
+	genesis.hashPrevBlock = 0;
+	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+
+        genesis.nTime = 1534873293;
         genesis.nBits = 0x1e0ffff0;
-        genesis.nNonce = 16687;
-        hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x1d6329aeff3ff6786635afd5d6715b24667329cfda199bd7a1d6626d81a4573c"));
+	genesis.nNonce = 181283;
+	hashGenesisBlock = genesis.GetHash();
+	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
+        assert(hashGenesisBlock == uint256("45ccef675b070c6eae865e1fcd3978253ec52a960af9abbb91bd1d935513e5be"));
 
         vFixedSeeds.clear();
+	        for (unsigned int i = 0; i < ARRAYLEN(pnSeedTest); i++)
+        {
+            const int64_t nOneWeek = 7*24*60*60;
+            struct in_addr ip;
+            memcpy(&ip, &pnSeed[i], sizeof(ip));
+            CAddress addr(CService(ip, GetDefaultPort()));
+            addr.nTime = GetTime() - GetRand(nOneWeek) - nOneWeek;
+            vFixedSeeds.push_back(addr);
+	}		
+	
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("bitmark.co", "test.bitmark.co"));
+	//vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
+        vSeeds.push_back(CDNSSeedData("bitmark.cc", "seed.bitmark.cc"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = list_of(130); // u
-        base58Prefixes[SCRIPT_ADDRESS] = list_of(196);
-        base58Prefixes[SECRET_KEY]     = list_of(258);
-        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x35)(0x87)(0xCF);
-        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x35)(0x83)(0x94);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // u
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
+        base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1,258);
+        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };
@@ -151,15 +216,37 @@ public:
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
-        nSubsidyHalvingInterval = 150;
+        nSubsidyHalvingInterval = 300;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;
-        genesis.nNonce = 0;
+	genesis.nNonce = 713058;
+	/*
+	CBigNum bnTarget;
+	bnTarget.SetCompact(genesis.nBits);
+	uint256 target = bnTarget.getuint256();
+	printf("have to beat %s\n",target.GetHex().c_str());
+	unsigned int curNonce = 0;
+	while (1) {
+	  genesis.nNonce = curNonce;
+	  uint256 hash = genesis.GetPoWHash();
+	  if (hash<=target) break;
+	  curNonce++;
+	}
+	printf("nonce is %d\n",curNonce);
+	*/
         hashGenesisBlock = genesis.GetHash();
+	genesis.nNonce = 3;
         nDefaultPort = 18444;
         strDataDir = "regtest";
-        //assert(hashGenesisBlock == uint256("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
+	fStrictChainId = true;
+	nAuxpowChainId = 0x005B;
+	nEquihashN = 200;
+	nEquihashK = 9;
+	fMineBlocksOnDemand = true;
+	//printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
+        assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }
@@ -178,8 +265,8 @@ const CChainParams &Params() {
 void SelectParams(CChainParams::Network network) {
     switch (network) {
         case CChainParams::MAIN:
-            pCurrentParams = &mainParams;
-            break;
+	  pCurrentParams = &mainParams;
+	  break;
         case CChainParams::TESTNET:
             pCurrentParams = &testNetParams;
             break;
@@ -190,7 +277,14 @@ void SelectParams(CChainParams::Network network) {
             assert(false && "Unimplemented network");
             return;
     }
+    fReopenDebugLog = true;
 }
+
+/*
+void SelectDifficulty (int difficulty) {
+  
+}
+*/
 
 bool SelectParamsFromCommandLine() {
     bool fRegTest = GetBoolArg("-regtest", false);

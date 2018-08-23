@@ -2138,10 +2138,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
-    
-    // Force min version after fork
-    if (onFork(pindex) && block.nVersion<CBlock::CURRENT_VERSION) {
-      LogPrintf("nVersion<=2 and after fork\n");
+
+    // Force min version after Fork 2.
+    if (Params().OnFork2(pindex->nHeight) && block.nVersion < 5) {
+        LogPrintf("nVersion<5 and after Fork 2\n");
+        return false;
+    }
+
+    // Force min version after Fork 1.
+    if (onFork(pindex) && block.nVersion < 4) {
+      LogPrintf("nVersion<4 and after Fork 1\n");
       return false;
     }
     

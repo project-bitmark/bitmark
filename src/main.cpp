@@ -2134,15 +2134,15 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
 
-    // Force min version after fork 2.
+    // Force min version after Fork 2.
     if (Params().OnFork2(pindex->nHeight) && block.nVersion < 5) {
-        LogPrintf("nVersion<5 and after fork 2\n");
+        LogPrintf("nVersion<5 and after Fork 2\n");
         return false;
     }
 
-    // Force min version after fork 1.
-    if (onFork(pindex) && block.nVersion<4) {
-      LogPrintf("nVersion<4 and after fork 1\n");
+    // Force min version after Fork 1.
+    if (onFork(pindex) && block.nVersion < 4) {
+      LogPrintf("nVersion<4 and after Fork 1\n");
       return false;
     }
     

@@ -1393,7 +1393,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     int64_t maxNativeBlockReductionPercent = Params().CEM_MaxNativeBlockRewardReduction(nHeight);
 
     if (!scalingFactor) {
-        return nFees +  (pindex->IsAuxpow() ? baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100 : baseSubsidy);
+        return nFees + (pindex->IsAuxpow() && Params().OnFork2(nHeight) ? baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100 : baseSubsidy);
     }
 
     int64_t reduction = (int64_t)((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getulong() * maxNativeBlockReductionPercent / 100;

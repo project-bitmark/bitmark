@@ -1387,12 +1387,15 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     // Total Emission		        27579894.73108000
     // -------------------------------------------------------------------------------------------------------------------
     // Total of   27,579,894.73,108,000   coins emitted
-    //          Twenty seven million, five hundred seventy nine thousand, eight hundred ninety four   Bitmarks (MARKS) and 
+    //          Twenty seven million, five hundred seventy nine thousand, eight hundred ninety four   Bitmarks (MARKS) and
     // 		   Seventy three million, one hundred and eight thousand   Bitmark-Satoshis.
 
-    if (!scalingFactor) return nFees + baseSubsidy;
-
     int64_t maxNativeBlockReductionPercent = Params().CEM_MaxNativeBlockRewardReduction(nHeight);
+
+    if (!scalingFactor) {
+        return nFees +  (pindex->IsAuxpow() ? baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100 : baseSubsidy);
+    }
+
     int64_t reduction = (int64_t)((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getulong() * maxNativeBlockReductionPercent / 100;
     int64_t nativeBlockReward = baseSubsidy - reduction;
 

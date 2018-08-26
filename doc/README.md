@@ -1,5 +1,5 @@
-Bitmark 0.9.8.0	BETA
-=====================
+Bitmark 0.9.8.3.1	BETA
+===========================================
 
 Copyright (c) 2009-2018 Bitmark Developers
 

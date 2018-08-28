@@ -578,7 +578,6 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Bitmark is downloading blocks...");
-
     // Update block
     static unsigned int nTransactionsUpdatedLast;
     static CBlockIndex* pindexPrev;
@@ -767,6 +766,11 @@ Value getauxblock(const Array& params, bool fHelp)
     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Bitmark is not connected!");
   if (IsInitialBlockDownload())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Bitmark is downloading blocks...");
+  if (GetArg("-miningalgo", miningAlgo) == ALGO_ARGON2 || GetArg("-miningalgo", miningAlgo) == ALGO_YESCRYPT) {
+      Array empty;
+      return getblocktemplate(empty, false);    //In these two algos, getauxblock works like getblocktemplate(native mining)
+      //return Value::null;                     //In this case, stop working
+  }
   static CCriticalSection cs_auxblockCache;
   LOCK(cs_auxblockCache);
   static std::map<uint256, CBlock*> mapNewBlock;

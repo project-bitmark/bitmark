@@ -2953,13 +2953,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         if (pcheckpoint && nHeight < pcheckpoint->nHeight)
             return state.DoS(100, error("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
 
-        // Reject block.nVersion=1 blocks
-        if (block.nVersion < 2)
-        {
-			return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
-								 REJECT_OBSOLETE, "bad-version");
-        }
-
         // Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
         if (block.nVersion >= 2)
         {
@@ -2970,20 +2963,20 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 								 REJECT_INVALID, "bad-cb-height");
         }
 
-        // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
+        if (block.IsAuxpow() || block.GetAlgo() != ALGO_SCRYPT) {
+          if (pindexPrev->nHeight < 450947) { //450947 : the block height which the fork1 was activated
+            return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
+          }
+        }
 
-	if (block.nVersion < 3 &&
-	    CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
-	  {
-	    return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
-				 REJECT_OBSOLETE, "bad-version");
-	  }
+        // Reject ARGON2 and YESCRYPT Aux blocks after fork2
 
-	if (block.IsAuxpow() || block.GetAlgo() != ALGO_SCRYPT) {
-	  if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
-	    return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
-	  }
-	}	
+        if (block.IsAuxpow() && Params().OnFork2(nHeight) && (block.GetAlgo() == ALGO_ARGON2 || block.GetAlgo() == ALGO_YESCRYPT)) {
+            std::string errorString = "AcceptBlock() : Merged mined support for " + std::string(GetAlgoName(block.GetAlgo())) +
+                                    "has been revoked, since block " + std::to_string(Params().GetFork2Height());
+            return state.Invalid(error(errorString.data()), REJECT_INVALID, "aux-support-revoked");
+        }
+
     }
 
     // Write block to history file

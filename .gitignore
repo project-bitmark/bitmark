@@ -1,6 +1,8 @@
 *.tar.gz
 
 *.exe
+bitmark-qt.pro
+src/qt/test/test_bitmark-qt
 src/bitcoin
 src/bitmarkd
 src/bitmark-cli

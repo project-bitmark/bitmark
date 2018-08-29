@@ -255,7 +255,7 @@ double GetBlockReward (CBlockIndex * blockindex, int algo, bool noScale) {
   if(!pblocktemplate.get())
     return 0.;
   CBlock *pblock = &pblocktemplate->block;
-  pblock->nVersion = 4;
+  pblock->nVersion = CPureBlockHeader::CURRENT_VERSION;
   pblock->SetAlgo(algo);
   CBlockIndex indexDummy(*pblock);
   indexDummy.pprev = blockindex;

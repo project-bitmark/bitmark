@@ -108,7 +108,7 @@ public:
     }
 };
 
-CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
+CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, bool isAux)
 {
     // Create new block
     auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
@@ -120,6 +120,9 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
       miningAlgo = GetArg("-miningalgo", miningAlgo);
       confAlgoIsSet = true;
     }
+
+    pblock->SetAuxpow(isAux);
+
     // To simulate v3 blocks occuring after nForkHeight
     if (TestNet() && pindexPrev->nHeight < 300 && miningAlgo==0) pblock->nVersion = 3;
     //LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
@@ -475,14 +478,14 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
 double dHashesPerSec = 0.0;
 int64_t nHPSTimerStart = 0;
 
-CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey)
+CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, bool isAux)
 {
     CPubKey pubkey;
     if (!reservekey.GetReservedKey(pubkey))
         return NULL;
 
     CScript scriptPubKey = CScript() << pubkey << OP_CHECKSIG;
-    return CreateNewBlock(scriptPubKey);
+    return CreateNewBlock(scriptPubKey, isAux);
 }
 
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)

@@ -505,7 +505,7 @@ public:
         s.nVersion = nVersion;                  \
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
-	if (this->IsAuxpow()) {
+	if (this->IsAuxpow() && auxpow) {
 	  assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
 	  int algo = CPureBlockHeader::GetAlgo();
@@ -530,8 +530,8 @@ public:
         assert(fGetSize||fWrite||fRead); /* suppress warning */ \
 	READWRITE(*(CPureBlockHeader*)this);
 	nVersion = this->nVersion;
-	if (this->IsAuxpow()) {
-	  assert(auxpow);
+	if (this->IsAuxpow() && auxpow) {
+            assert(auxpow);
 	  (*auxpow).parentBlock.isParent = true;
 	  int algo = CPureBlockHeader::GetAlgo();
 	  (*auxpow).parentBlock.algoParent = algo;

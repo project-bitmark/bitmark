@@ -165,9 +165,9 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 17000;
+        nForkHeight2 = 2000;
 
-	const char* pszTimestamp = "Testing Testnet";
+	const char* pszTimestamp = "Fork 2 Testnet";
 	CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -179,12 +179,13 @@ public:
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
         genesis.nTime = 1528022249;
-        genesis.nBits = 0x1e0ffff0;
+        genesis.nBits = CBigNum(~uint256(0)).GetCompact();
 	genesis.nNonce = 235437;
+        genesis.nVersion = 2;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("4b4ce8e8d5d62d39cce4f05017b7d9b566c14f617240e2301f94f3bf54284b1f"));
+       assert(hashGenesisBlock == uint256("0x027ecb41a5bc08ba04bf284b781b5b4406ddfd52643571a96b25aa851ebb9a51"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -215,8 +216,9 @@ public:
         nSubsidyHalvingInterval = 300;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
-        genesis.nBits = 0x207fffff;
+        genesis.nBits = CBigNum(~uint256(0)).GetCompact();
 	genesis.nNonce = 713058;
+        genesis.nVersion = 2;
 	/*
 	CBigNum bnTarget;
 	bnTarget.SetCompact(genesis.nBits);
@@ -242,7 +244,7 @@ public:
 	fMineBlocksOnDemand = true;
 	//printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));
+        assert(hashGenesisBlock == uint256("0xd02a2aa25a5d3420c8817e0eb4d3f69ee32a9bbcd00a2c916c3ca3f213215114"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }

@@ -2972,18 +2972,27 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 
         // Reject block.nVersion=2 blocks when 95% of the network has upgraded:
 
-	if (block.nVersion < 3 &&
-	    CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
-	  {
-	    return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
-				 REJECT_OBSOLETE, "bad-version");
-	  }
+        if (block.nVersion < 3 &&
+            CBlockIndex::IsSuperMajority(3, pindexPrev, 950, 1000))
+        {
+            return state.Invalid(error("AcceptBlock() : rejected nVersion=2 block"),
+                     REJECT_OBSOLETE, "bad-version");
+        }
 
-	if (block.IsAuxpow() || block.GetAlgo() != ALGO_SCRYPT) {
-	  if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
-	    return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
-	  }
-	}	
+        if (block.IsAuxpow() || block.GetAlgo() != ALGO_SCRYPT) {
+          if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
+            return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
+          }
+        }
+
+        // Reject ARGON2 and YESCRYPT Aux blocks after fork2
+
+        if (block.IsAuxpow() && Params().OnFork2(nHeight) && (block.GetAlgo() == ALGO_ARGON2 || block.GetAlgo() == ALGO_YESCRYPT)) {
+            std::string errorString = "AcceptBlock() : Merged mined support for " + std::string(GetAlgoName(block.GetAlgo())) +
+                                    "has been revoked, since block " + std::to_string(Params().GetFork2Height());
+            return state.Invalid(error(errorString.data()), REJECT_INVALID, "aux-support-revoked");
+        }
+
     }
 
     // Write block to history file

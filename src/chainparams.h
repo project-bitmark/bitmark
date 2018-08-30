@@ -75,7 +75,9 @@ public:
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
 
     int64_t GetFork2Height() const { return nForkHeight2; }
+    int64_t GetFork3Height() const { return nForkHeight3; }
     bool    OnFork2(int64_t blockHeight) const { return blockHeight >= nForkHeight2; }
+    bool    OnFork3(int64_t blockHeight) const { return blockHeight >= nForkHeight3; }
     int     CEM_WindowLength(int64_t blockHeight) const { return OnFork2(blockHeight) ? 30 : 365; }
     int     CEM_MaxNativeBlockRewardReduction(int64_t blockHeight) const { return OnFork2(blockHeight) ? 80 : 50; }
 
@@ -102,6 +104,7 @@ protected:
     bool fMineBlocksOnDemand = true;
 
     int64_t nForkHeight2;
+    int64_t nForkHeight3;
 };
 
 /**

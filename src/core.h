@@ -1064,6 +1064,8 @@ public:
 	  return ALGO_CRYPTONIGHT;
 	case BLOCK_VERSION_YESCRYPT:
 	  return ALGO_YESCRYPT;
+    case BLOCK_VERSION_GROESTL:
+      return ALGO_GROESTL;
 	}
       return ALGO_SCRYPT;
     }

@@ -63,6 +63,7 @@ public:
 	fMineBlocksOnDemand = false;
 
         nForkHeight2 = 511111;  // Fork #2 ForkHeight - Bitmark v0.9.8.0 Release - Estimated: August 30 2018
+        nForkHeight3 = 0;  // Fork #3 ForkHeight - Bitmark v0.9.9.0 Release - Estimated:
 
         // Build the Genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
@@ -159,36 +160,36 @@ public:
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
         strDataDir = "testnet4";
-	fStrictChainId = true;
-	nAuxpowChainId = 0x005B;
-	nEquihashN = 200;
-	nEquihashK = 9;
-	fMineBlocksOnDemand = false;
+        fStrictChainId = true;
+        nAuxpowChainId = 0x005B;
+        nEquihashN = 200;
+        nEquihashK = 9;
+        fMineBlocksOnDemand = false;
 
         nForkHeight2 = 17000;
 
-	const char* pszTimestamp = "Testing Testnet";
-	CTransaction txNew;
+        const char* pszTimestamp = "Testing Testnet";
+        CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].nValue = 20 * COIN;
         txNew.vout[0].scriptPubKey = CScript() << ParseHex("04f88a76429dad346a10ecb5d36fcbf50bc2e009870e20c1a6df8db743e0b994afc1f91e079be8acc380b0ee7765519906e3d781519e9db48259f64160104939d8") << OP_CHECKSIG;
         genesis.vtx[0] = txNew;
-	genesis.hashPrevBlock = 0;
-	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+        genesis.hashPrevBlock = 0;
+        genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
         genesis.nTime = 1528022249;
         genesis.nBits = 0x1e0ffff0;
-	genesis.nNonce = 235437;
-	hashGenesisBlock = genesis.GetHash();
-	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
-	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
+        genesis.nNonce = 235437;
+        hashGenesisBlock = genesis.GetHash();
+        //printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+        //printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
         assert(hashGenesisBlock == uint256("4b4ce8e8d5d62d39cce4f05017b7d9b566c14f617240e2301f94f3bf54284b1f"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-	vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
+        vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
         vSeeds.push_back(CDNSSeedData("bitmark.co", "explorer.bitmark.co"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // u

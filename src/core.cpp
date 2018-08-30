@@ -660,7 +660,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 //   As of June, 2018 these values are closely reflective of market values seen on
 //      nicehash.com and miningrigrentals.com
 unsigned int GetAlgoWeight (const int algo) {
-  unsigned int weight = 8000; // scrypt, lyra2rev2 and 17 share this value.
+  unsigned int weight = 8000; // scrypt, lyra2rev2, 17 and groestl share this value.
   switch (algo)
     {
     case ALGO_SHA256D:

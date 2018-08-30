@@ -56,6 +56,7 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"difficulty_lyra2rev2\": xxxxxx,    (numeric) the current lyra2rev2 difficulty\n"
             "  \"difficulty_equihash\": xxxxxx,  (numeric) the current equihash difficulty\n"
             "  \"difficulty_cryptonight\": xxxxxx,  (numeric) the current cryptonight difficulty\n"
+            "  \"difficulty_groestl\": xxxxxx,  (numeric) the current groestl difficulty\n"
             "  \"moneysupply\": xxxxxx,      (numeric) the total amount of coins distributed\n"
             "  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n"
             "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"
@@ -102,6 +103,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2,true,true)));
     obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH,true,true)));
     obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT,true,true)));
+    obj.push_back(Pair("difficulty_GROESTL",     (double)GetDifficulty(NULL, ALGO_GROESTL,true,true)));
     obj.push_back(Pair("moneysupply",    (double)GetMoneySupply(NULL,-1)));
     obj.push_back(Pair("testnet",       TestNet()));
 #ifdef ENABLE_WALLET

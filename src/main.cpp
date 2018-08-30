@@ -4916,6 +4916,8 @@ int GetAlgo (int nVersion) {
       return ALGO_CRYPTONIGHT;
     case BLOCK_VERSION_YESCRYPT:
       return ALGO_YESCRYPT;
+    case BLOCK_VERSION_GROESTL:
+      return ALGO_GROESTL;
     }
   return ALGO_SCRYPT;
 }
@@ -4944,6 +4946,9 @@ const char * GetAlgoName (int algo) {
   }
   else if (algo == 7) {
     return "CRYPTONIGHT";
+  }
+  else if (algo == 8) {
+    return "GROESTL";
   }
   return "SCRYPT";
 }

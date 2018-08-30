@@ -5,6 +5,7 @@
 #include "Lyra2RE.h"
 #include "cryptonight/crypto/hash-ops.h"
 #include "yescrypt/yescrypt.h"
+#include "hashgroestl.h"
 
 uint32_t murmur3_32(const uint8_t* key, size_t len, uint32_t seed) {
   uint32_t h = seed;
@@ -178,4 +179,8 @@ void hash_cryptonight(const char * input, char * output, int len) {
 
 void hash_yescrypt(const char * input, char * output) {
   yescrypt_hash(input,output);
+}
+
+uint256 hash_groestl(const char * begin, const char * end) {
+    return HashGroestl(begin, end);
 }

@@ -8,7 +8,7 @@
 #include "hash.h"
 #include "bignum.h"
 
-const int NUM_ALGOS = 8;
+const int NUM_ALGOS = 9;
 
 enum {
   ALGO_SCRYPT = 0,
@@ -18,14 +18,15 @@ enum {
   ALGO_X17 = 4,
   ALGO_LYRA2REv2 = 5,
   ALGO_EQUIHASH = 6,
-  ALGO_CRYPTONIGHT = 7
+  ALGO_CRYPTONIGHT = 7,
+  ALGO_GROESTL = 8
 };
 
-/* Use the rightmost 8 bits for standard version number, 9th bit for merge mining, 10-12 th bits for POW algo, 13 th bit for update scaling factor flag */
+/* Use the rightmost 8 bits for standard version number, 9th bit for merge mining, 10-12 th bits for POW algo, 13 th bit for update scaling factor flag, 14 th bit for groestl algo */
 enum
   {
     BLOCK_VERSION_AUXPOW = (1 << 8),
-    BLOCK_VERSION_ALGO = (7 << 9),
+    BLOCK_VERSION_ALGO = (31 << 9),
     BLOCK_VERSION_SCRYPT = (0 << 9),
     BLOCK_VERSION_SHA256D = (1 << 9),
     BLOCK_VERSION_YESCRYPT = (2 << 9),
@@ -34,13 +35,14 @@ enum
     BLOCK_VERSION_LYRA2REv2 = (5 << 9),
     BLOCK_VERSION_EQUIHASH = (6 << 9),
     BLOCK_VERSION_CRYPTONIGHT = (7 << 9),
+    BLOCK_VERSION_GROESTL = (16 << 9),
     BLOCK_VERSION_UPDATE_SSF = (1 << 12),
     BLOCK_VERSION_CHAIN = (1 << 16)
   };
 
 class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow in CBlockHeader
  public:
-  static const int CURRENT_VERSION=5;
+  static const int CURRENT_VERSION=6;
   int nVersion;
   uint256 hashPrevBlock;
   uint256 hashMerkleRoot;
@@ -107,57 +109,62 @@ class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow 
   void SetAlgo(int algo)
   {
     switch(algo)
-      {
-      case ALGO_SHA256D:
-	nVersion |= BLOCK_VERSION_SHA256D;
-	break;
-      case ALGO_SCRYPT:
-	nVersion |= BLOCK_VERSION_SCRYPT;
-	break;
-      case ALGO_ARGON2:
-	nVersion |= BLOCK_VERSION_ARGON2;
-	break;
-      case ALGO_X17:
-	nVersion |= BLOCK_VERSION_X17;
-	break;
-      case ALGO_LYRA2REv2:
-	nVersion |= BLOCK_VERSION_LYRA2REv2;
-	break;
-      case ALGO_EQUIHASH:
-	nVersion |= BLOCK_VERSION_EQUIHASH;
-	break;
-      case ALGO_CRYPTONIGHT:
-	nVersion |= BLOCK_VERSION_CRYPTONIGHT;
-	break;
-      case ALGO_YESCRYPT:
-	nVersion |= BLOCK_VERSION_YESCRYPT;
-	break;
-      default:
-	break;
-      }
+    {
+        case ALGO_SHA256D:
+            nVersion |= BLOCK_VERSION_SHA256D;
+            break;
+        case ALGO_SCRYPT:
+            nVersion |= BLOCK_VERSION_SCRYPT;
+            break;
+        case ALGO_ARGON2:
+            nVersion |= BLOCK_VERSION_ARGON2;
+            break;
+        case ALGO_X17:
+            nVersion |= BLOCK_VERSION_X17;
+            break;
+        case ALGO_LYRA2REv2:
+            nVersion |= BLOCK_VERSION_LYRA2REv2;
+            break;
+        case ALGO_EQUIHASH:
+            nVersion |= BLOCK_VERSION_EQUIHASH;
+            break;
+        case ALGO_CRYPTONIGHT:
+            nVersion |= BLOCK_VERSION_CRYPTONIGHT;
+            break;
+        case ALGO_YESCRYPT:
+            nVersion |= BLOCK_VERSION_YESCRYPT;
+            break;
+        case ALGO_GROESTL:
+            nVersion |= BLOCK_VERSION_GROESTL;
+            break;
+        default:
+            break;
+    }
   }
 
   int GetAlgo () const {
     if (algoParent != -1) return algoParent;
     switch (nVersion & BLOCK_VERSION_ALGO)
-      {
-      case BLOCK_VERSION_SHA256D:
-	return ALGO_SHA256D;
-      case BLOCK_VERSION_SCRYPT:
-	return ALGO_SCRYPT;
-      case BLOCK_VERSION_ARGON2:
-	return ALGO_ARGON2;
-      case BLOCK_VERSION_X17:
-	return ALGO_X17;
-      case BLOCK_VERSION_LYRA2REv2:
-	return ALGO_LYRA2REv2;
-      case BLOCK_VERSION_EQUIHASH:
-	return ALGO_EQUIHASH;
-      case BLOCK_VERSION_CRYPTONIGHT:
-	return ALGO_CRYPTONIGHT;
-      case BLOCK_VERSION_YESCRYPT:
-	return ALGO_YESCRYPT;
-      }
+    {
+        case BLOCK_VERSION_SHA256D:
+            return ALGO_SHA256D;
+        case BLOCK_VERSION_SCRYPT:
+            return ALGO_SCRYPT;
+        case BLOCK_VERSION_ARGON2:
+            return ALGO_ARGON2;
+        case BLOCK_VERSION_X17:
+            return ALGO_X17;
+        case BLOCK_VERSION_LYRA2REv2:
+            return ALGO_LYRA2REv2;
+        case BLOCK_VERSION_EQUIHASH:
+            return ALGO_EQUIHASH;
+        case BLOCK_VERSION_CRYPTONIGHT:
+            return ALGO_CRYPTONIGHT;
+        case BLOCK_VERSION_YESCRYPT:
+            return ALGO_YESCRYPT;
+        case BLOCK_VERSION_GROESTL:
+            return ALGO_GROESTL;
+    }
     return ALGO_SCRYPT;
   }
 
@@ -196,56 +203,60 @@ class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow 
   uint256 GetPoWHash(int algo) const
   {
     switch(algo) {
-    case ALGO_SHA256D:
-      return GetHash();
-    case ALGO_SCRYPT:
-      {
-	//special for testing
-	/*if (nTime > 1527138083 && nBits == 453187307) {
-	  //LogPrintf("do special powhash\n");
-	  uint256 thash;
-	  hash_easy(BEGIN(nVersion),BEGIN(thash));
-	  return thash;
-	  }*/
-	uint256 thash;
-	hash_scrypt(BEGIN(nVersion),BEGIN(thash));
-	return thash;
-      }
-    case ALGO_ARGON2:
-      {
-	uint256 thash;
-	hash_argon2(BEGIN(nVersion),BEGIN(thash));
-	return thash;
-      }
-    case ALGO_X17:
-      return hash_x17(BEGIN(nVersion), END(nNonce));
-    case ALGO_LYRA2REv2:
-      {
-	uint256 thash;
-	hash_lyra2rev2(BEGIN(nVersion),BEGIN(thash));
-	return thash;
-      }
-    case ALGO_EQUIHASH:
-      {
-	return GetHashE();
-      }
-    case ALGO_CRYPTONIGHT:
-      {
-	uint256 thash;
-	if (vector_format) {
-	  hash_cryptonight(BEGIN(vector_rep[0]),BEGIN(thash),vector_rep.size());
-	}
-	else {
-	  hash_cryptonight(BEGIN(nVersion),BEGIN(thash),80);
-	}
-	return thash;
-      } 
-    case ALGO_YESCRYPT:
-      {
-	uint256 thash;
-	hash_yescrypt(BEGIN(nVersion),BEGIN(thash));
-	return thash;
-      }
+        case ALGO_SHA256D:
+          return GetHash();
+        case ALGO_SCRYPT:
+        {
+            //special for testing
+            /*if (nTime > 1527138083 && nBits == 453187307) {
+              //LogPrintf("do special powhash\n");
+              uint256 thash;
+              hash_easy(BEGIN(nVersion),BEGIN(thash));
+              return thash;
+              }*/
+            uint256 thash;
+            hash_scrypt(BEGIN(nVersion),BEGIN(thash));
+            return thash;
+        }
+        case ALGO_ARGON2:
+        {
+            uint256 thash;
+            hash_argon2(BEGIN(nVersion),BEGIN(thash));
+            return thash;
+        }
+        case ALGO_X17:
+            return hash_x17(BEGIN(nVersion), END(nNonce));
+        case ALGO_LYRA2REv2:
+        {
+            uint256 thash;
+            hash_lyra2rev2(BEGIN(nVersion),BEGIN(thash));
+            return thash;
+        }
+        case ALGO_EQUIHASH:
+        {
+            return GetHashE();
+        }
+        case ALGO_CRYPTONIGHT:
+        {
+            uint256 thash;
+            if (vector_format) {
+              hash_cryptonight(BEGIN(vector_rep[0]),BEGIN(thash),vector_rep.size());
+            }
+            else {
+              hash_cryptonight(BEGIN(nVersion),BEGIN(thash),80);
+            }
+            return thash;
+        }
+        case ALGO_YESCRYPT:
+        {
+            uint256 thash;
+            hash_yescrypt(BEGIN(nVersion),BEGIN(thash));
+            return thash;
+        }
+        case ALGO_GROESTL:
+        {
+            return hash_groestl(BEGIN(nVersion),END(nNonce));
+        }
     }
     uint256 thash;
     hash_scrypt(BEGIN(nVersion),BEGIN(thash));

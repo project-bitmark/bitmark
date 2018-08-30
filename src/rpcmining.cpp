@@ -315,6 +315,7 @@ Value getmininginfo(const Array& params, bool fHelp)
             "  \"difficulty_lyra2rev2\": xxxxxx,    (numeric) the current lyra2rev2 difficulty\n"
             "  \"difficulty_equihash\": xxxxxx,  (numeric) the current equihash difficulty\n"
             "  \"difficulty_cryptonight\": xxxxxx,  (numeric) the current cryptonight difficulty\n"
+            "  \"difficulty_groestl\": xxxxxx,  (numeric) the current groestl difficulty\n"
             "  \"errors\": \"...\"          (string) Current errors\n"
             "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)\n"
             "  \"genproclimit\": n          (numeric) The processor limit for generation. -1 if no generation. (see getgenerate or setgenerate calls)\n"
@@ -349,6 +350,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2,true,true)));
     obj.push_back(Pair("difficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH,true,true)));
     obj.push_back(Pair("difficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT,true,true)));
+    obj.push_back(Pair("difficulty_GROESTL",     (double)GetDifficulty(NULL, ALGO_GROESTL,true,true)));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
     obj.push_back(Pair("genproclimit",     (int)GetArg("-genproclimit", -1)));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));

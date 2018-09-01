@@ -165,7 +165,7 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 2000;
+        nForkHeight2 = 2000; // Testnet 4  ForkHeight - for Fork #2 - Bitmark definitive v0.9.8.3 Release - Estimated: September 8 2018
 
 	const char* pszTimestamp = "Fork 2 Testnet";
 	CTransaction txNew;

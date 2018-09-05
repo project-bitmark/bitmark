@@ -339,6 +339,8 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     txGen.SetMerkleBranch(&block);
     int blockVariant = 0;
     if (GetBlockVariant(block.nVersion)) blockVariant = 1;
+    if (GetBlockVariant2(block.nVersion) && !GetBlockVariant(block.nVersion)) blockVariant = 2;
+    if (GetBlockVariant2(block.nVersion) && GetBlockVariant(block.nVersion)) blockVariant = 3;
     result.push_back(Pair("confirmations", (int)txGen.GetDepthInMainChain()));
     result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height", blockindex->nHeight));
@@ -376,7 +378,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
     result.push_back(Pair("bits", HexBits(block.nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex,algo)));
+    result.push_back(Pair("difficulty", GetDifficulty(blockindex,algo,true,false)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
 
     if (blockindex->pprev)

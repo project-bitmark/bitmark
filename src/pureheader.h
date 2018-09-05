@@ -36,6 +36,7 @@ enum
     BLOCK_VERSION_CRYPTONIGHT = (7 << 9),
     BLOCK_VERSION_UPDATE_SSF = (1 << 12),
     BLOCK_VERSION_VARIANT = (1 << 13),
+    BLOCK_VERSION_VARIANT2 = (1 << 14),
     BLOCK_VERSION_CHAIN = (1 << 16)
   };
 
@@ -283,12 +284,24 @@ class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow 
     else
       nVersion &= ~BLOCK_VERSION_VARIANT;
   }
+
+  inline void SetVariant2(bool variant)
+  {
+    if (variant)
+      nVersion |= BLOCK_VERSION_VARIANT2;
+    else
+      nVersion &= ~BLOCK_VERSION_VARIANT2;
+  }
   
   inline bool IsVariant() const
   {
     return nVersion & BLOCK_VERSION_VARIANT;
   }
-  
+
+  inline bool IsVariant2() const
+  {
+    return nVersion & BLOCK_VERSION_VARIANT2;
+  }
 };
 
 #endif

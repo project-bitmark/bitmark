@@ -94,3 +94,7 @@ There are currently 3 types of tests implemented.
 ## Merge Mining
 
 Also part of the hard fork is merge mining, a way to increase the hashpower security of the chain by allowing the mining of the chain simultaneously with other chains. All 8 algorithms are supported.
+
+## Uncorrupted
+
+This fork retains the uncorrupted protocol. See this dicussion for more information: https://bitcointalk.org/index.php?topic=3169983.msg43299842#msg43299842

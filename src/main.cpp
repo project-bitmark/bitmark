@@ -1198,12 +1198,16 @@ void static PruneOrphanBlocks()
     mapOrphanBlocks.erase(hash);
 }
 
-bool onFork (const CBlockIndex * pindex) {
+bool onFork (const CBlockIndex * pindex) { // major changes: multi algo PoW, merge mining, custom DGW, CEM
   return pindex->onFork();
 }
 
-bool onFork2(const CBlockIndex * pindex) {
+bool onFork2(const CBlockIndex * pindex) { // minor/technical changes
   return pindex->onFork2();
+}
+
+bool onFork3(const CBlockIndex * pindex) { // strict subsidy
+  return pindex->onFork3();
 }
 
 int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
@@ -1554,7 +1558,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (lastInRow>=9 && !lastInRowMod) {
 	bnNew /= 3;
       }
-      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajorityVariant(4,true,pindexLast,950,1000)) {
+      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexLast,950,1000)) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }
@@ -2120,8 +2124,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       return false;
     }
 
-    if (onFork2(pindex) && (GetBlockVersion(block.nVersion)<4 || !GetBlockVariant(block.nVersion))) {
+    if (onFork2(pindex) && (GetBlockVersion(block.nVersion)<4 || (!GetBlockVariant(block.nVersion)&&!GetBlockVariant2(block.nVersion)))) {
       LogPrintf("version<4.1 and after fork 2\n");
+      return false;
+    }
+
+    if (onFork3(pindex) && (GetBlockVersion(block.nVersion)<4 || !GetBlockVariant2(block.nVersion))) {
+      LogPrintf("version<4.2 and after fork 2b\n");
       return false;
     }
     
@@ -2281,6 +2290,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
       LogPrintf("coinbase pays less than block value\n");
+      if (onFork3(pindex)) {
+	int64_t block_subsidy_needed = GetBlockValue(pindex,0,false);
+	if (block.vtx[0].GetValueOut() < block_subsidy_needed) {
+	  return state.DoS(100,error("ConnectBlock(): coinbase pays less than strict subsidy (actual=%d vs min=%d",block.vtx[0].GetValueOut(),block_subsidy_needed),REJECT_INVALID,"low-cb-amount");
+	}
+      }
     }
 
     if (!control.Wait())

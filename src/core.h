@@ -925,10 +925,15 @@ public:
     }
 
     bool onFork2() const {
-      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant(4,true,this->pprev,950,1000)) return true;
+      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant12(4,true,this->pprev,950,1000)) return true;
       return false;
     }
 
+    bool onFork3() const {
+      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant2(4,true,this->pprev,950,1000)) return true;
+      return false;
+    }
+    
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
@@ -1037,8 +1042,16 @@ public:
      * in the last nToCheck blocks, starting at pstart and going backwards,
      * with variant matching as well.
      */
-    static bool IsSuperMajorityVariant(int minVersion, bool variant, const CBlockIndex* pstart,
+    static bool IsSuperMajorityVariant12(int minVersion, bool variant, const CBlockIndex* pstart,
                                 unsigned int nRequired, unsigned int nToCheck);
+
+    /**
+     * Returns true if there are nRequired or more blocks of minVersion or above
+     * in the last nToCheck blocks, starting at pstart and going backwards,
+     * with variant2 matching as well.
+     */
+    static bool IsSuperMajorityVariant2(int minVersion, bool variant, const CBlockIndex* pstart,
+				       unsigned int nRequired, unsigned int nToCheck);
 
     std::string ToString() const
     {
@@ -1385,7 +1398,7 @@ public:
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
     int Height() const {
-        return vChain.size() - 1;
+      return vChain.size() - 1;
     }
 
     /** Set/initialize a chain with a given tip. Returns the forking point. */
@@ -1405,6 +1418,8 @@ extern CChain chainActive;
 int GetBlockVersion (const int nVersion);
 
 bool GetBlockVariant (const int nVersion);
+
+bool GetBlockVariant2 (const int nVersion);
 
 //#include "coins.h"
 

@@ -768,7 +768,7 @@ Value getauxblock(const Array& params, bool fHelp)
     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Bitmark is not connected!");
   if (IsInitialBlockDownload())
     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Bitmark is downloading blocks...");
-  if (GetArg("-miningalgo", miningAlgo) == ALGO_ARGON2 || GetArg("-miningalgo", miningAlgo) == ALGO_YESCRYPT) {
+  if (GetArg("-miningalgo", miningAlgo) == ALGO_ARGON2 || GetArg("-miningalgo", miningAlgo) == ALGO_YESCRYPT || GetArg("-miningalgo", miningAlgo) == ALGO_GROESTL) {
       Array empty;
       return getblocktemplate(empty, false);    //In these two algos, getauxblock works like getblocktemplate(native mining)
       //return Value::null;                     //In this case, stop working

@@ -2969,11 +2969,11 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
           }
         }
 
-        // Reject ARGON2 and YESCRYPT Aux blocks after fork2
+        // Reject ARGON2, YESCRYPT and GROESTL Aux blocks after fork2
 
-        if (block.IsAuxpow() && Params().OnFork2(nHeight) && (block.GetAlgo() == ALGO_ARGON2 || block.GetAlgo() == ALGO_YESCRYPT)) {
+        if (block.IsAuxpow() && Params().OnFork3(nHeight) && (block.GetAlgo() == ALGO_ARGON2 || block.GetAlgo() == ALGO_YESCRYPT || block.GetAlgo() == ALGO_GROESTL)) {
             std::string errorString = "AcceptBlock() : Merged mined support for " + std::string(GetAlgoName(block.GetAlgo())) +
-                                    "has been revoked, since block " + std::to_string(Params().GetFork2Height());
+                                    "has been revoked, since block " + std::to_string(Params().GetFork3Height());
             return state.Invalid(error(errorString.data()), REJECT_INVALID, "aux-support-revoked");
         }
 

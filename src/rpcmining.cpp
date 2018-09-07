@@ -797,7 +797,7 @@ Value getauxblock(const Array& params, bool fHelp)
 	  vNewBlockTemplate.clear();
 	}
 
-	pblocktemplate = CreateNewBlockWithKey(reservekey);
+    pblocktemplate = CreateNewBlockWithKey(reservekey, true);
 	if (!pblocktemplate)
 	  throw JSONRPCError(RPC_OUT_OF_MEMORY, "out of memory");
 
@@ -807,7 +807,6 @@ Value getauxblock(const Array& params, bool fHelp)
 
 	CBlock* pblock = &pblocktemplate->block;
 	IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
-	pblock->SetAuxpow(true);
 	pblock->SetChainId(Params().GetAuxpowChainId());
 	pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 

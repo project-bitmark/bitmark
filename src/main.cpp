@@ -2142,18 +2142,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
 
-    // Force min version after fork 2.
-    if (Params().OnFork2(pindex->nHeight) && GetBlockVersion(block.nVersion) < 5) {
-        LogPrintf("nVersion<5 and after Fork 2\n");
-        return false;
-    }
-
     // Force min version after fork 1.
     if (onFork(pindex) && GetBlockVersion(block.nVersion) < 4) {
       LogPrintf("nVersion<4 and after Fork 1\n");
       return false;
     }
-    
+
     // Check SSF
     if (onFork(pindex)) { //new multi algo blocks are identified like this
       CBlockIndex * pprev_algo = pindex;
@@ -2983,7 +2977,12 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	  if (pindexPrev->nHeight < nForkHeight-1 || !CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
 	    return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
 	  }
-	}	
+	}
+
+        // Force min version after fork 2.
+        if (Params().OnFork2(nHeight) && GetBlockVersion(block.nVersion) < 5) {
+            return state.Invalid(error("AcceptBlock() : rejected nVersion < 5 block"), REJECT_OBSOLETE, "bad-version");
+        }
     }
 
     // Write block to history file

@@ -1,0 +1,6 @@
+vim src/clientversion.h
+vim src/version.h
+vim src/version.cpp
+vim configure.ac
+vim bitmark-config.h
+vim build.h 

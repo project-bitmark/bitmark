@@ -2299,11 +2299,17 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (block.vtx[0].GetValueOut() > block_value_needed)
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees, false)),
+                               block.vtx[0].GetValueOut(), block_value_needed),
                                REJECT_INVALID, "bad-cb-amount");
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
       LogPrintf("coinbase pays less than block value\n");
+      if (pindex->onFork2()) {
+      int64_t block_subsidy_needed = GetBlockValue(pindex,0,false);
+      if (block.vtx[0].GetValueOut() < block_subsidy_needed) {
+        return state.DoS(100,error("ConnectBlock(): coinbase pays less than strict subsidy (actual=%d vs min=%d",block.vtx[0].GetValueOut(),block_subsidy_needed),REJECT_INVALID,"low-cb-amount");
+      }
+        }
     }
 
     if (!control.Wait())
@@ -2979,10 +2985,10 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	  }
 	}
 
-        // Force min version after fork 2.
-        if (Params().OnFork2(nHeight) && GetBlockVersion(block.nVersion) < 5) {
-            return state.Invalid(error("AcceptBlock() : rejected nVersion < 5 block"), REJECT_OBSOLETE, "bad-version");
-        }
+    if (pindexPrev->onFork2()) {
+      return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
+    }
+
     }
 
     // Write block to history file
@@ -4996,8 +5002,8 @@ bool update_ssf (int nVersion) {
   return nVersion & BLOCK_VERSION_UPDATE_SSF;
 }
 
-unsigned int get_ssf (CBlockIndex * pindex) {
-  unsigned int scalingFactor = 0; // ensures that it has no effect
+CBigNum get_ssf (CBlockIndex * pindex) {
+  CBigNum scalingFactor = CBigNum(0); // ensures that it has no effect
   CBlockIndex * pprev_algo = pindex;
   CBigNum hashes_peak = CBigNum(0);
   CBigNum hashes_cur = CBigNum(0);
@@ -5043,7 +5049,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
     if (i==0) hashes_cur = hashes;
   }
   if (hashes_peak > CBigNum(0) && hashes_cur != hashes_peak) {
-    scalingFactor = ((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint(); // a 9-10 digit integer
+    scalingFactor = CBigNum(((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint()); // a 9-10 digit integer
   }
   //LogPrintf("return scaling factor %lu\n",scalingFactor);
   return scalingFactor;

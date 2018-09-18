@@ -322,6 +322,7 @@ std::string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -rpcsslcertificatechainfile=<file.cert>  " + _("Server certificate file (default: server.cert)") + "\n";
     strUsage += "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n";
     strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH)") + "\n";
+    strUsage += "  -emissionlog           " + _("Produce emission data") + "\n";
 
     return strUsage;
 }
@@ -758,6 +759,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     fNoListen = !GetBoolArg("-listen", true);
     fDiscover = GetBoolArg("-discover", true);
     fNameLookup = GetBoolArg("-dns", true);
+    fEmission = GetBoolArg("-emissionlog", false);
 
     bool fBound = false;
     if (!fNoListen) {

@@ -49,6 +49,7 @@ bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
+bool fEmission = false;
 static const int64_t v2checkpoint = 230000;
 
 /** The term "satoshi" is kept in homage to entity who gave the block chain to the world */
@@ -1249,7 +1250,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
       emitted = NUM_ALGOS * get_mpow_ms_correction(pindex);
     }
 
-    unsigned int scalingFactor = 0;
+    CBigNum scalingFactor = CBigNum(0);
     if (onFork(pindex) && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
@@ -2414,6 +2415,15 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
     LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
+    // Contributed by: https://github.com/EricDualc
+    // 100 Million "Satoshi" sub-units to the Bitmark unit
+    if (fEmission) {
+        double nReward = ((double)GetBlockValue(chainActive.Tip(), 0))/100000000;
+        sumReward += nReward;
+        char buff[500];
+        snprintf(buff, sizeof(buff), "%d %d %.8f %.8f\n", chainActive.Height(), chainActive.Tip()->GetBlockTime(), nReward, sumReward);
+        EmissionLogPrintf(buff);
+    }
     //char * blocktime = (char *)malloc(50);
     //sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
     //LogPrintTest(blocktime,"timingtest.log");

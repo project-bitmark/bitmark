@@ -2995,8 +2995,15 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	  }
 	}
 
-    if (pindexPrev->onFork2()) {
+    if (!pindexPrev->onFork2()) {
       return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
+    } else {
+        // Reject ARGON2 and YESCRYPT Aux blocks after fork2
+        if (block.IsAuxpow() && (block.GetAlgo() == ALGO_ARGON2 || block.GetAlgo() == ALGO_YESCRYPT)) {
+            std::string errorString = "AcceptBlock() : Merged mined support for " + std::string(GetAlgoName(block.GetAlgo())) +
+                                    "has been revoked, since block " + std::to_string(Params().GetFork2Height());
+            return state.Invalid(error(errorString.data()), REJECT_INVALID, "aux-support-revoked");
+        }
     }
 
     }

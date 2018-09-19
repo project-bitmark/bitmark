@@ -1203,19 +1203,36 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-// returns reward in a range from 10% - to minimum native block reward (currently 20%).
-int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent) {
-    static const int PRECISION = 100000;
-
-    int64_t minNativeBlockRewardPercent = 100 - maxNativeBlockReductionPercent;
-
-    // [0-1]
-    int64_t nativeBlockRewardCapturePercent = PRECISION * (100 * nativeBlockReward - minNativeBlockRewardPercent * baseSubsidy) /
-                                                          (100 * baseSubsidy - minNativeBlockRewardPercent * baseSubsidy);
-
-    return baseSubsidy / 10 + (nativeBlockRewardCapturePercent * baseSubsidy / 10) / PRECISION;
+bool onFork2 (const CBlockIndex * pindex) {
+  return pindex->onFork2();
 }
 
+//// returns reward in a range from 10% - to minimum native block reward (currently 20%).
+//int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent) {
+//    static const int PRECISION = 100000;
+
+//    int64_t minNativeBlockRewardPercent = 100 - maxNativeBlockReductionPercent;
+
+//    // [0-1]
+//    int64_t nativeBlockRewardCapturePercent = PRECISION * (100 * nativeBlockReward - minNativeBlockRewardPercent * baseSubsidy) /
+//                                                          (100 * baseSubsidy - minNativeBlockRewardPercent * baseSubsidy);
+
+//    return baseSubsidy / 10 + (nativeBlockRewardCapturePercent * baseSubsidy / 10) / PRECISION;
+//}
+
+int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent, double mmRRF) {
+    int64_t mmReward = mmRRF * nativeBlockReward;
+    int64_t CEM_minimum_reward = baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100;
+    int64_t mmMinReward;
+    if (mmAffectMin) {
+        mmMinReward = mmRRF * CEM_minimum_reward;
+    } else {
+        mmMinReward = CEM_minimum_reward;
+        if (mmReward < mmMinReward)
+            mmReward = mmMinReward;
+    }
+    return mmReward;
+}
 
 int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
@@ -1391,18 +1408,18 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     //          Twenty seven million, five hundred seventy nine thousand, eight hundred ninety four   Bitmarks (MARKS) and
     // 		   Seventy three million, one hundred and eight thousand   Bitmark-Satoshis.
 
-    int64_t maxNativeBlockReductionPercent = Params().CEM_MaxNativeBlockRewardReduction(nHeight);
+    int64_t maxNativeBlockReductionPercent = Params().CEM_MaxNativeBlockRewardReduction(onFork2(pindex));
 
     if (!scalingFactor) {
-        return nFees + (pindex->IsAuxpow() && Params().OnFork2(nHeight) ? baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100 : baseSubsidy);
+        return nFees + (pindex->IsAuxpow() && onFork2(pindex) ? mmRRFperAlgo[pindex->GetAlgo()] * baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100 : baseSubsidy);
     }
 
     int64_t reduction = (int64_t)((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getulong() * maxNativeBlockReductionPercent / 100;
     int64_t nativeBlockReward = baseSubsidy - reduction;
 
     // Fork2
-    if (Params().OnFork2(nHeight)) {
-        int64_t nextBlockReward = pindex->IsAuxpow() ? calculateAuxBlockReward(baseSubsidy, nativeBlockReward, maxNativeBlockReductionPercent) : nativeBlockReward;
+    if (onFork2(pindex)) {
+        int64_t nextBlockReward = pindex->IsAuxpow() ? calculateAuxBlockReward(baseSubsidy, nativeBlockReward, maxNativeBlockReductionPercent, mmRRFperAlgo[pindex->GetAlgo()]) : nativeBlockReward;
         return nextBlockReward + nFees;
     }
 
@@ -2305,7 +2322,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
       LogPrintf("coinbase pays less than block value\n");
-      if (pindex->onFork2()) {
+      if (onFork2(pindex)) {
       int64_t block_subsidy_needed = GetBlockValue(pindex,0,false);
       if (block.vtx[0].GetValueOut() < block_subsidy_needed) {
         return state.DoS(100,error("ConnectBlock(): coinbase pays less than strict subsidy (actual=%d vs min=%d",block.vtx[0].GetValueOut(),block_subsidy_needed),REJECT_INVALID,"low-cb-amount");
@@ -2995,7 +3012,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	  }
 	}
 
-    if (!pindexPrev->onFork2()) {
+    if (!onFork2(pindexPrev)) {
       return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
     } else {
         // Reject ARGON2 and YESCRYPT Aux blocks after fork2
@@ -5024,7 +5041,7 @@ CBigNum get_ssf (CBlockIndex * pindex) {
   CBlockIndex * pprev_algo = pindex;
   CBigNum hashes_peak = CBigNum(0);
   CBigNum hashes_cur = CBigNum(0);
-  for (int i=0; i< Params().CEM_WindowLength(pindex->nHeight); i++) {
+  for (int i=0; i< Params().CEM_WindowLength(onFork2(pindex)); i++) {
     pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) {
       break;

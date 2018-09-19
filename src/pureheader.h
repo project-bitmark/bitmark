@@ -9,6 +9,8 @@
 #include "bignum.h"
 
 const int NUM_ALGOS = 8;
+const double mmRRFperAlgo[8] = {0.2, 0.2, 1, 1, 0.888888888, 0.888888888, 0.2, 1};
+const bool mmAffectMin = true;
 
 enum {
   ALGO_SCRYPT = 0,

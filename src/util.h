@@ -104,6 +104,7 @@ extern std::string strMiscWarning;
 extern bool fNoListen;
 extern bool fLogTimestamps;
 extern volatile bool fReopenDebugLog;
+extern double sumReward;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();
@@ -113,9 +114,12 @@ void SetupEnvironment();
 bool LogAcceptCategory(const char* category);
 /* Send a string to the log output */
 int LogPrintStr(const std::string &str);
+int EmissionLogPrintStr(const std::string &str);
 
 #define strprintf tfm::format
 #define LogPrintf(...) LogPrint(NULL, __VA_ARGS__)
+// For coin emission Log
+#define EmissionLogPrintf(...) EmissionLogPrint(__VA_ARGS__)
 
 /* When we switch to C++11, this can be switched to variadic templates instead
  * of this macro-based construction (see tinyformat.h).
@@ -145,6 +149,10 @@ static inline int LogPrint(const char* category, const char* format)
 {
     if(!LogAcceptCategory(category)) return 0;
     return LogPrintStr(format);
+}
+static inline int EmissionLogPrint(const char* format)
+{
+    return EmissionLogPrintStr(format);
 }
 static inline bool error(const char* format)
 {

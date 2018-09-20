@@ -49,6 +49,7 @@ bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
+bool fEmission = false;
 static const int64_t v2checkpoint = 230000;
 
 /** The term "satoshi" is kept in homage to entity who gave the block chain to the world */
@@ -1202,19 +1203,36 @@ bool onFork (const CBlockIndex * pindex) {
   return pindex->onFork();
 }
 
-// returns reward in a range from 10% - to minimum native block reward (currently 20%).
-int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent) {
-    static const int PRECISION = 100000;
-
-    int64_t minNativeBlockRewardPercent = 100 - maxNativeBlockReductionPercent;
-
-    // [0-1]
-    int64_t nativeBlockRewardCapturePercent = PRECISION * (100 * nativeBlockReward - minNativeBlockRewardPercent * baseSubsidy) /
-                                                          (100 * baseSubsidy - minNativeBlockRewardPercent * baseSubsidy);
-
-    return baseSubsidy / 10 + (nativeBlockRewardCapturePercent * baseSubsidy / 10) / PRECISION;
+bool onFork2 (const CBlockIndex * pindex) {
+  return pindex->onFork2();
 }
 
+//// returns reward in a range from 10% - to minimum native block reward (currently 20%).
+//int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent) {
+//    static const int PRECISION = 100000;
+
+//    int64_t minNativeBlockRewardPercent = 100 - maxNativeBlockReductionPercent;
+
+//    // [0-1]
+//    int64_t nativeBlockRewardCapturePercent = PRECISION * (100 * nativeBlockReward - minNativeBlockRewardPercent * baseSubsidy) /
+//                                                          (100 * baseSubsidy - minNativeBlockRewardPercent * baseSubsidy);
+
+//    return baseSubsidy / 10 + (nativeBlockRewardCapturePercent * baseSubsidy / 10) / PRECISION;
+//}
+
+int64_t calculateAuxBlockReward(int64_t baseSubsidy, int64_t nativeBlockReward, int64_t maxNativeBlockReductionPercent, double mmRRF) {
+    int64_t mmReward = mmRRF * nativeBlockReward;
+    int64_t CEM_minimum_reward = baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100;
+    int64_t mmMinReward;
+    if (mmAffectMin) {
+        mmMinReward = mmRRF * CEM_minimum_reward;
+    } else {
+        mmMinReward = CEM_minimum_reward;
+        if (mmReward < mmMinReward)
+            mmReward = mmMinReward;
+    }
+    return mmReward;
+}
 
 int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
@@ -1249,7 +1267,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
       emitted = NUM_ALGOS * get_mpow_ms_correction(pindex);
     }
 
-    unsigned int scalingFactor = 0;
+    CBigNum scalingFactor = CBigNum(0);
     if (onFork(pindex) && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
@@ -1390,18 +1408,18 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     //          Twenty seven million, five hundred seventy nine thousand, eight hundred ninety four   Bitmarks (MARKS) and
     // 		   Seventy three million, one hundred and eight thousand   Bitmark-Satoshis.
 
-    int64_t maxNativeBlockReductionPercent = Params().CEM_MaxNativeBlockRewardReduction(nHeight);
+    int64_t maxNativeBlockReductionPercent = Params().CEM_MaxNativeBlockRewardReduction(onFork2(pindex));
 
     if (!scalingFactor) {
-        return nFees + (pindex->IsAuxpow() && Params().OnFork2(nHeight) ? baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100 : baseSubsidy);
+        return nFees + (pindex->IsAuxpow() && onFork2(pindex) ? mmRRFperAlgo[pindex->GetAlgo()] * baseSubsidy * (100 - maxNativeBlockReductionPercent) / 100 : baseSubsidy);
     }
 
     int64_t reduction = (int64_t)((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getulong() * maxNativeBlockReductionPercent / 100;
     int64_t nativeBlockReward = baseSubsidy - reduction;
 
     // Fork2
-    if (Params().OnFork2(nHeight)) {
-        int64_t nextBlockReward = pindex->IsAuxpow() ? calculateAuxBlockReward(baseSubsidy, nativeBlockReward, maxNativeBlockReductionPercent) : nativeBlockReward;
+    if (onFork2(pindex)) {
+        int64_t nextBlockReward = pindex->IsAuxpow() ? calculateAuxBlockReward(baseSubsidy, nativeBlockReward, maxNativeBlockReductionPercent, mmRRFperAlgo[pindex->GetAlgo()]) : nativeBlockReward;
         return nextBlockReward + nFees;
     }
 
@@ -2299,11 +2317,17 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (block.vtx[0].GetValueOut() > block_value_needed)
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees, false)),
+                               block.vtx[0].GetValueOut(), block_value_needed),
                                REJECT_INVALID, "bad-cb-amount");
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
       LogPrintf("coinbase pays less than block value\n");
+      if (onFork2(pindex)) {
+      int64_t block_subsidy_needed = GetBlockValue(pindex,0,false);
+      if (block.vtx[0].GetValueOut() < block_subsidy_needed) {
+        return state.DoS(100,error("ConnectBlock(): coinbase pays less than strict subsidy (actual=%d vs min=%d",block.vtx[0].GetValueOut(),block_subsidy_needed),REJECT_INVALID,"low-cb-amount");
+      }
+        }
     }
 
     if (!control.Wait())
@@ -2408,6 +2432,15 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
     LogPrintf("UpdateTip: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%d progress=%f nbits=%u algo=%d\n",chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx, chainActive.Tip()->GetBlockTime(),Checkpoints::GuessVerificationProgress(chainActive.Tip()), chainActive.Tip()->nBits,GetAlgo(chainActive.Tip()->nVersion));
+    // Contributed by: https://github.com/EricDualc
+    // 100 Million "Satoshi" sub-units to the Bitmark unit
+    if (fEmission) {
+        double nReward = ((double)GetBlockValue(chainActive.Tip(), 0))/100000000;
+        sumReward += nReward;
+        char buff[500];
+        snprintf(buff, sizeof(buff), "%d %d %.8f %.8f\n", chainActive.Height(), chainActive.Tip()->GetBlockTime(), nReward, sumReward);
+        EmissionLogPrintf(buff);
+    }
     //char * blocktime = (char *)malloc(50);
     //sprintf(blocktime,"%d %d\n",chainActive.Tip()->nTime,GetAlgo(chainActive.Tip()->nVersion));
     //LogPrintTest(blocktime,"timingtest.log");
@@ -2979,10 +3012,17 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	  }
 	}
 
-        // Force min version after fork 2.
-        if (Params().OnFork2(nHeight) && GetBlockVersion(block.nVersion) < 5) {
-            return state.Invalid(error("AcceptBlock() : rejected nVersion < 5 block"), REJECT_OBSOLETE, "bad-version");
+    if (!onFork2(pindexPrev)) {
+      return state.DoS(100,error("AcceptBlock() : new block format requires fork activation"),REJECT_INVALID,"bad-version-fork");
+    } else {
+        // Reject ARGON2 and YESCRYPT Aux blocks after fork2
+        if (block.IsAuxpow() && (block.GetAlgo() == ALGO_ARGON2 || block.GetAlgo() == ALGO_YESCRYPT)) {
+            std::string errorString = "AcceptBlock() : Merged mined support for " + std::string(GetAlgoName(block.GetAlgo())) +
+                                    "has been revoked, since block " + std::to_string(Params().GetFork2Height());
+            return state.Invalid(error(errorString.data()), REJECT_INVALID, "aux-support-revoked");
         }
+    }
+
     }
 
     // Write block to history file
@@ -4996,12 +5036,12 @@ bool update_ssf (int nVersion) {
   return nVersion & BLOCK_VERSION_UPDATE_SSF;
 }
 
-unsigned int get_ssf (CBlockIndex * pindex) {
-  unsigned int scalingFactor = 0; // ensures that it has no effect
+CBigNum get_ssf (CBlockIndex * pindex) {
+  CBigNum scalingFactor = CBigNum(0); // ensures that it has no effect
   CBlockIndex * pprev_algo = pindex;
   CBigNum hashes_peak = CBigNum(0);
   CBigNum hashes_cur = CBigNum(0);
-  for (int i=0; i< Params().CEM_WindowLength(pindex->nHeight); i++) {
+  for (int i=0; i< Params().CEM_WindowLength(onFork2(pindex)); i++) {
     pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) {
       break;
@@ -5043,7 +5083,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
     if (i==0) hashes_cur = hashes;
   }
   if (hashes_peak > CBigNum(0) && hashes_cur != hashes_peak) {
-    scalingFactor = ((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint(); // a 9-10 digit integer
+    scalingFactor = CBigNum(((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint()); // a 9-10 digit integer
   }
   //LogPrintf("return scaling factor %lu\n",scalingFactor);
   return scalingFactor;

@@ -99,6 +99,7 @@ bool fNoListen = false;
 bool fLogTimestamps = false;
 volatile bool fReopenDebugLog = false;
 CClientUIInterface uiInterface;
+double sumReward = 0.0;
 
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
@@ -221,10 +222,13 @@ uint256 GetRandHash()
 // the mutex).
 
 static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
+static boost::once_flag emissionPrintInitFlag = BOOST_ONCE_INIT;
 // We use boost::call_once() to make sure these are initialized in
 // in a thread-safe manner the first time it is called:
 static FILE* fileout = NULL;
 static boost::mutex* mutexDebugLog = NULL;
+static FILE* emissionfileout = NULL;
+static boost::mutex* mutexEmissionLog = NULL;
 
 static void DebugPrintInit()
 {
@@ -236,6 +240,26 @@ static void DebugPrintInit()
     if (fileout) setbuf(fileout, NULL); // unbuffered
 
     mutexDebugLog = new boost::mutex();
+}
+
+static void EmissionPrintInit()
+{
+    assert(emissionfileout == NULL);
+    assert(mutexEmissionLog == NULL);
+    boost::filesystem::path pathDebug = GetDataDir() / "MARKS.emission.log";
+    FILE* file = fopen(pathDebug.string().c_str(), "r");
+    if(file) {
+        if(!feof((file))) {
+            fseek(file, -1*(sizeof(double) + strlen("\n")), SEEK_END);
+            double val;
+            fscanf(file, "%lf", &val);
+            sumReward += val;
+        }
+        fclose(file);
+    }
+    emissionfileout = fopen(pathDebug.string().c_str(), "a");
+    if (emissionfileout) setbuf(emissionfileout, NULL); // unbuffered
+    mutexEmissionLog = new boost::mutex();
 }
 
 bool LogAcceptCategory(const char* category)
@@ -303,6 +327,17 @@ int LogPrintStr(const std::string &str)
         ret = fwrite(str.data(), 1, str.size(), fileout);
     }
 
+    return ret;
+}
+
+int EmissionLogPrintStr(const std::string &str)
+{
+    int ret = 0;  // Returns total number of characters written
+    boost::call_once(&EmissionPrintInit, emissionPrintInitFlag);
+    if (emissionfileout == NULL)
+        return ret;
+    boost::mutex::scoped_lock scoped_lock(*mutexEmissionLog);
+    ret = fwrite(str.data(), 1, str.size(), emissionfileout);
     return ret;
 }
 

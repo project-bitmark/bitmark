@@ -255,7 +255,7 @@ double GetBlockReward (CBlockIndex * blockindex, int algo, bool noScale) {
   if(!pblocktemplate.get())
     return 0.;
   CBlock *pblock = &pblocktemplate->block;
-  pblock->nVersion = 4;
+  pblock->nVersion = CPureBlockHeader::CURRENT_VERSION;
   pblock->SetAlgo(algo);
   CBlockIndex indexDummy(*pblock);
   indexDummy.pprev = blockindex;
@@ -372,7 +372,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
     result.push_back(Pair("bits", HexBits(block.nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex,algo)));
+    result.push_back(Pair("difficulty", GetDifficulty(blockindex,algo,true,false)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
 
     if (blockindex->pprev)

@@ -246,17 +246,17 @@ static void EmissionPrintInit()
 {
     assert(emissionfileout == NULL);
     assert(mutexEmissionLog == NULL);
-    boost::filesystem::path pathDebug = GetDataDir() / "MARKS.emission.log";
-    FILE* file = fopen(pathDebug.string().c_str(), "r");
+    boost::filesystem::path filepath = GetDataDir() / ".emission";
+    FILE* file = fopen(filepath.string().c_str(), "r");
     if(file) {
         if(!feof((file))) {
-            fseek(file, -1*(sizeof(double) + strlen("\n")), SEEK_END);
             double val;
             fscanf(file, "%lf", &val);
             sumReward += val;
         }
         fclose(file);
     }
+    boost::filesystem::path pathDebug = GetDataDir() / "MARKS.emission.log";
     emissionfileout = fopen(pathDebug.string().c_str(), "a");
     if (emissionfileout) setbuf(emissionfileout, NULL); // unbuffered
     mutexEmissionLog = new boost::mutex();
@@ -339,6 +339,16 @@ int EmissionLogPrintStr(const std::string &str)
     boost::mutex::scoped_lock scoped_lock(*mutexEmissionLog);
     ret = fwrite(str.data(), 1, str.size(), emissionfileout);
     return ret;
+}
+
+void SaveSumReward()
+{
+    boost::filesystem::path filepath = GetDataDir() / ".emission";
+    FILE* file = fopen(filepath.string().c_str(), "w");
+    if(file) {
+        fprintf(file, "%.8f", sumReward);
+        fclose(file);
+    }
 }
 
 string FormatMoney(int64_t n, bool fPlus)

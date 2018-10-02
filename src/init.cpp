@@ -148,6 +148,9 @@ void Shutdown()
     if (pwalletMain)
         delete pwalletMain;
 #endif
+    if(fEmission) {
+       SaveSumReward();
+    }
     LogPrintf("Shutdown : done\n");
 }
 
@@ -760,6 +763,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     fDiscover = GetBoolArg("-discover", true);
     fNameLookup = GetBoolArg("-dns", true);
     fEmission = GetBoolArg("-emissionlog", false);
+    EmissionLogPrintf("");
 
     bool fBound = false;
     if (!fNoListen) {

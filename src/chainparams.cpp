@@ -62,8 +62,6 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 518191;  // Fork #2 ForkHeight - Bitmark definitive v0.9.8.3 Release - Estimated: September 8 2018
-
         // Build the Genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
         CTransaction txNew;
@@ -139,7 +137,7 @@ static CMainParams mainParams;
 
 
 //
-// Testnet (v4)
+// Testnet (v5)
 //
 class CTestNetParams : public CMainParams {
 public:
@@ -158,14 +156,12 @@ public:
         nDefaultPort = 19265;
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
-        strDataDir = "testnet4";
+        strDataDir = "testnet5";
 	fStrictChainId = true;
 	nAuxpowChainId = 0x005B;
 	nEquihashN = 200;
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
-
-        nForkHeight2 = 2000; // Testnet 4  ForkHeight - for Fork #2 - Bitmark definitive v0.9.8.3 Release - Estimated: September 8 2018
 
 	const char* pszTimestamp = "Fork 2 Testnet";
 	CTransaction txNew;
@@ -178,14 +174,15 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1528022249;
-        genesis.nBits = CBigNum(~uint256(0)).GetCompact();
-	genesis.nNonce = 235437;
+        genesis.nTime = 1539351475;
+        genesis.nBits = 0x1e0ffff0;
+        genesis.nNonce = 508753;
         genesis.nVersion = 2;
+
 	hashGenesisBlock = genesis.GetHash();
-	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
-	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-       assert(hashGenesisBlock == uint256("0x027ecb41a5bc08ba04bf284b781b5b4406ddfd52643571a96b25aa851ebb9a51"));
+//    printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+//    printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
+       assert(hashGenesisBlock == uint256("0x8aba8ae9ac24b01f086e60cda9e3e15e274344ecc661c5e79ca0f54a70be0567"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -215,26 +212,24 @@ public:
         pchMessageStart[3] = 0xda;
         nSubsidyHalvingInterval = 300;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
-        genesis.nTime = 1405274400;
-        genesis.nBits = CBigNum(~uint256(0)).GetCompact();
-	genesis.nNonce = 713058;
+        genesis.nTime = 1539356304;
+        genesis.nBits = 0x2100ffff;
+        genesis.nNonce = 21341;
         genesis.nVersion = 2;
-	/*
-	CBigNum bnTarget;
-	bnTarget.SetCompact(genesis.nBits);
-	uint256 target = bnTarget.getuint256();
-	printf("have to beat %s\n",target.GetHex().c_str());
-	unsigned int curNonce = 0;
-	while (1) {
-	  genesis.nNonce = curNonce;
-	  uint256 hash = genesis.GetPoWHash();
-	  if (hash<=target) break;
-	  curNonce++;
-	}
-	printf("nonce is %d\n",curNonce);
-	*/
+
+//        CBigNum bnTarget;
+//        bnTarget.SetCompact(genesis.nBits);
+//        uint256 target = bnTarget.getuint256();
+//        unsigned int curNonce = 0;
+//        while (1) {
+//          genesis.nNonce = curNonce;
+//          uint256 hash = genesis.GetPoWHash();
+//          if (hash<=target) break;
+//          curNonce++;
+//        }
+//        printf("nonce is %d\n",curNonce);
+
         hashGenesisBlock = genesis.GetHash();
-	genesis.nNonce = 3;
         nDefaultPort = 18444;
         strDataDir = "regtest";
 	fStrictChainId = true;
@@ -242,9 +237,9 @@ public:
 	nEquihashN = 200;
 	nEquihashK = 9;
 	fMineBlocksOnDemand = true;
-	//printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
-	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0xd02a2aa25a5d3420c8817e0eb4d3f69ee32a9bbcd00a2c916c3ca3f213215114"));
+//    printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
+//    printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
+        assert(hashGenesisBlock == uint256("0x3730e4641d1597307eb39ab353c3abe6c6399492738bea9a3795416a4928a053"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }

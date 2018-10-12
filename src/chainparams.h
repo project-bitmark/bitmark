@@ -74,9 +74,6 @@ public:
     unsigned int EquihashK() const { return nEquihashK; }
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
 
-    int64_t GetFork2Height() const { return nForkHeight2; }
-    bool    OnFork2(int64_t blockHeight) const { return blockHeight >= nForkHeight2; }
-
     // CEM Look-Back time frame (from which to find the refrence highest or peak hashrate)    Policy is relaxed to ~ 25% of original value.
     //       CEM v0.1 looks back 365 days.       CEM v0.2 looks back only 90 days
     //       This allow the maximum emission rate to be resumed that much sooner.
@@ -111,7 +108,6 @@ protected:
     unsigned int nEquihashK = 0;
     bool fMineBlocksOnDemand = true;
 
-    int64_t nForkHeight2;
 };
 
 /**

@@ -163,7 +163,7 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-	const char* pszTimestamp = "Fork 2 Testnet";
+    const char* pszTimestamp = "Testing Testnet";
 	CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -174,15 +174,13 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1539351475;
+        genesis.nTime = 1534873293;
         genesis.nBits = 0x1e0ffff0;
-        genesis.nNonce = 508753;
-        genesis.nVersion = 2;
-
+        genesis.nNonce = 181283;
 	hashGenesisBlock = genesis.GetHash();
 //    printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 //    printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-       assert(hashGenesisBlock == uint256("0x8aba8ae9ac24b01f086e60cda9e3e15e274344ecc661c5e79ca0f54a70be0567"));
+       assert(hashGenesisBlock == uint256("45ccef675b070c6eae865e1fcd3978253ec52a960af9abbb91bd1d935513e5be"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

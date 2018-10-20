@@ -920,11 +920,19 @@ public:
     }
 
     bool onFork() const {
+        if (Params().NetworkID() == CChainParams::TESTNET) {
+            if (this->nHeight >= 500 ) return true;
+            return false;
+        }
       if (this->nHeight >= nForkHeight && IsSuperMajority(4,this->pprev,75,100)) return true;
       return false;
     }
 
     bool onFork2() const {
+        if (Params().NetworkID() == CChainParams::TESTNET) {
+            if (this->nHeight >= 2000 ) return true;
+            return false;
+        }
       if (this->nHeight >= nForkHeight && IsSuperMajority(5,this->pprev,75,100)) return true;
       return false;
     }

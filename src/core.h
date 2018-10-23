@@ -820,7 +820,7 @@ public:
     int64_t nMoneySupply;
 
     // the scaling factor for the block
-    unsigned int subsidyScalingFactor;
+    CBigNum subsidyScalingFactor;
     
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
@@ -924,6 +924,16 @@ public:
       return false;
     }
 
+    bool onFork2() const {
+      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant12(4,true,this->pprev,950,1000)) return true;
+      return false;
+    }
+
+    bool onFork3() const {
+      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant2(4,true,this->pprev,950,1000)) return true;
+      return false;
+    }
+    
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
@@ -977,17 +987,18 @@ public:
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
-
+  
+    // Get Average Work of latest 50 Blocks
     CBigNum GetBlockWorkAv() const
     {
       CBigNum work = 0;
       const CBlockIndex * pindex = this;
       int n = 0;
       for (int i=0; i<50; i++) {
-	work += pindex->GetBlockWork();
-	n++;
-	pindex = pindex->pprev;
-	if (!pindex) break;
+        work += pindex->GetBlockWork();
+        n++;
+        pindex = pindex->pprev;
+        if (!pindex) break;
       }
       return work/n;
     }
@@ -1025,6 +1036,22 @@ public:
      */
     static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart,
                                 unsigned int nRequired, unsigned int nToCheck);
+
+    /**
+     * Returns true if there are nRequired or more blocks of minVersion or above
+     * in the last nToCheck blocks, starting at pstart and going backwards,
+     * with variant matching as well.
+     */
+    static bool IsSuperMajorityVariant12(int minVersion, bool variant, const CBlockIndex* pstart,
+                                unsigned int nRequired, unsigned int nToCheck);
+
+    /**
+     * Returns true if there are nRequired or more blocks of minVersion or above
+     * in the last nToCheck blocks, starting at pstart and going backwards,
+     * with variant2 matching as well.
+     */
+    static bool IsSuperMajorityVariant2(int minVersion, bool variant, const CBlockIndex* pstart,
+				       unsigned int nRequired, unsigned int nToCheck);
 
     std::string ToString() const
     {
@@ -1371,7 +1398,7 @@ public:
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
     int Height() const {
-        return vChain.size() - 1;
+      return vChain.size() - 1;
     }
 
     /** Set/initialize a chain with a given tip. Returns the forking point. */
@@ -1389,6 +1416,10 @@ extern CChain chainActive;
 
 /* Get base version number */
 int GetBlockVersion (const int nVersion);
+
+bool GetBlockVariant (const int nVersion);
+
+bool GetBlockVariant2 (const int nVersion);
 
 //#include "coins.h"
 

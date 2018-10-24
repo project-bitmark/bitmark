@@ -925,12 +925,12 @@ public:
     }
 
     bool onFork2() const {
-      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant12(4,true,this->pprev,950,1000)) return true;
+      //if (this->nHeight >= nForkHeight && IsSuperMajorityVariant12(4,true,this->pprev,950,1000)) return true;
       return false;
     }
 
     bool onFork3() const {
-      if (this->nHeight >= nForkHeight && IsSuperMajorityVariant2(4,true,this->pprev,950,1000)) return true;
+      //if (this->nHeight >= nForkHeight && IsSuperMajorityVariant2(4,true,this->pprev,950,1000)) return true;
       return false;
     }
     

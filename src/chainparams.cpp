@@ -92,11 +92,11 @@ public:
         //vSeeds.push_back(CDNSSeedData("bitmark.one",  "guide.bitmark.one"));	// mining.mymarks.co		198.58.105.225
         //vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));    // seed.bitmark.co		173.255.252.140
         //vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));	// uk.bitmark.one		139.162.232.242
-//        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));  // bitmark.chainetics.com	216.240.168.227
-//        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));	// seed.bitmark.mx		204.68.122.7
-//        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));	// vps.bitmark.co		204.68.122.22
-//        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));	// audit.bitmark.io		204.68.122.12
-//        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));	// xina.bitmark.mx		204.68.122.41
+        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));  // bitmark.chainetics.com	216.240.168.227
+        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));	// seed.bitmark.mx		204.68.122.7
+        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));	// vps.bitmark.co		204.68.122.22
+        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));	// audit.bitmark.io		204.68.122.12
+        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));	// xina.bitmark.mx		204.68.122.41
 	vSeeds.push_back(CDNSSeedData("bitmark.cc","seed.bitmark.cc")); // explorer.bitmark.cc 94.23.33.83
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
@@ -192,7 +192,7 @@ public:
 	}		
 	
         vSeeds.clear();
-	//vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
+	vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
         vSeeds.push_back(CDNSSeedData("bitmark.cc", "seed.bitmark.cc"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // u

@@ -1,6 +1,7 @@
-Bitmark 0.9.4 BETA
+Bitmark 0.9.8.3.1 BETA
 
-Copyright (c) 2009-2015 Bitmark Core Developers
+Copyright (c) 2009-2015 Bitcoin Core Developers
+Copyright (c) 2014-2018 Bitmark Core Developers
 
 Distributed under the MIT/X11 software license, see the accompanying
 file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -27,5 +28,5 @@ depending on the speed of your computer and network connection, the synchronizat
 process can take anywhere from a few hours to a day or more.
 
 See the bitmark wiki at:
-  https://en.bitmark.it/wiki/Main_Page
+https://github.com/project-bitmark/bitmark/wiki
 for more help and information.

@@ -1,3 +1,4 @@
+
 #ifndef CLIENTVERSION_H
 #define CLIENTVERSION_H
 
@@ -15,7 +16,7 @@
 #define CLIENT_VERSION_BUILD       3
 
 // Set to true for release, false for prerelease (rc: release candidate)  or test build
-#define CLIENT_VERSION_IS_RELEASE  true
+#define CLIENT_VERSION_IS_RELEASE  false
 
 // Copyright year (2009-this)
 

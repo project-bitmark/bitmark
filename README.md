@@ -28,8 +28,8 @@ Bitmark aims to be a relatively stable, user focused crypto currency, which refi
 
 * [Documentation and Plan](https://github.com/project-bitmark/bitmark/wiki)
 * [Discussion and Updates](https://bitcointalk.org/index.php?topic=660544.0)
-* [Block Explorer](https://explorer.bitmark.cc)
-* [Testnet Explorer](https://explorer.bitmark.cc/testnet)
+* [Block Explorer](https://explorer.bitmark.co)
+* [Testnet Explorer](https://explorer.bitmark.co/testnet)
 
 ## Getting Bitmark
 

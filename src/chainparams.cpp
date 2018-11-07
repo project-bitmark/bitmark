@@ -19,10 +19,6 @@ using namespace boost::assign;
 // Main network
 //
 
-
-// 	Note: 	If you are able and  wish to run a Bitmark permanent Seed Node and/or DNS Seeder, 
-//		    please contact  ops@bitmark.io
-
 // Hard-Coded (Fixed) Network Nodes
 unsigned int pnSeed[] =
 {
@@ -40,6 +36,11 @@ unsigned int pnSeed[] =
 	0x8BA2E8F2,		// uk.bitmark.one	IP = 139.162.232.242	jim
 	0x32741C88,		// mining.mymarks.io	IP = 50.116.28.136	vic
 };
+
+unsigned int pnSeedTest[] =
+  {
+    0x5E172153,
+  };
 
 class CMainParams : public CChainParams {
 public:
@@ -62,9 +63,7 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 518191;  // Fork #2 ForkHeight - Bitmark definitive v0.9.8.3 Release - Estimated: September 8 2018
-
-        // Build the Genesis block.
+        // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
         CTransaction txNew;
         txNew.vin.resize(1);
@@ -85,23 +84,20 @@ public:
         assert(hashGenesisBlock == uint256("0xc1fb746e87e89ae75bdec2ef0639a1f6786744639ce3d0ece1dcf979b79137cb"));
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
-
-// 	Note: 	If you are able and  wish to run a Bitmark permanent Seed Node and/or DNS Seeder, 
-//		    please contact  ops@bitmark.io
-
 	// DNS Seeders - Verified,   July 18 2018    - dBKeys
 	
 	//                               Domain            Sub-Domain          Name Served  by   machine:
-        vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));    // explorer.bitmark.io		139.162.35.170		ben
-        vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));    // jp.bitmark.io		139.162.122.138		akio
-        vSeeds.push_back(CDNSSeedData("bitmark.one",  "guide.bitmark.one"));	// mining.mymarks.co		198.58.105.225
-        vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));    // seed.bitmark.co		173.255.252.140		sam
-        vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));	// uk.bitmark.one		139.162.232.242		jim
-        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));    // bitmark.chainetics.com	216.240.168.227 	cameron
-//        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));	// seed.bitmark.mx		204.68.122.7
-        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));	// vps.bitmark.co		204.68.122.22		emma
-        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));	// audit.bitmark.io		204.68.122.12		audra
-//        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));	// xina.bitmark.mx		204.68.122.41
+        //vSeeds.push_back(CDNSSeedData("bitmark.one",   "biji.bitmark.one"));    // explorer.bitmark.io		139.162.35.170
+        //vSeeds.push_back(CDNSSeedData("bitmark.one",  "shido.bitmark.one"));    // jp.bitmark.io		139.162.122.138
+        //vSeeds.push_back(CDNSSeedData("bitmark.one",  "guide.bitmark.one"));	// mining.mymarks.co		198.58.105.225
+        //vSeeds.push_back(CDNSSeedData("zmark.org",         "ra.zmark.org"));    // seed.bitmark.co		173.255.252.140
+        //vSeeds.push_back(CDNSSeedData("zmark.org",      "shiba.zmark.org"));	// uk.bitmark.one		139.162.232.242
+        vSeeds.push_back(CDNSSeedData("zmark.org",        "btm.zmark.org"));  // bitmark.chainetics.com	216.240.168.227
+        vSeeds.push_back(CDNSSeedData("zmark.org",       "btmk.zmark.org"));	// seed.bitmark.mx		204.68.122.7
+        vSeeds.push_back(CDNSSeedData("bitmark.guru",   "da.bitmark.guru"));	// vps.bitmark.co		204.68.122.22
+        vSeeds.push_back(CDNSSeedData("bitmark.guru", "btmk.bitmark.guru"));	// audit.bitmark.io		204.68.122.12
+        vSeeds.push_back(CDNSSeedData("bitmark.one",      "da.bitmark.mx"));	// xina.bitmark.mx		204.68.122.41
+	vSeeds.push_back(CDNSSeedData("bitmark.cc","seed.bitmark.cc")); // explorer.bitmark.cc 94.23.33.83
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,85); // b
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
@@ -165,9 +161,7 @@ public:
 	nEquihashK = 9;
 	fMineBlocksOnDemand = false;
 
-        nForkHeight2 = 2000; // Testnet 4  ForkHeight - for Fork #2 - Bitmark definitive v0.9.8.3 Release - Estimated: September 8 2018
-
-	const char* pszTimestamp = "Fork 2 Testnet";
+	const char* pszTimestamp = "Testing Testnet";
 	CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -178,19 +172,28 @@ public:
 	genesis.hashPrevBlock = 0;
 	genesis.hashMerkleRoot = genesis.BuildMerkleTree();
 
-        genesis.nTime = 1528022249;
-        genesis.nBits = CBigNum(~uint256(0)).GetCompact();
-	genesis.nNonce = 235437;
-        genesis.nVersion = 2;
+        genesis.nTime = 1534873293;
+        genesis.nBits = 0x1e0ffff0;
+	genesis.nNonce = 181283;
 	hashGenesisBlock = genesis.GetHash();
 	//printf("hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhash = %s\n",genesis.GetPoWHash().GetHex().c_str());
-       assert(hashGenesisBlock == uint256("0x027ecb41a5bc08ba04bf284b781b5b4406ddfd52643571a96b25aa851ebb9a51"));
+        assert(hashGenesisBlock == uint256("45ccef675b070c6eae865e1fcd3978253ec52a960af9abbb91bd1d935513e5be"));
 
         vFixedSeeds.clear();
+	        for (unsigned int i = 0; i < ARRAYLEN(pnSeedTest); i++)
+        {
+            const int64_t nOneWeek = 7*24*60*60;
+            struct in_addr ip;
+            memcpy(&ip, &pnSeed[i], sizeof(ip));
+            CAddress addr(CService(ip, GetDefaultPort()));
+            addr.nTime = GetTime() - GetRand(nOneWeek) - nOneWeek;
+            vFixedSeeds.push_back(addr);
+	}		
+	
         vSeeds.clear();
 	vSeeds.push_back(CDNSSeedData("bitmark.io", "us.bitmark.io"));
-        vSeeds.push_back(CDNSSeedData("bitmark.co", "explorer.bitmark.co"));
+        vSeeds.push_back(CDNSSeedData("bitmark.cc", "seed.bitmark.cc"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,130); // u
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
@@ -216,9 +219,8 @@ public:
         nSubsidyHalvingInterval = 300;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
-        genesis.nBits = CBigNum(~uint256(0)).GetCompact();
+        genesis.nBits = 0x207fffff;
 	genesis.nNonce = 713058;
-        genesis.nVersion = 2;
 	/*
 	CBigNum bnTarget;
 	bnTarget.SetCompact(genesis.nBits);
@@ -244,7 +246,7 @@ public:
 	fMineBlocksOnDemand = true;
 	//printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
-        assert(hashGenesisBlock == uint256("0xd02a2aa25a5d3420c8817e0eb4d3f69ee32a9bbcd00a2c916c3ca3f213215114"));
+        assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }

@@ -435,8 +435,15 @@ Value getwork(const Array& params, bool fHelp)
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
 	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100))) {
-	  //pblock->nVersion = 3;
 	  pblock->SetAlgo(miningAlgo);
+	}
+
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexPrev,950,1000))) {
+	  pblock->SetVariant(true);
+	}
+
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant2(4,true,pindexPrev,950,1000))) {
+	  pblock->SetVariant2(true);
 	}
 
         // Update nTime
@@ -791,7 +798,7 @@ Value getauxblock(const Array& params, bool fHelp)
 	  vNewBlockTemplate.clear();
 	}
 
-	pblocktemplate = CreateNewBlockWithKey(reservekey, true);
+	pblocktemplate = CreateNewBlockWithKey(reservekey);
 	if (!pblocktemplate)
 	  throw JSONRPCError(RPC_OUT_OF_MEMORY, "out of memory");
 
@@ -801,6 +808,7 @@ Value getauxblock(const Array& params, bool fHelp)
 
 	CBlock* pblock = &pblocktemplate->block;
 	IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+	pblock->SetAuxpow(true);
 	pblock->SetChainId(Params().GetAuxpowChainId());
 	pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 

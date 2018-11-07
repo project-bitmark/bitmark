@@ -29,8 +29,8 @@ extern const std::string CLIENT_DATE;
 // network protocol versioning
 //
 
-// Bump up to 70004 to easily discriminate earlier versions via DNS Seeder
-static const int PROTOCOL_VERSION = 70004;
+// Bump up to 70003 to easily discriminate earlier versions via DNS Seeder
+static const int PROTOCOL_VERSION = 70003;
 
 // intial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;

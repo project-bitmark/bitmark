@@ -1742,9 +1742,15 @@ void CheckForkWarningConditions()
     {
         if (!fLargeWorkForkFound)
         {
-        	std::string warning = std::string("'Warning: Large-work fork detected, forking after block ") +
-        			pindexBestForkBase->phashBlock->ToString() + std::string("'");
-        	CAlert::Notify(warning, true);
+	  std::string warning;
+	  if (!pindexBestForkBase || !pindexBestForkBase->phashBlock) {
+	    warning = std::string("Warning: Large-work fork detected, unknown block");
+	      }
+	  else {
+	    warning = std::string("'Warning: Large-work fork detected, forking after block ") +
+	      pindexBestForkBase->phashBlock->ToString() + std::string("'");
+	  }
+	  CAlert::Notify(warning, true);
         }
         if (pindexBestForkTip)
         {

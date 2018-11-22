@@ -1,4 +1,4 @@
-Bitmark 0.9.7.2	BETA
+Bitmark 0.9.7.3	BETA
 ===========================================
 
 Copyright (c) 2009-2018 Bitmark Developers

@@ -204,6 +204,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "getdifficulty"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getdifficulty"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "chaindynamics" && n>0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "mark" && n>3) ConvertTo<double>(params[3]);
     return params;
 }
 

@@ -669,3 +669,36 @@ Value chaindynamics(const Array& params, bool fHelp)
 
     return obj;
 }
+
+Value mark(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() < 1 || params.size() > 4)
+    throw runtime_error(
+			            "mark data (comment address amount)\n"
+				    "\nArguments:\n"
+				    "1. \"data\"     (string) The data to imbed into the blockchain (max 64 characters). Can be a hash.\n"
+				    "2. \"comment\"     (string, optional) A comment describing the data or providing a link where it is available (max 64 characters)\n"
+				    "3. \"address\"     (string, optional) A payment address, which can be used for tipping the author of the data\n"
+				    "4. \"amount\"     (float, optional) The amount to pay\n"
+				    "Returns the transaction id.\n"
+				    "\"txid\" (string),\n"
+			);
+  int64_t nAmount = 0;
+  CBitmarkAddress address;
+  CWalletTx wtx;
+  if (params.size()==4) {
+    address = CBitmarkAddress(params[2].get_str());
+    if (!address.IsValid())
+      throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitmark address");
+    nAmount = AmountFromValue(params[3]);
+    EnsureWalletIsUnlocked();
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+  }
+  else {
+    EnsureWalletIsUnlocked();
+    string strError = pwalletMain->SendMoneyToNoDestination(wtx);
+  }
+
+  return wtx.GetHash().GetHex();
+
+}

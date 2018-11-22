@@ -1334,7 +1334,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
         }
         nValue += s.second;
     }
-    if (vecSend.empty() || nValue < 0)
+    if (/*vecSend.empty() ||*/ nValue < 0)
     {
         strFailReason = _("Transaction amounts must be positive");
         return false;
@@ -1569,7 +1569,34 @@ string CWallet::SendMoney(CScript scriptPubKey, int64_t nValue, CWalletTx& wtxNe
     return "";
 }
 
+string CWallet::SendMoneyNoDestination(CWalletTx& wtxNew)
+{
+  CReserveKey reservekey(this);
+  int64_t nFeeRequired;
+  vector< pair<CScript, int64_t> > vecSend; //empty vector so that money will go to a change address only
 
+  if (IsLocked())
+    {
+      string strError = _("Error: Wallet locked, unable to create transaction!");
+      LogPrintf("SendMoney() : %s", strError);
+      return strError;
+    }
+  string strError;
+  if (!CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, strError))
+    {
+      if (nFeeRequired > GetBalance())
+	strError = strprintf(_("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity,\
+ or use of recently received funds!"), FormatMoney(nFeeRequired));
+      LogPrintf("SendMoney() : %s\n", strError);
+      return strError;
+    }
+
+  if (!CommitTransaction(wtxNew, reservekey))
+    return _("Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as\
+ if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
+
+  return "";
+}
 
 string CWallet::SendMoneyToDestination(const CTxDestination& address, int64_t nValue, CWalletTx& wtxNew)
 {
@@ -1587,7 +1614,13 @@ string CWallet::SendMoneyToDestination(const CTxDestination& address, int64_t nV
 }
 
 
+string CWallet::SendMoneyToNoDestination(CWalletTx& wtxNew)
+{
+  if (nTransactionFee > GetBalance())
+    return _("Insufficient funds");
 
+  return SendMoneyNoDestination(wtxNew);
+}
 
 DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 {

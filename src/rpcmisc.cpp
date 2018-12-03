@@ -686,17 +686,23 @@ Value mark(const Array& params, bool fHelp)
   int64_t nAmount = 0;
   CBitmarkAddress address;
   CWalletTx wtx;
+  const char * data = params[0].get_str().c_str();
+  const char * comment = 0;
+  if (params.size()>1) {
+    comment = params[1].get_str().c_str();
+    if (strlen(comment)==0) comment = 0;
+  }
   if (params.size()==4) {
     address = CBitmarkAddress(params[2].get_str());
     if (!address.IsValid())
       throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitmark address");
     nAmount = AmountFromValue(params[3]);
     EnsureWalletIsUnlocked();
-    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx, data, comment);
   }
   else {
     EnsureWalletIsUnlocked();
-    string strError = pwalletMain->SendMoneyToNoDestination(wtx);
+    string strError = pwalletMain->SendMoneyToNoDestination(wtx,data,comment);
   }
 
   return wtx.GetHash().GetHex();

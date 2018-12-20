@@ -2322,6 +2322,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 		  nOutput = CScriptNum(vSolutions[0]).getint();
 		}
 		std::vector<unsigned char> comment = vSolutions[vSolutions.size()-1];
+		if (comment.size()<1 || comment.size()>255) {
+		  return state.DoS(100,error("ConnectBlock(): comment size outside of range [1,255]\n"),REJECT_INVALID,"bad-comment-size");
+		}
 		if (haveTxid) {
 		  LogPrintf("txid %s nOutput %d comment %s\n",HexStr(vSolutions[0]).c_str(),nOutput,HexStr(comment.begin(),comment.end()).c_str());
 		}

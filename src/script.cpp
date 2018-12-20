@@ -71,6 +71,7 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_SCRIPTHASH: return "scripthash";
     case TX_MULTISIG: return "multisig";
     case TX_NULL_DATA: return "nulldata";
+    case TX_COMMENT: return "comment";
     }
     return NULL;
 }
@@ -199,7 +200,7 @@ const char* GetOpName(opcodetype opcode)
     case OP_NOP1                   : return "OP_NOP1";
     case OP_NOP2                   : return "OP_NOP2";
     case OP_NOP3                   : return "OP_NOP3";
-    case OP_NOP4                   : return "OP_NOP4";
+    case OP_NOP4                   : return "OP_COMMENT";
     case OP_NOP5                   : return "OP_NOP5";
     case OP_NOP6                   : return "OP_NOP6";
     case OP_NOP7                   : return "OP_NOP7";
@@ -562,9 +563,51 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     break;
 	        }
 
-                case OP_NOP3: case OP_NOP4: case OP_NOP5:
-                case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
-                break;
+	    case OP_NOP3:
+	      break;
+	    case OP_NOP4: // OP_COMMENT - for commenting on marking transactions
+	      {
+		
+		if (!(flags & SCRIPT_VERIFY_COMMENT))
+		  break; // not enabled; treat as a NOP
+
+		LogPrintf("script verify comment\n");
+		
+		if (stack.size() < 1)
+		  return false;
+		
+		if (stack.size() == 3) {
+		  valtype& txid = stacktop(-3);
+		  if (txid.size() != 32)
+		    return false;
+		  int nOutput = CScriptNum(stacktop(-2)).getint();
+		  valtype& comment = stacktop(-1);
+		  if (comment.size() > 255 || comment.size()<1)
+		    return false;
+		  popstack(stack);
+		  popstack(stack);
+		  popstack(stack);
+		}
+		else if (stack.size() == 2) {
+		  valtype& stackm2 = stacktop(-2);
+		  valtype& comment = stacktop(-1);
+		  if (stackm2.size() != 32 && stackm2.size()>8)
+		    return false;
+		  if (comment.size() > 255 || comment.size()<1)
+		    return false;
+		  popstack(stack);
+		  popstack(stack);
+		}
+		else {
+		  valtype& comment = stacktop(-1);
+		  if (comment.size() > 255 || comment.size()<1)
+		    return false;
+		  popstack(stack);
+		}
+	      }
+	      break;
+	    case OP_NOP5: case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
+	      break;
 
                 case OP_IF:
                 case OP_NOTIF:
@@ -1153,12 +1196,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
     return true;
 }
 
-
-
-
-
-
-
 namespace {
 /** Wrapper that serializes like CTransaction, but with the modifications
  *  required for the signature hash done in-place
@@ -1278,7 +1315,6 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsig
     return ss.GetHash();
 }
 
-
 // Valid signature cache, to avoid doing expensive ECDSA signature checking
 // twice for every transaction (once when accepted into memory pool, and
 // again when accepted into the block chain)
@@ -1380,19 +1416,12 @@ bool CheckSig(vector<unsigned char> vchSig, const vector<unsigned char> &vchPubK
     return true;
 }
 
-
-
-
-
-
-
-
-
 //
 // Return public keys or hashes from scriptPubKey, for 'standard' transaction types.
 //
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
 {
+  LogPrintf("Run solver with scriptPubKey %s\n",HexStr(scriptPubKey));
     // Templates
     static multimap<txnouttype, CScript> mTemplates;
     if (mTemplates.empty())
@@ -1409,6 +1438,8 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
         // Empty, provably prunable, data-carrying output
         mTemplates.insert(make_pair(TX_NULL_DATA, CScript() << OP_RETURN << OP_SMALLDATA));
         mTemplates.insert(make_pair(TX_NULL_DATA, CScript() << OP_RETURN));
+
+	mTemplates.insert(make_pair(TX_COMMENT, CScript() << OP_COMMENT));
     }
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:
@@ -1425,84 +1456,115 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
     const CScript& script1 = scriptPubKey;
     BOOST_FOREACH(const PAIRTYPE(txnouttype, CScript)& tplate, mTemplates)
     {
-        const CScript& script2 = tplate.second;
-        vSolutionsRet.clear();
+      LogPrintf("check if matches %s\n",GetTxnOutputType(tplate.first));
+      const CScript& script2 = tplate.second;
+      vSolutionsRet.clear();
 
-        opcodetype opcode1, opcode2;
-        vector<unsigned char> vch1, vch2;
+      bool haveOpComment = false;
+ 
+      
+      opcodetype opcode1, opcode2;
+      vector<unsigned char> vch1, vch2;
 
-        // Compare
-        CScript::const_iterator pc1 = script1.begin();
-        CScript::const_iterator pc2 = script2.begin();
-        while (true)
+      // Compare
+      CScript::const_iterator pc1 = script1.begin();
+      CScript::const_iterator pc2 = script2.begin();
+      while (true)
         {
-            if (pc1 == script1.end() && pc2 == script2.end())
+	  if (pc1 == script1.end() && pc2 == script2.end())
             {
-                // Found a match
-                typeRet = tplate.first;
-                if (typeRet == TX_MULTISIG)
+	      LogPrintf("found a match\n");
+	      // Found a match
+	      typeRet = tplate.first;
+	      if (typeRet == TX_MULTISIG)
                 {
-                    // Additional checks for TX_MULTISIG:
-                    unsigned char m = vSolutionsRet.front()[0];
-                    unsigned char n = vSolutionsRet.back()[0];
-                    if (m < 1 || n < 1 || m > n || vSolutionsRet.size()-2 != n)
-                        return false;
+		  // Additional checks for TX_MULTISIG:
+		  unsigned char m = vSolutionsRet.front()[0];
+		  unsigned char n = vSolutionsRet.back()[0];
+		  if (m < 1 || n < 1 || m > n || vSolutionsRet.size()-2 != n)
+		    return false;
                 }
-                return true;
+	      if (typeRet == TX_COMMENT) {
+		if (!haveOpComment) {
+		  vSolutionsRet.clear();
+		  typeRet = TX_NONSTANDARD;
+		  return false;
+		}
+	      }
+	      return true;
             }
-            if (!script1.GetOp(pc1, opcode1, vch1))
-                break;
-            if (!script2.GetOp(pc2, opcode2, vch2))
-                break;
+	  LogPrintf("script1 getop\n");
+	  if (!script1.GetOp(pc1, opcode1, vch1))
+	    break;
+	  LogPrintf("script2 getop\n");
+	  if (!script2.GetOp(pc2, opcode2, vch2))
+	    break;
 
-            // Template matching opcodes:
-            if (opcode2 == OP_PUBKEYS)
+	  // Template matching opcodes:
+	  if (opcode2 == OP_PUBKEYS)
             {
-                while (vch1.size() >= 33 && vch1.size() <= 65)
+	      while (vch1.size() >= 33 && vch1.size() <= 65)
                 {
-                    vSolutionsRet.push_back(vch1);
-                    if (!script1.GetOp(pc1, opcode1, vch1))
-                        break;
+		  vSolutionsRet.push_back(vch1);
+		  if (!script1.GetOp(pc1, opcode1, vch1))
+		    break;
                 }
-                if (!script2.GetOp(pc2, opcode2, vch2))
-                    break;
-                // Normal situation is to fall through
-                // to other if/else statements
+	      if (!script2.GetOp(pc2, opcode2, vch2))
+		break;
+	      // Normal situation is to fall through
+	      // to other if/else statements
             }
 
-            if (opcode2 == OP_PUBKEY)
+	  if (opcode2 == OP_PUBKEY)
             {
-                if (vch1.size() < 33 || vch1.size() > 65)
-                    break;
-                vSolutionsRet.push_back(vch1);
+	      if (vch1.size() < 33 || vch1.size() > 65)
+		break;
+	      vSolutionsRet.push_back(vch1);
             }
-            else if (opcode2 == OP_PUBKEYHASH)
+	  else if (opcode2 == OP_PUBKEYHASH)
             {
-                if (vch1.size() != sizeof(uint160))
-                    break;
-                vSolutionsRet.push_back(vch1);
+	      if (vch1.size() != sizeof(uint160))
+		break;
+	      vSolutionsRet.push_back(vch1);
             }
-            else if (opcode2 == OP_SMALLINTEGER)
+	  else if (opcode2 == OP_SMALLINTEGER)
             {   // Single-byte small integer pushed onto vSolutions
-                if (opcode1 == OP_0 ||
-                    (opcode1 >= OP_1 && opcode1 <= OP_16))
+	      if (opcode1 == OP_0 ||
+		  (opcode1 >= OP_1 && opcode1 <= OP_16))
                 {
-                    char n = (char)CScript::DecodeOP_N(opcode1);
-                    vSolutionsRet.push_back(valtype(1, n));
+		  char n = (char)CScript::DecodeOP_N(opcode1);
+		  vSolutionsRet.push_back(valtype(1, n));
                 }
-                else
-                    break;
+	      else
+		break;
             }
-            else if (opcode2 == OP_SMALLDATA)
+	  else if (opcode2 == OP_SMALLDATA)
             {
-                // small pushdata, <= MAX_OP_RETURN_RELAY bytes
-                if (vch1.size() > MAX_OP_RETURN_RELAY)
-                    break;
+	      // small pushdata, <= MAX_OP_RETURN_RELAY bytes
+	      if (vch1.size() > MAX_OP_RETURN_RELAY)
+		break;
             }
-            else if (opcode1 != opcode2 || vch1 != vch2)
+	  else if (opcode2 == OP_COMMENT) {
+	    LogPrintf("opcode2 == OP_COMMENT\n");
+	    do {
+	      if (opcode1 == OP_COMMENT) {
+		haveOpComment = true;
+	      }
+	      else if (opcode1 == OP_0 || (opcode1 >= OP_1 && opcode1 <= OP_16)) {
+		char n = (char)CScript::DecodeOP_N(opcode1);
+		vSolutionsRet.push_back(valtype(1, n));
+		LogPrintf("pushed valtype 1,%d\n",n);
+	      }
+	      else if (vch1.size()>0) {
+		vSolutionsRet.push_back(vch1); // push txid, output, comment into vSolutionsRet
+		LogPrintf("pushed vch1: %s\n",HexStr(vch1).c_str());
+	      }
+	    } while (script1.GetOp(pc1, opcode1, vch1));
+	  }
+	  else if (opcode1 != opcode2 || vch1 != vch2)
             {
-                // Others must match exactly
-                break;
+	      // Others must match exactly
+	      break;
             }
         }
     }
@@ -1511,7 +1573,6 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
     typeRet = TX_NONSTANDARD;
     return false;
 }
-
 
 bool Sign1(const CKeyID& address, const CKeyStore& keystore, uint256 hash, int nHashType, CScript& scriptSigRet)
 {
@@ -1640,7 +1701,6 @@ unsigned int HaveKeys(const vector<valtype>& pubkeys, const CKeyStore& keystore)
     }
     return nResult;
 }
-
 
 class CKeyStoreIsMineVisitor : public boost::static_visitor<bool>
 {
@@ -1871,7 +1931,6 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     return true;
 }
 
-
 bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType)
 {
     assert(nIn < txTo.vin.size());
@@ -1904,7 +1963,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     }
 
     // Test solution
-    return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY, 0);
+    return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_COMMENT, 0);
 }
 
 bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType)

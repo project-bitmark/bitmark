@@ -963,7 +963,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!CheckInputs(tx, state, view, true, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY))
+        if (!CheckInputs(tx, state, view, true, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_COMMENT))
         {
             return error("AcceptToMemoryPool: : ConnectInputs failed %s", hash.ToString());
         }
@@ -1084,6 +1084,30 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
         }
     }
 
+    return false;
+}
+
+bool GetTransactionPast(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock)
+{
+    CBlockIndex *pindexSlow = NULL;
+    {
+      CDiskTxPos postx;
+      if (pblocktree->ReadTxIndex(hash, postx)) {
+        CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+        CBlockHeader header;
+        try {
+          file >> header;
+          fseek(file, postx.nTxOffset, SEEK_CUR);
+          file >> txOut;
+        } catch (std::exception &e) {
+          return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+        hashBlock = header.GetHash();
+        if (txOut.GetHash() != hash)
+          return error("%s : txid mismatch", __func__);
+        return true;
+      }
+    }
     return false;
 }
 
@@ -2225,6 +2249,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       flags |= SCRIPT_VERIFY_DERSIG;
     }
 
+    if (TestNet()) {
+      flags |=  SCRIPT_VERIFY_COMMENT;
+    }
+    
     CBlockUndo blockundo;
 
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
@@ -2248,24 +2276,74 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
         if (!tx.IsCoinBase())
         {
-            if (!view.HaveInputs(tx))
-                return state.DoS(100, error("ConnectBlock() : inputs missing/spent"),
-                                 REJECT_INVALID, "bad-txns-inputs-missingorspent");
+	  if (!view.HaveInputs(tx))
+	    return state.DoS(100, error("ConnectBlock() : inputs missing/spent"),
+			     REJECT_INVALID, "bad-txns-inputs-missingorspent");
+	  
+	  // Add in sigops done by pay-to-script-hash inputs;
+	  // this is to prevent a "rogue miner" from creating
+	  // an incredibly-expensive-to-validate block.
+	  nSigOps += GetP2SHSigOpCount(tx, view);
+	  if (nSigOps > MAX_BLOCK_SIGOPS)
+	    return state.DoS(100, error("ConnectBlock() : too many sigops"),
+			     REJECT_INVALID, "bad-blk-sigops");
+	  
+	  nFees += view.GetValueIn(tx)-tx.GetValueOut();
+	  
+	  std::vector<CScriptCheck> vChecks;
+	  LogPrintf("check inputs\n");
+	  if (!CheckInputs(tx, state, view, fScriptChecks, flags, nScriptCheckThreads ? &vChecks : NULL))
+	    return false;
+	  LogPrintf("checked inputs\n");
+	  control.Add(vChecks);
 
-			// Add in sigops done by pay-to-script-hash inputs;
-			// this is to prevent a "rogue miner" from creating
-			// an incredibly-expensive-to-validate block.
-			nSigOps += GetP2SHSigOpCount(tx, view);
-			if (nSigOps > MAX_BLOCK_SIGOPS)
-				return state.DoS(100, error("ConnectBlock() : too many sigops"),
-								 REJECT_INVALID, "bad-blk-sigops");
-
-            nFees += view.GetValueIn(tx)-tx.GetValueOut();
-
-            std::vector<CScriptCheck> vChecks;
-            if (!CheckInputs(tx, state, view, fScriptChecks, flags, nScriptCheckThreads ? &vChecks : NULL))
-                return false;
-            control.Add(vChecks);
+	  // check that OP_COMMENT references a real txid / output
+	  if (flags & SCRIPT_VERIFY_COMMENT) {
+	    vector<vector<unsigned char> > vSolutions;
+	    txnouttype whichType;
+	    for (int j=0; j<tx.vout.size(); j++) {
+	      const CScript& scriptPubKey = tx.vout[j].scriptPubKey;
+	      LogPrintf("check solver\n");
+	      if (!Solver(scriptPubKey,whichType, vSolutions))
+		LogPrintf("non standard tx\n");
+	      LogPrintf("checked solver\n");
+	      if (whichType == TX_COMMENT) {
+		LogPrintf("have a TX_COMMENT\n");
+		//std::vector<unsigned char> & txid;
+		bool haveTxid = false;
+		int nOutput = -1;
+		if (vSolutions[0].size()==32) {
+		  haveTxid = true;
+		  if (vSolutions.size()>2) {
+		    nOutput = CScriptNum(vSolutions[1]).getint();
+		  }
+		}
+		else {
+		  nOutput = CScriptNum(vSolutions[0]).getint();
+		}
+		std::vector<unsigned char> comment = vSolutions[vSolutions.size()-1];
+		if (haveTxid) {
+		  LogPrintf("txid %s nOutput %d comment %s\n",HexStr(vSolutions[0]).c_str(),nOutput,HexStr(comment.begin(),comment.end()).c_str());
+		}
+		else {
+		  LogPrintf("nOutput %d comment %s\n",nOutput,HexStr(comment.begin(),comment.end()).c_str());
+		}
+		CTransaction txMatch;
+		uint256 hashBlock;
+		if (haveTxid && !GetTransactionPast(uint256(HexStr(vSolutions[0])),txMatch,hashBlock)) {
+		  return state.DoS(100,error("ConnectBlock(): comment is not referencing a past txid\n"),REJECT_INVALID,"bad-comment-txid-ref");
+		}
+		else {
+		  if (haveTxid && nOutput > txMatch.vout.size()-1) {
+		    return state.DoS(100,error("ConnectBlock(): comment is not referencing an existing output of the past txid\n"),REJECT_INVALID,"bad-comment-output-dne-past");
+		  }
+		  else if (!haveTxid && nOutput > tx.vout.size() - 1) {
+		      return state.DoS(100,error("ConnectBlock(): comment is not referencing an existing output\n"),REJECT_INVALID,"bad-comment-output-dne");
+		  }
+		}
+	      }
+	    }
+	  }
         }
 
         CTxUndo txundo;
@@ -3461,7 +3539,7 @@ bool InitBlockIndex() {
         return true;
 
     // Use the provided setting for -txindex in the new database
-    fTxIndex = GetBoolArg("-txindex", false);
+    fTxIndex = GetBoolArg("-txindex", true);
     pblocktree->WriteFlag("txindex", fTxIndex);
     LogPrintf("Initializing databases...\n");
 

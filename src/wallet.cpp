@@ -1468,9 +1468,9 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
 		  for (int i=0; i<commentLen; i++) {
 		    sprintf(commentHex+2*i,"%02x",comment[i]&0xff);
 		  }
-		  if (data && nOutput == -1)
+		  if (data && !txid && nOutput == -1)
 		    nOutput = dataPosition;
-		  if (!txid and nOutput == -1) {
+		  if (!txid and nOutput < 0) {
 		    LogPrintf("scriptComment variant 1\n");
 		    scriptComment = CScript() << ParseHex(commentHex) << OP_COMMENT;
 		  }
@@ -1478,7 +1478,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
 		    LogPrintf("scriptComment variant 2\n");
 		    scriptComment = CScript() << (int64_t)nOutput << ParseHex(commentHex) << OP_COMMENT;
 		  }
-		  else if (nOutput == -1) {
+		  else if (nOutput < 0) {
 		    LogPrintf("scriptComment variant 3\n");
 		    scriptComment = CScript() << ParseHex(txid) << ParseHex(commentHex) << OP_COMMENT;
 		  }

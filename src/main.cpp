@@ -2249,9 +2249,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
       flags |= SCRIPT_VERIFY_DERSIG;
     }
 
-    if (TestNet()) {
+    /*if (TestNet()) {
       flags |=  SCRIPT_VERIFY_COMMENT;
-    }
+      }*/
     
     CBlockUndo blockundo;
 

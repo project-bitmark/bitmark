@@ -924,12 +924,12 @@ public:
       return false;
     }
 
-    bool onFork2() const {
+  bool onFork2() const { // minor/technical changes
       //if (this->nHeight >= nForkHeight && IsSuperMajorityVariant12(4,true,this->pprev,950,1000)) return true;
       return false;
     }
 
-    bool onFork3() const {
+  bool onFork3() const { // voting system
       //if (this->nHeight >= nForkHeight && IsSuperMajorityVariant2(4,true,this->pprev,950,1000)) return true;
       return false;
     }

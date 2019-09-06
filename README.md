@@ -3,7 +3,7 @@
 Project Bitmark is a multi faceted project which aims to provide:
 
 1. A ** stable cryptographic currency network** which balances the requirements of all parties involved.
-2. A **far reaching adoption initiative** under the guise of novel reputation+currency system called [Marking](https://github.com/project-bitmark/marking/wiki)
+2. A **far reaching adoption initiative** guided by the vision of a novel reputation+currency system called [Marking](https://github.com/project-bitmark/marking/wiki)
 
 This repository contains the Bitmark cryptograpic currency software, and a wiki which provides all details pertaining to the software, it's configuration and the rationale of all design decisions.
 

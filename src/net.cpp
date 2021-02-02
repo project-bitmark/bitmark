@@ -1190,6 +1190,7 @@ void ThreadDNSAddressSeed()
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
 
     BOOST_FOREACH(const CDNSSeedData &seed, vSeeds) {
+        LogPrintf("Loading addresses from DNS seeder %s\n",seed.host);
         if (HaveNameProxy()) {
             AddOneShot(seed.host);
         } else {

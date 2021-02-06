@@ -60,10 +60,19 @@ static const int COINBASE_MATURITY = 720;
 static const int MAX_SCRIPTCHECK_THREADS = 16;
 /** -par default (number of script-checking threads, 0 = auto) */
 static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
+// /** Number of blocks that can be requested at any given time from a single peer. */
+// static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
+// /** Timeout in seconds before considering a block download peer unresponsive. */
+// static const unsigned int BLOCK_DOWNLOAD_TIMEOUT = 60;
 /** Number of blocks that can be requested at any given time from a single peer. */
-static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
-/** Timeout in seconds before considering a block download peer unresponsive. */
-static const unsigned int BLOCK_DOWNLOAD_TIMEOUT = 60;
+static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
+/** Timeout in seconds during which a peer must stall block download progress before being disconnected. */
+static const unsigned int BLOCK_STALLING_TIMEOUT = 2;
+/** Number of headers sent in one getheaders result. We rely on the assumption that if a peer sends
+ *  less than this number, we reached their tip. Changing this value is a protocol upgrade. */
+static const unsigned int MAX_HEADERS_RESULTS = 2000;
+/** Size of the "block download window" */
+static const unsigned int BLOCK_DOWNLOAD_WINDOW = 1024;
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
@@ -95,6 +104,7 @@ extern bool fBenchmark;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
+extern CBlockIndex *pindexBestHeader;
 
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
@@ -123,7 +133,7 @@ void RegisterNodeSignals(CNodeSignals& nodeSignals);
 /** Unregister a network node */
 void UnregisterNodeSignals(CNodeSignals& nodeSignals);
 
-void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd);
+// void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd);
 
 /** Process an incoming block */
 bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp = NULL);
@@ -185,6 +195,9 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 
 struct CNodeStateStats {
     int nMisbehavior;
+    int nSyncHeight;
+    int nCommonHeight;
+    std::vector<int> vHeightInFlight;
 };
 
 struct CDiskTxPos : public CDiskBlockPos
@@ -487,14 +500,19 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
-bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos);
+// bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos);
 
 // Context-independent validity checks
+// bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
+
+bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool fCheckPOW = true);
 bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
 // Store block on disk
 // if dbp is provided, the file is known to already reside on disk
-bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp = NULL);
+// bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp = NULL);
+bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex **pindex, CDiskBlockPos* dbp = NULL);
+bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex **ppindex= NULL);
 
 class CBlockFileInfo
 {

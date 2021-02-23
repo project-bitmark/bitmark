@@ -86,7 +86,7 @@ public:
     {
         if (!BN_copy(bn, &b))
             throw bignum_error("CBigNum::operator= : BN_copy failed");
-        return (*bn);
+        return (*this);
     }
 
     ~CBigNum()
@@ -422,17 +422,17 @@ public:
         CBigNum bnBase = nBase;
         CBigNum bn0 = 0;
         std::string str;
-        CBigNum bn = *this;
-        BN_set_negative(&bn, false);
+        CBigNum bn1 = *this;
+        BN_set_negative(&bn1, false);
         CBigNum dv;
         CBigNum rem;
-        if (BN_cmp(&bn, &bn0) == 0)
+        if (BN_cmp(&bn1, &bn0) == 0)
             return "0";
-        while (BN_cmp(&bn, &bn0) > 0)
+        while (BN_cmp(&bn1, &bn0) > 0)
         {
-            if (!BN_div(&dv, &rem, &bn, &bnBase, pctx))
+            if (!BN_div(&dv, &rem, &bn1, &bnBase, pctx))
                 throw bignum_error("CBigNum::ToString() : BN_div failed");
-            bn = dv;
+            bn1 = dv;
             unsigned int c = rem.getulong();
             str += "0123456789abcdef"[c];
         }

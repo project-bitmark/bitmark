@@ -1202,6 +1202,7 @@ bool onFork (const CBlockIndex * pindex) { // major changes: multi algo PoW, mer
   return pindex->onFork();
 }
 
+// Q? <<<<<  q2   What do these refer to: Fork2, Fork3
 bool onFork2(const CBlockIndex * pindex) { // minor/technical changes
   return pindex->onFork2();
 }
@@ -1563,7 +1564,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (lastInRow>=9 && !lastInRowMod) {
 	bnNew /= 3;
       }
-      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexLast,950,1000)) {
+      // Q? <<< Does 4 refer to algo X17 ? Check Logic / Functioning !
+      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexLast,75,100)) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }
@@ -2124,6 +2126,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     bool onForkNow = onFork(pindex);
     
     // Force min version after fork
+       // Q? <<<  commit 2880624
+       // Comment on version 4, 4.1, 4.2 etc
+       // <<<<< Fix unwarranted initial blockchain download (IBD) stalls >>>>>
+       // Look at commit c59e3fe
     if (onForkNow && block.nVersion<4) {
       LogPrintf("version<4 and after fork 1\n");
       return false;
@@ -2140,7 +2146,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     }
     
     // Check SSF
-    if (onForkNow) { //new multi algo blocks are identified like this
+    if (onForkNow) { //new multi-algo era blocks are identified like this
       CBlockIndex * pprev_algo = pindex;
       if (update_ssf(pindex->nVersion)) {
 	for (int i=0; i<nSSF; i++) {
@@ -2189,12 +2195,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // can be duplicated to remove the ability to spend the first instance -- even after
     // being sent to another address.
     // See BIP30 and http://r6.ca/blog/20120206T005236Z.html for more information.
+    //				from the blog of Russel O'Connor
     // This logic is not necessary for memory pool transactions, as AcceptToMemoryPool
     // already refuses previously-known transaction ids entirely.
     // This rule was originally applied all blocks whose timestamp was after March 15, 2012, 0:00 UTC.
     // Now that the whole chain is irreversibly beyond that time it is applied to all blocks except the
     // two in the chain that violate it. This prevents exploiting the issue against nodes in their
     // initial block download.
+
+    // Q? <<<
+    // Since Bitmark blockchain started in July of 2014, does this apply  ?
 
 	for (unsigned int i = 0; i < block.vtx.size(); i++) {
 		uint256 hash = block.GetTxHash(i);

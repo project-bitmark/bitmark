@@ -17,6 +17,7 @@
 #include "chainparams.h"
 #include "pureheader.h"
 
+// SSF - Subsidy Scaling Factor
 static const int nSSF = 720/NUM_ALGOS; //interval for ssf updates
 
 class CBlockHeader;
@@ -989,6 +990,12 @@ public:
     }
   
     // Get Average Work of latest 50 Blocks
+    // Q?<<< 
+    // Is for _all_ the last sequential 50 Blocks ?
+    //    or   
+    //    for the n/50 blocks of a particular algo within the last sequential 50 BLocks ? 
+    // Note, this introduction of variable "n" was in commit 52943a3
+    //  which also modified 'main.cpp' which also modified conditions that identify a chain tip split warning (blockchain fork)
     CBigNum GetBlockWorkAv() const
     {
       CBigNum work = 0;

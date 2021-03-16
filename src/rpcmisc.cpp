@@ -438,6 +438,7 @@ Value sendalert(const Array& params, bool fHelp)
     return result;
 }
 
+// Q? <<< Where is getblockspacing() used ?
 Value getblockspacing(const Array& params, bool fHelp)
 {
     if (fHelp)

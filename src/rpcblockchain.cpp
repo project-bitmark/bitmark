@@ -42,6 +42,8 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, boo
     }
     unsigned int nBits = 0;
     unsigned int algoWeight = 1;
+    // Q? <<<  Please comment on working of this code
+    // 3 Cases 
     if (weighted) algoWeight = GetAlgoWeight(algo);
     if (next) {
       nBits = GetNextWorkRequired(chainActive.Tip(),algo);
@@ -337,6 +339,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("powhash",block.GetPoWHash().GetHex()));
     CMerkleTx txGen(block.vtx[0]);
     txGen.SetMerkleBranch(&block);
+    // Q? <<< Explanation of Block Variants
     int blockVariant = 0;
     if (GetBlockVariant(block.nVersion)) blockVariant = 1;
     if (GetBlockVariant2(block.nVersion) && !GetBlockVariant(block.nVersion)) blockVariant = 2;
@@ -346,6 +349,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex)
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("coreversion",GetBlockVersion(block.nVersion)));
+    // Add blockVariant to result.push_back
     result.push_back(Pair("variant",blockVariant));
     int algo = GetAlgo(block.nVersion);
     result.push_back(Pair("algo",GetAlgoName(algo)));

@@ -12,15 +12,15 @@
 // These need to be macros, as version.cpp's and bitmark-qt.rc's voodoo requires it
 #define CLIENT_VERSION_MAJOR       0
 #define CLIENT_VERSION_MINOR       9
-#define CLIENT_VERSION_REVISION    7
-#define CLIENT_VERSION_BUILD       3
+#define CLIENT_VERSION_REVISION    8
+#define CLIENT_VERSION_BUILD       5
 
 // Set to true for release, false for prerelease (rc: release candidate)  or test build
 #define CLIENT_VERSION_IS_RELEASE  false
 
 // Copyright year (2009-this)
 
-#define COPYRIGHT_YEAR 2018
+#define COPYRIGHT_YEAR 2021
 
 #endif //HAVE_CONFIG_H
 

@@ -55,7 +55,6 @@ void DetectShutdownThread(boost::thread_group* threadGroup)
 //
 bool AppInit(int argc, char* argv[])
 {
-  printf("appinit\n");
     boost::thread_group threadGroup;
     boost::thread* detectShutdownThread = NULL;
 
@@ -67,6 +66,7 @@ bool AppInit(int argc, char* argv[])
         //
         // If Qt is used, parameters/bitmark.conf are parsed in qt/bitmark.cpp's main()
         ParseParameters(argc, argv);
+
         if (!boost::filesystem::is_directory(GetDataDir(false)))
         {
             fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", mapArgs["-datadir"].c_str());
@@ -102,6 +102,14 @@ bool AppInit(int argc, char* argv[])
             fprintf(stdout, "%s", strUsage.c_str());
             return false;
         }
+
+  	if (mapArgs.count("-v") || mapArgs.count("--version"))
+          { 
+            // First part of help message is specific to bitmarkd / RPC client
+            std::string strUsage = _("Bitmark Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n";
+            fprintf(stdout, "%s", strUsage.c_str());
+            return false;
+          } 
 
         // Command-line RPC
         bool fCommandLine = false;
@@ -174,7 +182,6 @@ bool AppInit(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-  printf("main");
     SetupEnvironment();
 
     bool fRet = false;

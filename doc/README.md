@@ -1,12 +1,12 @@
-Bitmark 0.9.7.1	BETA
-=====================
+Bitmark 0.9.7.3	BETA
+===========================================
 
 Copyright (c) 2009-2018 Bitmark Developers
 
 
 Setup
 ---------------------
-[Bitmark Core](http://bitmark.io/en/download) is the original Bitmark client and it builds the backbone of the network. It downloads and stores the entire history of Bitmark transactions (as of June 2018, less than 1 GiB of data); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more. Thankfully you only have to do this once. If you would like the process to go faster you can [download the blockchain directly](bootstrap.md).
+[Bitmark Core](http://bitmark.io/en/download) is the original Bitmark client and it builds the backbone of the network. It downloads and stores the entire history of Bitmark transactions (as of August 2018, less than 1 GiB of data); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more. Thankfully you only have to do this once. If you would like the process to go faster you can [download the blockchain directly](bootstrap.md).
 
 Running
 ---------------------
@@ -35,9 +35,9 @@ Drag Bitmark-Qt to your applications folder, and then run Bitmark-Qt.
 
 ### Need Help?
 
-* See the documentation at the [Bitmark Wiki](https://en.bitmark.it/wiki/Main_Page)
+* See the documentation at the [Bitmark Wiki](https://github.com/project-bitmark/bitmark/wiki) The documentation on the [Bitcoin Wiki](https://en.bitmark.it/wiki/Main_Page) may also be helpful.
 for help and more information.
-* Ask for help on the [bitcointalk](https://bitcointalk.org/) forums, in the [Technical Support board](https://bitcointalk.org/index.php?board=4.0).
+* Ask for help on the [bitcointalk](https://bitcointalk.org/index.php?topic=3169983.0) forums, in the [Technical Support board](https://bitcointalk.org/index.php?board=4.0).
 
 Building
 ---------------------

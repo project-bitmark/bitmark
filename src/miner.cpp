@@ -121,15 +121,24 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
       confAlgoIsSet = true;
     }
     // To simulate v3 blocks occuring after nForkHeight
-    if (TestNet() && pindexPrev->nHeight < 300 && miningAlgo==0) pblock->nVersion = 3;
+    if (TestNet() && pindexPrev->nHeight < 300 && miningAlgo==0) {
+      pblock->nVersion = 3;
+    }
+
     //LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
     if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
       //LogPrintf("algo set to %d\n",miningAlgo);
       //pblock->nVersion = 3;
       //LogPrintf("pblock nVersion is %d\n",pblock->nVersion);
       pblock->SetAlgo(miningAlgo);
+      //pblock->SetVariant2(true);
       //pblock->SetChainId(Params().GetAuxpowChainId());
       //LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
+    }
+
+	// Q? <<< How does this affect functioning of TestNet
+    if (TestNet() && pindexPrev->nHeight < 1725) {
+      pblock->SetVariant(false);
     }
 
     // Create coinbase tx

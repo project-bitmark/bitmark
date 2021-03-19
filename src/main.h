@@ -707,7 +707,7 @@ int64_t get_mpow_ms_correction (CBlockIndex * p);
 bool update_ssf (int nVersion);
 
 /* Calculate the subsidy scaling factor for the CBlockIndex pointer */
-unsigned int get_ssf (CBlockIndex * pindex);
+CBigNum get_ssf (CBlockIndex * pindex);
 
 /* Get the number of blocks since the last update of the subsidy scaling factor */
 int get_ssf_height (const CBlockIndex * pindex);

@@ -435,8 +435,16 @@ Value getwork(const Array& params, bool fHelp)
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
 	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100))) {
-	  //pblock->nVersion = 3;
 	  pblock->SetAlgo(miningAlgo);
+	}
+
+	// Q? <<<<<   Comment on SuperMajorityVariant12 , SuperMajorityVariant2
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexPrev,75,100))) {
+	  pblock->SetVariant(true);
+	}
+
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant2(4,true,pindexPrev,75,100))) {
+	  pblock->SetVariant2(true);
 	}
 
         // Update nTime

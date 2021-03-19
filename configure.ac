@@ -1,9 +1,11 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
+# Even number: Stable Release    Odd number: Development Version 
+# 0985
 define(_CLIENT_VERSION_MAJOR, 0)
 define(_CLIENT_VERSION_MINOR, 9)
-define(_CLIENT_VERSION_REVISION, 8)
-define(_CLIENT_VERSION_BUILD, 5)
+define(_CLIENT_VERSION_REVISION, 7)
+define(_CLIENT_VERSION_BUILD, 3)
 define(_CLIENT_VERSION_IS_RELEASE, false)
 define(_COPYRIGHT_YEAR, 2021)
 AC_INIT([Bitmark Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[info@bitmark.org],[bitmark])

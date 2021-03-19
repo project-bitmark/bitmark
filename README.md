@@ -34,7 +34,8 @@ Bitmark aims to be a relatively stable, user focused crypto currency, which refi
 
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
 
-v0.9.7.4 <- Compiles under newer TLS / SSL Libraries
+##
+v0.9.7.3 Dev Version towards: v0.9.7.4, Stable Release, compatible with latest TLS/SSL Libraries
 
 ## Eight Algortihm mPoW Hard Fork (v0.9.7)
 

@@ -243,21 +243,30 @@ uint64_t CTxOutCompressor::DecompressAmount(uint64_t x)
     return n;
 }
 
-uint256 CBlock::BuildMerkleTree() const
+uint256 CBlock::BuildMerkleTree(bool* fMutated) const
 {
     vMerkleTree.clear();
+    vMerkleTree.reserve(vtx.size() * 2 + 16); // Safe upper bound for the number of total nodes.
     BOOST_FOREACH(const CTransaction& tx, vtx)
         vMerkleTree.push_back(tx.GetHash());
     int j = 0;
+    bool mutated = false;
     for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
     {
         for (int i = 0; i < nSize; i += 2)
         {
             int i2 = std::min(i+1, nSize-1);
+            if (i2 == i + 1 && i2 + 1 == nSize && vMerkleTree[j+i] == vMerkleTree[j+i2]) {
+                // Two identical hashes at the end of the list at a particular level.
+                mutated = true;
+            }
             vMerkleTree.push_back(Hash(BEGIN(vMerkleTree[j+i]),  END(vMerkleTree[j+i]),
                                        BEGIN(vMerkleTree[j+i2]), END(vMerkleTree[j+i2])));
         }
         j += nSize;
+    }
+    if (fMutated) {
+        *fMutated = mutated;
     }
     return (vMerkleTree.empty() ? 0 : vMerkleTree.back());
 }
@@ -337,17 +346,17 @@ int GetBlockVersion (const int nVersion) {
 
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
-  /* force the fork after a certain height */
-  //if (minVersion==4 && pstart->nHeight>=nForkHeightForce-1) return true;
-  
-  unsigned int nFound = 0;
-  for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
+    /* force the fork after a certain height */
+    //if (minVersion==4 && pstart->nHeight>=nForkHeightForce-1) return true;
+    // unsigned int nToCheck = Params().ToCheckBlockUpgradeMajority();
+    unsigned int nFound = 0;
+    for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
     {
-      if (GetBlockVersion(pstart->nVersion) >= minVersion)
-	++nFound;
-      pstart = pstart->pprev;
+        if (GetBlockVersion(pstart->nVersion) >= minVersion)
+            ++nFound;
+        pstart = pstart->pprev;
     }
-  return (nFound >= nRequired);
+    return (nFound >= nRequired);
 }
 
 int64_t CBlockIndex::GetMedianTime() const
@@ -580,6 +589,10 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 
 FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
     return OpenDiskFile(pos, "blk", fReadOnly);
+}
+
+FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
+    return OpenDiskFile(pos, "rev", fReadOnly);
 }
 
 bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& params)

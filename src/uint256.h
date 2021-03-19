@@ -5,6 +5,7 @@
 #ifndef BITCOIN_UINT256_H
 #define BITCOIN_UINT256_H
 
+#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>

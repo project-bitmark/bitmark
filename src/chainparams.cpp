@@ -51,11 +51,16 @@ public:
         nRPCPort = 9266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
         nSubsidyHalvingInterval = 788000;
-	fStrictChainId = true;
-	nAuxpowChainId = 0x005B;
-	nEquihashN = 200;
-	nEquihashK = 9;
-	fMineBlocksOnDemand = false;
+        nEnforceBlockUpgradeMajority = 750;
+        nRejectBlockOutdatedMajority = 950;
+        nToCheckBlockUpgradeMajority = 1000;
+        nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+        nTargetSpacing = 10 * 60;
+        fStrictChainId = true;
+        nAuxpowChainId = 0x005B;
+        nEquihashN = 200;
+        nEquihashK = 9;
+        fMineBlocksOnDemand = false;
 
         // Build the genesis block.
         const char* pszTimestamp = "13/July/2014, with memory of the past, we look to the future. TDR";
@@ -143,6 +148,11 @@ public:
 
         vAlertPubKey = ParseHex("0468770c9d451dd5d6d373ae6096d4ab0705c4ab66e55cc25c40788580039bd04b7672322b9bd26ce22a3ad95f490d7d188a905ce30246b2425eca8cc5102190d0");
         nDefaultPort = 19265;
+        nEnforceBlockUpgradeMajority = 51;
+        nRejectBlockOutdatedMajority = 75;
+        nToCheckBlockUpgradeMajority = 100;
+        nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+        nTargetSpacing = 10 * 60;
         nRPCPort = 19266;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 8);
         strDataDir = "testnet4";
@@ -198,6 +208,11 @@ public:
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
         nSubsidyHalvingInterval = 300;
+        nEnforceBlockUpgradeMajority = 750;
+        nRejectBlockOutdatedMajority = 950;
+        nToCheckBlockUpgradeMajority = 1000;
+        nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+        nTargetSpacing = 10 * 60;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
         genesis.nTime = 1405274400;
         genesis.nBits = 0x207fffff;

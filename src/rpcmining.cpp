@@ -724,6 +724,7 @@ Value submitblock(const Array& params, bool fHelp)
     return Value::null;
 }
 
+#ifdef ENABLE_WALLET
 Value getauxblock(const Array& params, bool fHelp)
 {
   if (fHelp || (params.size() != 0 && params.size() != 2))
@@ -874,3 +875,4 @@ Value getauxblock(const Array& params, bool fHelp)
     return "rejected";
   return Value::null;
 }
+#endif

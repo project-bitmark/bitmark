@@ -144,7 +144,7 @@ public:
     int nStartingHeight;
     uint64_t nSendBytes;
     uint64_t nRecvBytes;
-    bool fSyncNode;
+    // bool fSyncNode;
     double dPingTime;
     double dPingWait;
     std::string addrLocal;
@@ -253,10 +253,10 @@ protected:
 
 public:
     uint256 hashContinue;
-    CBlockIndex* pindexLastGetBlocksBegin;
-    uint256 hashLastGetBlocksEnd;
+    // CBlockIndex* pindexLastGetBlocksBegin;
+    // uint256 hashLastGetBlocksEnd;
     int nStartingHeight;
-    bool fStartSync;
+    // bool fStartSync;
 
     // flood relay
     std::vector<CAddress> vAddrToSend;
@@ -301,10 +301,10 @@ public:
         nSendSize = 0;
         nSendOffset = 0;
         hashContinue = 0;
-        pindexLastGetBlocksBegin = 0;
-        hashLastGetBlocksEnd = 0;
+        // pindexLastGetBlocksBegin = 0;
+        // hashLastGetBlocksEnd = 0;
         nStartingHeight = -1;
-        fStartSync = false;
+        // fStartSync = false;
         fGetAddr = false;
         fRelayTxes = false;
         setInventoryKnown.max_size(SendBufferSize() / 1000);

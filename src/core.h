@@ -753,8 +753,8 @@ public:
         block.nNonce         = nNonce;
         return block;
     }
-
-    uint256 BuildMerkleTree() const;
+    
+    uint256 BuildMerkleTree(bool* mutated = NULL) const;
 
     const uint256 &GetTxHash(unsigned int nIndex) const {
         assert(vMerkleTree.size() > 0); // BuildMerkleTree must have been called first
@@ -790,6 +790,8 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 
 FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
+FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
+
 bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& params);
 
 unsigned int GetAlgoWeight (const int algo);
@@ -809,6 +811,9 @@ public:
 
     // pointer to the index of the predecessor of this block
     CBlockIndex* pprev;
+
+    // pointer to the index of some further predecessor of this block
+    CBlockIndex* pskip;
 
     // pointer to the AuxPoW header, if this block has one
     boost::shared_ptr<CAuxPow> pauxpow;
@@ -972,9 +977,9 @@ public:
         bnTarget.SetCompact(nBits);
         if (bnTarget <= 0)
             return 0;
-	unsigned int algo_weight = GetAlgoWeight(this->GetAlgo());
-	CBigNum weight(algo_weight);
-	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
+        unsigned int algo_weight = GetAlgoWeight(this->GetAlgo());
+        CBigNum weight(algo_weight);
+        //LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
 
@@ -1052,6 +1057,35 @@ public:
 	}
       return ALGO_SCRYPT;
     }
+    // Check whether this block index entry is valid up to the passed validity level.
+    bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const
+    {
+        assert(!(nUpTo & ~BLOCK_VALID_MASK)); // Only validity flags allowed.
+        if (nStatus & BLOCK_FAILED_MASK)
+            return false;
+        return ((nStatus & BLOCK_VALID_MASK) >= nUpTo);
+    }
+
+    // Raise the validity level of this block index entry.
+    // Returns true if the validity was changed.
+    bool RaiseValidity(enum BlockStatus nUpTo)
+    {
+        assert(!(nUpTo & ~BLOCK_VALID_MASK)); // Only validity flags allowed.
+        if (nStatus & BLOCK_FAILED_MASK)
+            return false;
+        if ((nStatus & BLOCK_VALID_MASK) < nUpTo) {
+            nStatus = (nStatus & ~BLOCK_VALID_MASK) | nUpTo;
+            return true;
+        }
+        return false;
+    }
+
+    // Build the skiplist pointer for this entry.
+    void BuildSkip();
+
+    // Efficiently find an ancestor of this block.
+    CBlockIndex* GetAncestor(int height);
+    const CBlockIndex* GetAncestor(int height) const;
 
 };
 
@@ -1368,6 +1402,7 @@ public:
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
+    const CBlockIndex *FindForkByIndex(const CBlockIndex *pindex) const;
 };
 
 /** The currently-connected chain of blocks. */

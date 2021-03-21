@@ -1216,14 +1216,13 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
         if (halvings >= 18)
             return nFees;
 
-        // Subsidy is cut in half every 788,000 blocks which will occur approximately every 3 years.
-        // Subsidy has an interim reduction every 394,000 blocks (18 months)
+        // Halving:	Subsidy is cut in half every 788,000 blocks which will occur approximately every 3 years (36 months).
+        // Quartering:	Subsidy has an interim reduction every 394,000 blocks, approximately every 1.5 years  (18 months)
         nSubsidy = (nHalfReward>>halvings) + (nHalfReward>>((nHeight+Params().SubsidyInterimInterval())/Params().SubsidyHalvingInterval()));
 
         return nSubsidy + nFees;
     }
-    // And after the fork we will halve based on how many coins have been
-    // emitted
+    // And after fork 1, we will halve & quarter based on how many coins have been emitted
     uint256 emitted;
 
     CBlockIndex * pprev_algo = get_pprev_algo(pindex,-1);
@@ -1370,7 +1369,13 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     else if (emitted < 2757984964566000) { // Q 18 H 17 height 13790000
       baseSubsidy = 15258;
     }
-    // total of 2757989473108000 coins emitted
+
+    // Total Emission		        27579894.73108000
+    // -------------------------------------------------------------------------------------------------------------------
+    // Total of   27,579,894.73,108,000   coins emitted
+    //          Twenty seven million, five hundred seventy nine thousand, eight hundred ninety four   Bitmarks (MARKS) and 
+    // 		   Seventy three million, one hundred and eight thousand   Bitmark-Satoshis.
+
     if (!scalingFactor) return nFees + baseSubsidy;
     return nFees + baseSubsidy - ((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getuint() / 2;
 }

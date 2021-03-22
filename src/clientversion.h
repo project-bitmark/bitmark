@@ -12,14 +12,14 @@
 #define CLIENT_VERSION_MAJOR       0
 #define CLIENT_VERSION_MINOR       9
 #define CLIENT_VERSION_REVISION    7
-#define CLIENT_VERSION_BUILD       2
+#define CLIENT_VERSION_BUILD       3
 
 // Set to true for release, false for prerelease (rc: release candidate)  or test build
 #define CLIENT_VERSION_IS_RELEASE  false
 
 // Copyright year (2009-this)
 
-#define COPYRIGHT_YEAR 2018
+#define COPYRIGHT_YEAR 2021
 
 #endif //HAVE_CONFIG_H
 

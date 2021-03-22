@@ -13,6 +13,15 @@
 // anonymous namespace with local implementation code (OpenSSL interaction)
 namespace {
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    void ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+    {
+        if (pr != NULL)
+            *pr = sig->r;
+        if (ps != NULL)
+            *ps = sig->s;
+    }
+#endif
 // Generate a private key from just the secret parameter
 int EC_KEY_regenerate_key(EC_KEY *eckey, BIGNUM *priv_key)
 {

@@ -15,7 +15,7 @@ const std::string CLIENT_NAME("Pfennig");
 // https://github.com/bitcoin/bitcoin/issues/4221
 // Standard convention in software release cycles: dev, alpha, beta, rc & stable.
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "Phi"
+#define CLIENT_VERSION_SUFFIX   "-Phi"
 
 
 // The following part of the code determines the CLIENT_BUILD variable.

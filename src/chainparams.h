@@ -73,7 +73,24 @@ public:
     unsigned int EquihashN() const { return nEquihashN; }
     unsigned int EquihashK() const { return nEquihashK; }
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
-    
+
+    // Fork2 in suspension (3/21/21)
+    //int64_t GetFork2Height() const { return nForkHeight2; }
+    //bool    OnFork2(int64_t blockHeight) const { return blockHeight >= nForkHeight2; }
+
+    // CEM Look-Back time frame (from which to find the refrence highest or peak hashrate)    Policy is relaxed to ~ 25% of original value.
+    //       CEM v0.1 looks back 365 days.       CEM v0.2 looks back only 90 days
+    //       This allow the maximum emission rate to be resumed that much sooner.
+    // int     CEM_WindowLength(int64_t blockHeight) const { return OnFork2(blockHeight) ? 90 : 365; }
+    //
+    //  CEM is allowed to affect this portion of the epoch nominal block reward.
+    //       CEM v0.1 scales 50% of the max epoch reward.     CEM v0.2 scales 80% of the max epoch reward.
+    //         Both versions allow maximum theoretical emission rate if current hashrate is at peak performance,
+    //         but CEM v0.2 has a stronger emission rate reduction if current hashrate is any less than reference peak performance.
+    //
+    //int     CEM_MaxNativeBlockRewardReduction(int64_t blockHeight) const { return OnFork2(blockHeight) ? 80 : 50; }
+
+
 protected:
     CChainParams() {}
 

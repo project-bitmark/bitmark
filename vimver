@@ -1,2 +1,4 @@
 #!/bin/bash
-vim configure.ac src/clientversion.h src/version.h README.md 
+echo "set CLIENT_VERSION_IS_RELEASE in Makefile"
+read
+vim Makefile configure.ac src/clientversion.h src/version.h README.md 

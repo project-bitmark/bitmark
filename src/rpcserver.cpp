@@ -287,8 +287,6 @@ static const CRPCCommand vRPCCommands[] =
     { "gnhps",                  &getnetworkhashps,       true,      false,      false },
     { "submitblock",            &submitblock,            true,     false,      false },
     { "sb",                     &submitblock,            true,     false,      false },
-    { "getauxblock",            &getauxblock,            true,     false,      false },
-    { "gab",            	&getauxblock,            true,     false,      false },
 
     /* Raw transactions */
     { "createrawtransaction",   &createrawtransaction,   true,     false,      false },
@@ -403,6 +401,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getminingalgo",            &getminingalgo,            true,      true,       false },
     { "setgenerate",            &setgenerate,            true,      true,       false },
     { "sg",                     &setgenerate,            true,      true,       false },
+    { "getauxblock",            &getauxblock,            true,     false,      false },
+    { "gab",                    &getauxblock,            true,     false,      false },
 #endif // ENABLE_WALLET
 };
 
@@ -537,8 +537,8 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol> > accep
                    const bool fUseSSL)
 {
     // Accept connection
-    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL));
-
+    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(GetIOServiceFromPtr(acceptor), context, fUseSSL));
+    
     acceptor->async_accept(
             conn->sslStream.lowest_layer(),
             conn->peer,

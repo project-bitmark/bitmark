@@ -78,6 +78,7 @@ public:
         assert(genesis.hashMerkleRoot == uint256("0xd4715adf41222fae3d4bf41af30c675bc27228233d0f3cfd4ae0ae1d3e760ba8"));
 
 
+
         // DNS Seeders - Verified       03 08 21   March 8, 2021 
         //                               Domain                  Sub-Domain        Location   
         vSeeds.push_back(CDNSSeedData("bitmark.guru",        "da.bitmark.guru"));    // DE Frank 

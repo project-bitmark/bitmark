@@ -438,11 +438,12 @@ Value getwork(const Array& params, bool fHelp)
 	  pblock->SetAlgo(miningAlgo);
 	}
 
-	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexPrev,950,1000))) {
+	// Q? <<<<<   Comment on SuperMajorityVariant12 , SuperMajorityVariant2
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexPrev,75,100))) {
 	  pblock->SetVariant(true);
 	}
 
-	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant2(4,true,pindexPrev,950,1000))) {
+	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant2(4,true,pindexPrev,75,100))) {
 	  pblock->SetVariant2(true);
 	}
 

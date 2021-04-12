@@ -136,6 +136,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
       //LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
     }
 
+	// Q? <<< How does this affect functioning of TestNet
     if (TestNet() && pindexPrev->nHeight < 1725) {
       pblock->SetVariant(false);
     }

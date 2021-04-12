@@ -9,8 +9,7 @@ This repository contains the Bitmark cryptograpic currency software, and a wiki 
 
 # Bitmark
 
-[![Join the chat at https://gitter.im/project-bitmark/bitmark](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/project-bitmark/bitmark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
+[![Join the chat at https://gitter.im/project-bitmark/bitmark](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/project-bitmark/bitmark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
 Bitmark aims to be a relatively stable, user focused crypto currency, which refines and implements maturing innovations from the crypto currency sector.
 
 ### Overview
@@ -35,9 +34,11 @@ Bitmark aims to be a relatively stable, user focused crypto currency, which refi
 
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
 
+
 ## v0.9.7.4 Works with newer TLS / SSL libraries in Ubuntu 18-20 and Debian 10
-This release branches off Master's tag v0.9.7.2 to use the latest TLS/SSL libraries.
+This release uses the latest TLS/SSL libraries.
 v0.9.7.4, is compatible with all previous 0.9.7.x series versions.
+
 
 ## Eight Algortihm mPoW Hard Fork (v0.9.7)
 

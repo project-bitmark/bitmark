@@ -103,13 +103,13 @@ bool AppInit(int argc, char* argv[])
             return false;
         }
 
-  	if (mapArgs.count("-v") || mapArgs.count("--version"))
-          { 
+	if (mapArgs.count("-v") || mapArgs.count("--version"))
+	  {
             // First part of help message is specific to bitmarkd / RPC client
             std::string strUsage = _("Bitmark Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n";
-            fprintf(stdout, "%s", strUsage.c_str());
-            return false;
-          } 
+	    fprintf(stdout, "%s", strUsage.c_str());
+	    return false;
+	  }
 
         // Command-line RPC
         bool fCommandLine = false;

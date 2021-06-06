@@ -1555,8 +1555,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (lastInRow>=9 && !lastInRowMod) {
 	bnNew /= 3;
       }
-      // Q? <<< Does 4 refer to algo X17 ? Check Logic / Functioning !
-      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexLast,75,100)) {
+      else if (!justHadSurge) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }

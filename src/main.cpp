@@ -1198,7 +1198,7 @@ void static PruneOrphanBlocks()
     mapOrphanBlocks.erase(hash);
 }
 
-bool onFork (const CBlockIndex * pindex) {
+bool onFork (const CBlockIndex * pindex) { // major changes: multi algo PoW, merge mining, custom DGW, CEM
   return pindex->onFork();
 }
 
@@ -1206,8 +1206,9 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
 {
     // for testnet
     int nHeight = pindex->nHeight;
+    bool onForkNow = onFork(pindex);
 
-    if (!onFork(pindex)) {
+    if (!onForkNow) {
         int64_t nHalfReward = 10 * COIN;
         int64_t nSubsidy = 0;
         int halvings = nHeight / Params().SubsidyHalvingInterval();
@@ -1216,14 +1217,13 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
         if (halvings >= 18)
             return nFees;
 
-        // Subsidy is cut in half every 788,000 blocks which will occur approximately every 3 years.
-        // Subsidy has an interim reduction every 394,000 blocks (18 months)
+        // Halving:	Subsidy is cut in half every 788,000 blocks which will occur approximately every 3 years (36 months).
+        // Quartering:	Subsidy has an interim reduction every 394,000 blocks, approximately every 1.5 years  (18 months)
         nSubsidy = (nHalfReward>>halvings) + (nHalfReward>>((nHeight+Params().SubsidyInterimInterval())/Params().SubsidyHalvingInterval()));
 
         return nSubsidy + nFees;
     }
-    // And after the fork we will halve based on how many coins have been
-    // emitted
+    // And after fork 1, we will halve & quarter based on how many coins have been emitted
     uint256 emitted;
 
     CBlockIndex * pprev_algo = get_pprev_algo(pindex,-1);
@@ -1237,7 +1237,7 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     }
 
     unsigned int scalingFactor = 0;
-    if (onFork(pindex) && !noScale) {
+    if (onForkNow && !noScale) {
       scalingFactor = pindex->subsidyScalingFactor;
       if (!scalingFactor) { // find the key block and recalculate
 	CBlockIndex * pprev_algo = pindex;
@@ -1370,7 +1370,13 @@ int64_t GetBlockValue(CBlockIndex* pindex, int64_t nFees, bool noScale)
     else if (emitted < 2757984964566000) { // Q 18 H 17 height 13790000
       baseSubsidy = 15258;
     }
-    // total of 2757989473108000 coins emitted
+
+    // Total Emission		        27579894.73108000
+    // -------------------------------------------------------------------------------------------------------------------
+    // Total of   27,579,894.73,108,000   coins emitted
+    //          Twenty seven million, five hundred seventy nine thousand, eight hundred ninety four   Bitmarks (MARKS) and 
+    // 		   Seventy three million, one hundred and eight thousand   Bitmark-Satoshis.
+
     if (!scalingFactor) return nFees + baseSubsidy;
     return nFees + baseSubsidy - ((CBigNum(baseSubsidy)*CBigNum(100000000))/scalingFactor).getuint() / 2;
 }
@@ -1549,7 +1555,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, int algo) {
       if (lastInRow>=9 && !lastInRowMod) {
 	bnNew /= 3;
       }
-      else if (!justHadSurge) {
+      // Q? <<< Does 4 refer to algo X17 ? Check Logic / Functioning !
+      else if (!justHadSurge || smultiply && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexLast,75,100)) {
 	bnNew *= nActualTimespan;
 	bnNew /= _nTargetTimespan;
       }
@@ -1724,7 +1731,7 @@ void CheckForkWarningConditions()
     if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 180)
         pindexBestForkTip = NULL;
 
-    if (pindexBestForkTip || (pindexBestInvalid && pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (chainActive.Tip()->GetBlockWork() * 6).getuint256()))
+    if (pindexBestForkTip || (pindexBestInvalid && pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (chainActive.Tip()->GetBlockWorkAv() * 24).getuint256()))
     {
         if (!fLargeWorkForkFound)
         {
@@ -1767,15 +1774,16 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex* pindexNewForkTip)
         pfork = pfork->pprev;
     }
 
-    // We define a condition which we should warn the user about as a fork of at least 7 blocks
+    // We define a condition which we should warn the user about as a fork of at least 25 blocks
     // who's tip is within 180 blocks (+/- 6 hours if no one mines it) of ours
-    // We use 7 blocks rather arbitrarily as it represents just under 10% of sustained network
+    // We use 25 blocks rather arbitrarily as it represents just under 10% of sustained network
     // hash rate operating on the fork.
     // or a chain that is entirely longer than ours and invalid (note that this should be detected by both)
     // We define it this way because it allows us to only store the highest fork tip (+ base) which meets
-    // the 7-block condition and from this always have the most-likely-to-cause-warning fork
+    // the 25-block condition and from this always have the most-likely-to-cause-warning fork
+    //  25 was previously set to 7 blocks
     if (pfork && (!pindexBestForkTip || (pindexBestForkTip && pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
-            pindexNewForkTip->nChainWork - pfork->nChainWork > (pfork->GetBlockWork() * 7).getuint256() &&
+            pindexNewForkTip->nChainWork - pfork->nChainWork > (pfork->GetBlockWorkAv() * 25).getuint256() &&
             chainActive.Height() - pindexNewForkTip->nHeight < 180)
     {
         pindexBestForkTip = pindexNewForkTip;
@@ -2105,15 +2113,21 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
         return false;
+
+    bool onForkNow = onFork(pindex);
     
     // Force min version after fork
-    if (onFork(pindex) && block.nVersion<CBlock::CURRENT_VERSION) {
-      LogPrintf("nVersion<=2 and after fork\n");
+       // Q? <<<  commit 2880624
+       // Comment on version 4, 4.1, 4.2 etc
+       // <<<<< Fix unwarranted initial blockchain download (IBD) stalls >>>>>
+       // Look at commit c59e3fe
+    if (onForkNow && block.nVersion<4) {
+      LogPrintf("version<4 and after fork 1\n");
       return false;
     }
     
     // Check SSF
-    if (onFork(pindex)) { //new multi algo blocks are identified like this
+    if (onForkNow) { //new multi-algo era blocks are identified like this
       CBlockIndex * pprev_algo = pindex;
       if (update_ssf(pindex->nVersion)) {
 	for (int i=0; i<nSSF; i++) {
@@ -2162,12 +2176,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // can be duplicated to remove the ability to spend the first instance -- even after
     // being sent to another address.
     // See BIP30 and http://r6.ca/blog/20120206T005236Z.html for more information.
+    //				from the blog of Russel O'Connor
     // This logic is not necessary for memory pool transactions, as AcceptToMemoryPool
     // already refuses previously-known transaction ids entirely.
     // This rule was originally applied all blocks whose timestamp was after March 15, 2012, 0:00 UTC.
     // Now that the whole chain is irreversibly beyond that time it is applied to all blocks except the
     // two in the chain that violate it. This prevents exploiting the issue against nodes in their
     // initial block download.
+
+    // Q? <<<
+    // Since Bitmark blockchain started in July of 2014, does this apply  ?
 
 	for (unsigned int i = 0; i < block.vtx.size(); i++) {
 		uint256 hash = block.GetTxHash(i);
@@ -2188,7 +2206,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
       }
 
-    if (onFork(pindex)) {
+    if (onForkNow) {
       flags |= SCRIPT_VERIFY_DERSIG;
     }
 
@@ -2249,7 +2267,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     CBlockIndex * pprev_algo = 0;
     if (!fJustCheck) pprev_algo = get_pprev_algo(pindex,-1);
-    if (!fJustCheck && onFork(pindex)) { // set scaling factor
+    if (!fJustCheck && onForkNow) { // set scaling factor
       if (update_ssf(pindex->nVersion)) {
 	pindex->subsidyScalingFactor = get_ssf(pindex);
       }
@@ -2263,7 +2281,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     if (block.vtx[0].GetValueOut() > block_value_needed)
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0].GetValueOut(), GetBlockValue(pindex, nFees, false)),
+                               block.vtx[0].GetValueOut(), block_value_needed),
                                REJECT_INVALID, "bad-cb-amount");
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
@@ -2281,7 +2299,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     // Increment the nMoneySupply to include this blocks subsidy
     
-    if (onFork(pindex)) {
+    if (onForkNow) {
       if (pprev_algo) {
 	pindex->nMoneySupply = pprev_algo->nMoneySupply + block.vtx[0].GetValueOut() - nFees;
       }
@@ -5003,7 +5021,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
     if (i==0) hashes_cur = hashes;
   }
   if (hashes_peak > CBigNum(0) && hashes_cur != hashes_peak) {
-    scalingFactor = ((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint(); // a 9-10 digit integer
+    scalingFactor = ((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint();
   }
   //LogPrintf("return scaling factor %lu\n",scalingFactor);
   return scalingFactor;
@@ -5026,7 +5044,7 @@ unsigned long get_ssf_work (const CBlockIndex * pindex) {
   CBigNum hashes_bn = pprev_algo->GetBlockWork();
   for (int i=0; i<nSSF; i++) {
     if (update_ssf(pprev_algo->nVersion)) {
-      return (hashes_bn/1000000).getulong();
+      return ((hashes_bn/1000000)/1000).getulong();
     }
     pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) return 0;

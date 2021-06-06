@@ -17,6 +17,7 @@
 #include "chainparams.h"
 #include "pureheader.h"
 
+// SSF - Subsidy Scaling Factor
 static const int nSSF = 720/NUM_ALGOS; //interval for ssf updates
 
 class CBlockHeader;
@@ -977,6 +978,27 @@ public:
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
+  
+    // Get Average Work of latest 50 Blocks
+    // Q?<<< 
+    // Is for _all_ the last sequential 50 Blocks ?
+    //    or   
+    //    for the n/50 blocks of a particular algo within the last sequential 50 BLocks ? 
+    // Note, this introduction of variable "n" was in commit 52943a3
+    //  which also modified 'main.cpp' which also modified conditions that identify a chain tip split warning (blockchain fork)
+    CBigNum GetBlockWorkAv() const
+    {
+      CBigNum work = 0;
+      const CBlockIndex * pindex = this;
+      int n = 0;
+      for (int i=0; i<50; i++) {
+        work += pindex->GetBlockWork();
+        n++;
+        pindex = pindex->pprev;
+        if (!pindex) break;
+      }
+      return work/n;
+    }
 
     bool CheckIndex() const
     {
@@ -1357,7 +1379,7 @@ public:
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
     int Height() const {
-        return vChain.size() - 1;
+      return vChain.size() - 1;
     }
 
     /** Set/initialize a chain with a given tip. Returns the forking point. */

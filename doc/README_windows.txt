@@ -1,4 +1,4 @@
-Bitmark 0.9.7.5.0 BETA
+Bitmark 0.9.7.4.0 BETA
 
 Copyright (c) 2009-2015 Bitcoin Core Developers
 Copyright (c) 2014-2021 Bitmark Core Developers

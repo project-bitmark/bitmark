@@ -87,6 +87,8 @@ You can also use the bitmark-cli command to mine. The last parameter is the algo
 
 For equihash and cryptonight, it is recommended to use the built in miner as the cpuminer is slow at the moment.
 
+## Testing
+
 There are currently 3 types of tests implemented.
 
 1) The testnet block explorer with details for each block, general stats, and charts. These tests are good for looking at how the difficulty adjusts with time.

@@ -228,6 +228,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "gi",                     &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "chaindynamics", 		&chaindynamics, 	 true, 	    false, 	false},
+    { "coins", 		&coins, 	 true, 	    false, 	false},
     { "cd", 			&chaindynamics, 	 true, 	    false, 	false},
     { "help",                   &help,                   true,      true,       false },
     { "stop",                   &stop,                   true,      true,       false },
@@ -547,7 +548,7 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol> > accep
                 boost::ref(context),
                 fUseSSL,
                 conn,
-                boost::placeholders::_1));
+			boost::placeholders::_1));
 }
 
 

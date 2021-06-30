@@ -438,6 +438,7 @@ Value sendalert(const Array& params, bool fHelp)
     return result;
 }
 
+// Q? <<< Where is getblockspacing() used ?
 Value getblockspacing(const Array& params, bool fHelp)
 {
     if (fHelp)
@@ -464,7 +465,9 @@ Value getblockspacing(const Array& params, bool fHelp)
 	interval = params[1].get_int();
 	if (params.size()>2) {
 	  int height = params[2].get_int();
+
 	  blockindex = chainActive.Tip();
+          // walk the blockindex back until it matches requested height.
 	  while (blockindex && blockindex->nHeight > height) {
 	    blockindex = blockindex->pprev;
 	  }
@@ -664,6 +667,68 @@ Value chaindynamics(const Array& params, bool fHelp)
     obj.push_back(Pair("average block spacing LYRA2REv2",    (double)GetAverageBlockSpacing(pindex,ALGO_LYRA2REv2)));
     obj.push_back(Pair("average block spacing EQUIHASH",    (double)GetAverageBlockSpacing(pindex,ALGO_EQUIHASH)));
     obj.push_back(Pair("average block spacing CRYPTONIGHT",    (double)GetAverageBlockSpacing(pindex,ALGO_CRYPTONIGHT)));    
+
+    return obj;
+}
+
+Value coins(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 2)
+        throw runtime_error(
+            "coins (start_height end_height)\n"
+            "Returns information about unspent outpoints created within the given range of blocks.\n"
+            "}\n"
+	    "\nResult:\n"
+	    "{\n"
+	    " \"sum of unspent outputs\": xxxxx           (numeric),\n"
+	    "}\n"
+        );
+
+    int start_height = 0;
+    int end_height = 0;
+    CBlockIndex * pindex = chainActive.Tip();
+
+    if (params.size() > 0) {
+      start_height = params[0].get_int();
+      if (params.size() > 1) {
+	end_height = params[1].get_int();
+	if (end_height > pindex->nHeight)
+	  end_height = pindex->nHeight;
+	while (pindex && pindex->nHeight > end_height) {
+	  pindex = pindex->pprev;
+	}
+      }
+      else {
+	end_height = pindex->nHeight;
+      }
+    }
+    else {
+      end_height = pindex->nHeight;
+      start_height = pindex->nHeight-5000;
+    }
+
+    CCoinsViewCache view(*pcoinsTip, true);
+    int64_t nSat = 0;
+    for (int h = end_height; h >= start_height; h--) {
+      CBlock block;
+      if (!ReadBlockFromDisk(block, pindex))	
+	throw runtime_error ("can't read block\n");
+      for (unsigned int i = 0; i < block.vtx.size(); i++) {
+	const CTransaction tx = block.vtx[i];
+	//LogPrintf("get coins for tx %s\n",tx.GetCachedHash().GetHex().c_str());
+	if (!view.HaveCoins(tx.GetCachedHash()))
+	  continue;
+	const CCoins coins = view.GetCoins(tx.GetCachedHash());
+	for (unsigned int j=0; j<tx.vout.size(); j++) {
+	  if(coins.IsAvailable(j))
+	    nSat += tx.vout[j].nValue;
+	}
+      }
+      pindex = pindex->pprev;
+    }
+
+    Object obj;
+    obj.push_back(Pair("sum of unspent outputs", ((double)nSat)/100000000.));
 
     return obj;
 }

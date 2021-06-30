@@ -188,7 +188,7 @@ CFLAGS="$CFLAGS -fPIC"
 ## CPU-specific flags
 case $host in
        i?86-*)
-	  CFLAGS="$CFLAGS -msse -msse2"
+	  CFLAGS="$CFLAGS -msse -msse2 -DFORCE_USE_HEAP"
 	  CXXFLAGS="$CXXFLAGS -msse -msse2"
        ;;
        x86_64-*)

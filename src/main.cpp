@@ -4978,7 +4978,6 @@ unsigned int get_ssf (CBlockIndex * pindex) {
   CBigNum hashes_peak = CBigNum(0);
   CBigNum hashes_cur = CBigNum(0);
   for (int i=0; i<365; i++) { // use at most a year's worth of history
-    //LogPrintf("i=%d\n",i);
     pprev_algo = get_pprev_algo(pprev_algo,-1);
     if (!pprev_algo) {
       break;
@@ -4986,12 +4985,12 @@ unsigned int get_ssf (CBlockIndex * pindex) {
     CBigNum hashes = pprev_algo->GetBlockWork();
     unsigned int time_f = pprev_algo->GetMedianTimePast();
     unsigned int time_i = 0;
-    for (int j=0; j<nSSF-1; j++) {  // nSSF blocks = 24 hours, using only blocks from the same algo as the target block
+    for (int j=0; j<nSSF-1; j++) { // nSSF blocks = 24 hours, using only blocks from the same algo as the target block
       pprev_algo = get_pprev_algo(pprev_algo,-1);
       if (!pprev_algo) {
 	hashes = CBigNum(0);
 	break;
-      }
+     }
       hashes += pprev_algo->GetBlockWork();
       time_i = pprev_algo->GetMedianTimePast();
     }
@@ -5013,16 +5012,30 @@ unsigned int get_ssf (CBlockIndex * pindex) {
       //LogPrintf("time_f = %d while time_i = %d\n",time_f,time_i);
       return scalingFactor;
     }
-    //LogPrintf("hashes = %lu, time = %u\n",hashes.getulong(),time_f);
+    //LogPrintf("hashes = %.8e, time = %u\n",hashes.getuint256().getdouble(),time_f);
     hashes = (hashes*100000000)/time_f;
-    //LogPrintf("hashes per sec = %f\n",hashes);
+    //LogPrintf("hashes per sec = %.8e\n",hashes.getuint256().getdouble());
     if (hashes>hashes_peak) hashes_peak = hashes;
     if (i==0) hashes_cur = hashes;
   }
+if (RegTest()) {
+    double hashes_cur_d = hashes_cur.getuint256().getdouble();
+    double hashes_peak_d = hashes_peak.getuint256().getdouble();
+    LogPrintf("hashes_cur = %.8e hashes_peak = %.8e\n",hashes_cur_d,hashes_peak_d);
+    LogPrintf("(long) hashes_cur = %ld hashes_peak = %lu\n",hashes_cur.getulong(),hashes_peak.getulong());
+    for (int i=0; i<1000; i++) {
+      hashes_cur = i;
+      hashes_peak = 1000;
+      CBigNum bnScalingFactor = (100000000*hashes_peak)/(hashes_peak-hashes_cur);
+      scalingFactor = (unsigned int)(bnScalingFactor.getuint64());
+      LogPrintf("%u : %u scalingFactor %u\n",i,1000,scalingFactor);
+    }
+ }
   if (hashes_peak > CBigNum(0) && hashes_cur != hashes_peak) {
     scalingFactor = ((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint();
   }
-  //LogPrintf("return scaling factor %lu\n",scalingFactor);
+  if (RegTest())
+    LogPrintf("return scaling factor %lu\n",scalingFactor);
   return scalingFactor;
 }
 

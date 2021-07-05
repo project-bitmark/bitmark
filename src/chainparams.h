@@ -73,7 +73,7 @@ public:
     unsigned int EquihashN() const { return nEquihashN; }
     unsigned int EquihashK() const { return nEquihashK; }
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
-  unsigned int WorkMultiplier() const { return nWorkMultiplier; }
+  int WorkExponent() const { return nWorkExponent; }
     
 protected:
     CChainParams() {}
@@ -96,7 +96,7 @@ protected:
     unsigned int nEquihashK = 0;
     bool fMineBlocksOnDemand = true;
   // for testing the overflow issue on regtest
-  unsigned int nWorkMultiplier = 1;
+  int nWorkExponent = -1;
  
 };
 

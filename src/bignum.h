@@ -181,7 +181,7 @@ public:
         BN_mpi2bn(pch, p - pch, bn);
     }
 
-  /*uint64 getuint64()
+  uint64 getuint64()
     {
         unsigned int nSize = BN_bn2mpi(bn, NULL);
         if (nSize < 4)
@@ -194,7 +194,7 @@ public:
         for (unsigned int i = 0, j = vch.size()-1; i < sizeof(n) && j >= 4; i++, j--)
             ((unsigned char*)&n)[i] = vch[j];
         return n;
-	}*/
+    }
 
     void setuint64(uint64_t n)
     {

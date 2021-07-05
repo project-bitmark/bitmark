@@ -240,7 +240,7 @@ public:
 	nEquihashN = 200;
 	nEquihashK = 9;
 	fMineBlocksOnDemand = true;
-	nWorkMultiplier = 1000000000;
+	//nWorkExponent = 30;
 	//printf("regtest hashGenesisBlock = %s\n",hashGenesisBlock.GetHex().c_str());
 	//printf("powhashgenesis = %s\n",genesis.GetPoWHash().GetHex().c_str());
         assert(hashGenesisBlock == uint256("0x168329a349fc93768bfb02e536bbe1e1847d77a65764564552122fa9268d8841"));

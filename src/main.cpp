@@ -2284,7 +2284,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                REJECT_INVALID, "bad-cb-amount");
 
     if (block.vtx[0].GetValueOut() < block_value_needed) {
-      LogPrintf("coinbase pays less than block value\n");
+      LogPrintf("block %d coinbase (%lld) pays less than block value (%lld)\n",pindex->nHeight,block.vtx[0].GetValueOut(),block_value_needed);
     }
 
     if (!control.Wait())

@@ -7,9 +7,9 @@
 # to switch between compilation modes.
 
 # (A) Production use (optimized mode)
-# OPT ?= -O2 -DNDEBUG
+ OPT ?= -O2 -DNDEBUG
 # (B) Debug mode, w/ full line-level debugging symbols
-OPT ?= -g2
+# OPT ?= -g2
 # (C) Profiling mode: opt, but w/debugging symbols
 # OPT ?= -O2 -g2 -DNDEBUG
 #-----------------------------------------------
@@ -148,6 +148,7 @@ clean:
 	-rm -rf out-static out-shared out-ios-x86 out-ios-arm out-ios-universal
 	-rm -f build_config.mk
 	-rm -rf ios-x86 ios-arm
+	-rm -rf lib*.a
 
 $(STATIC_OUTDIR):
 	mkdir $@
@@ -289,12 +290,14 @@ libleveldb.a:$(STATIC_OUTDIR)/libleveldb.a
 $(STATIC_OUTDIR)/libleveldb.a:$(STATIC_LIBOBJECTS)
 	rm -f $@
 	$(AR) -rs $@ $(STATIC_LIBOBJECTS)
+	cp -r $(STATIC_OUTDIR)/libleveldb.a .
 
 libmemenv.a:$(STATIC_OUTDIR)/libmemenv.a
 
 $(STATIC_OUTDIR)/libmemenv.a:$(STATIC_MEMENVOBJECTS)
 	rm -f $@
 	$(AR) -rs $@ $(STATIC_MEMENVOBJECTS)
+	cp -r $(STATIC_OUTDIR)/libmemenv.a .
 endif
 
 $(SHARED_MEMENVLIB):$(SHARED_MEMENVOBJECTS)

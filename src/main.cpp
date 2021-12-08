@@ -5018,7 +5018,7 @@ unsigned int get_ssf (CBlockIndex * pindex) {
     if (hashes>hashes_peak) hashes_peak = hashes;
     if (i==0) hashes_cur = hashes;
   }
-if (RegTest()) {
+  /*if (RegTest()) {
     double hashes_cur_d = hashes_cur.getuint256().getdouble();
     double hashes_peak_d = hashes_peak.getuint256().getdouble();
     LogPrintf("hashes_cur = %.8e hashes_peak = %.8e\n",hashes_cur_d,hashes_peak_d);
@@ -5030,12 +5030,12 @@ if (RegTest()) {
       scalingFactor = (unsigned int)(bnScalingFactor.getuint64());
       LogPrintf("%u : %u scalingFactor %u\n",i,1000,scalingFactor);
     }
- }
+    }*/
   if (hashes_peak > CBigNum(0) && hashes_cur != hashes_peak) {
     scalingFactor = ((100000000*hashes_peak)/(hashes_peak-hashes_cur)).getuint();
   }
-  if (RegTest())
-    LogPrintf("return scaling factor %lu\n",scalingFactor);
+  /*if (RegTest())
+    LogPrintf("return scaling factor %lu\n",scalingFactor);*/
   return scalingFactor;
 }
 

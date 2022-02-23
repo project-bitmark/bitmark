@@ -203,7 +203,7 @@ case $host in
   *mingw*)
 
      #pkgconfig does more harm than good with MinGW
-     use_pkgconfig=no
+     use_pkgconfig=yes
 
      TARGET_OS=windows
      AC_CHECK_LIB([mingwthrd],      [main],, AC_MSG_ERROR(lib missing))
@@ -236,18 +236,11 @@ case $host in
        AC_MSG_WARN("makensis not found. Cannot create installer.")
      fi
 
-     AC_CHECK_PROG([CYGPATH], [cygpath], yes, no)
-     if test x$CYGPATH = xno; then
-       AC_MSG_WARN("cygpath not found.")
-     else
-       WINPATH_TOPSRCDIR=$(cygpath --windows $(realpath $srcdir))
-       WINPATH_INSTALLPREFIX=$(cygpath --windows $prefix)
-       WINPATH_MINGWHOSTPREFIX=$(cygpath --windows "/usr/$host/")
+     WINPATH_TOPSRCDIR=$(realpath $srcdir)
+     WINPATH_INSTALLPREFIX=$prefix
 
-       AC_SUBST(WINPATH_TOPSRCDIR)
-       AC_SUBST(WINPATH_INSTALLPREFIX)
-       AC_SUBST(WINPATH_MINGWHOSTPREFIX)
-     fi
+     AC_SUBST(WINPATH_TOPSRCDIR)
+     AC_SUBST(WINPATH_INSTALLPREFIX)
 
      AC_PATH_TOOL(WINDRES, windres, none)
      if test x$WINDRES = xnone; then
@@ -612,7 +605,7 @@ AM_CONDITIONAL([BUILD_BITMARK_CLI], [test x$build_bitmark_cli = xyes])
 AC_MSG_RESULT($build_bitmark_cli)
 
 dnl sets $bitmark_enable_qt, $bitmark_enable_qt_test, $bitmark_enable_qt_dbus
-BITMARK_QT_CONFIGURE([$use_pkgconfig], [qt4])
+BITMARK_QT_CONFIGURE([$use_pkgconfig], [qt5])
 
 AC_LANG_POP
 

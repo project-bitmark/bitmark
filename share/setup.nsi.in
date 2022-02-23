@@ -10,19 +10,19 @@ SetCompressor /SOLID lzma
 !define URL http://github.com/project-bitmark/bitmark/
 
 # MUI Symbol Definitions
-!define MUI_ICON "@WINPATH_TOPSRCDIR@\share\pixmaps\bitmark.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "@WINPATH_TOPSRCDIR@\share\pixmaps\nsis-wizard.bmp"
+!define MUI_ICON "@WINPATH_TOPSRCDIR@/share/pixmaps/bitmark.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "@WINPATH_TOPSRCDIR@/share/pixmaps/nsis-wizard.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP "@WINPATH_TOPSRCDIR@\share\pixmaps\nsis-header.bmp"
+!define MUI_HEADERIMAGE_BITMAP "@WINPATH_TOPSRCDIR@/share/pixmaps/nsis-header.bmp"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "@PACKAGE_NAME@"
-!define MUI_FINISHPAGE_RUN $INSTDIR\bitmark-qt.exe
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "@WINPATH_TOPSRCDIR@\share\pixmaps\nsis-wizard.bmp"
+!define MUI_FINISHPAGE_RUN $INSTDIR/bitmark-qt.exe
+!define MUI_UNICON "${NSISDIR}/Contrib/Graphics/Icons/modern-uninstall.ico"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "@WINPATH_TOPSRCDIR@/share/pixmaps/nsis-wizard.bmp"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
@@ -48,7 +48,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile @WINPATH_TOPSRCDIR@\bitmark-${VERSION}-win@WINDOWS_BITS@-setup.exe
+OutFile @WINPATH_TOPSRCDIR@/bitmark-${VERSION}-win@WINDOWS_BITS@-setup.exe
 !if "@WINDOWS_BITS@" == "64"
 InstallDir $PROGRAMFILES64\Bitmark
 !else
@@ -73,51 +73,26 @@ ShowUninstDetails show
 Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\iconv.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libboost_chrono-mt.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libboost_filesystem.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libboost_filesystem-mt.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libboost_program_options-mt.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libboost_system.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libboost_system-mt.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libboost_thread-mt.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libbz2-1.dll
-    File @WINPATH_INSTALLPREFIX@\bin\libdb_cxx-4.8.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libeay32.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libfreetype-6.dll
-    !if "@WINDOWS_BITS@" == "64"
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libgcc_s_seh-1.dll
-    !else
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libgcc_s_sjlj-1.dll
-    !endif
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libglib-2.0-0.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libharfbuzz-0.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libintl-8.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libpcre-1.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libpcre2-16-0.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libpng16-16.dll
-    File @WINPATH_INSTALLPREFIX@\bin\libprotobuf-14.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libssp-0.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libstdc++-6.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libwinpthread-1.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\Qt5Core.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\Qt5Gui.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\Qt5Network.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\Qt5Widgets.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\ssleay32.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\zlib1.dll
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\bin\libsodium-23.dll
-    File @WINPATH_INSTALLPREFIX@\bin\bitmark-qt.exe
-    File /oname=COPYING.txt @WINPATH_TOPSRCDIR@\COPYING
-    File /oname=readme.txt @WINPATH_TOPSRCDIR@\doc\README_windows.txt
-    SetOutPath $INSTDIR\daemon
-    File @WINPATH_INSTALLPREFIX@\bin\bitmarkd.exe
-    File @WINPATH_INSTALLPREFIX@\bin\bitmark-cli.exe
-    SetOutPath $INSTDIR\doc
-    File /r @WINPATH_TOPSRCDIR@\doc\*.*
-    SetOutPath $INSTDIR\platforms
-    File @WINPATH_MINGWHOSTPREFIX@\sys-root\mingw\lib\qt5\plugins\platforms\qwindows.dll
-    SetOutPath $INSTDIR
+!include dll_list.nsh
+    File @WINPATH_INSTALLPREFIX@/bin/bitmark-qt.exe
+    File /oname=COPYING.txt @WINPATH_TOPSRCDIR@/COPYING
+    File /oname=readme.txt @WINPATH_TOPSRCDIR@/doc/README_windows.txt
+    File @WINPATH_INSTALLPREFIX@/bin/bitmarkd.exe
+    File @WINPATH_INSTALLPREFIX@/bin/bitmark-cli.exe
+    SetOutPath $INSTDIR/doc
+    File /r @WINPATH_TOPSRCDIR@/doc/*.*
+
+    SetOutPath "$INSTDIR\platforms"
+    File platforms/qdirect2d.dll
+    File platforms/qminimal.dll
+    File platforms/qoffscreen.dll
+    File platforms/qwindows.dll
+    SetOutPath "$INSTDIR\imageformats"
+    File imageformats/qgif.dll
+    File imageformats/qico.dll
+    File imageformats/qjpeg.dll
+    SetOutPath "$INSTDIR"
+
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 
     # Remove old wxwidgets-based-bitmark executable and locales:
@@ -167,10 +142,11 @@ Section /o -un.Main UNSEC0000
     Delete /REBOOTOK $INSTDIR\*.dll
     Delete /REBOOTOK $INSTDIR\COPYING.txt
     Delete /REBOOTOK $INSTDIR\readme.txt
-    RMDir /r /REBOOTOK $INSTDIR\daemon
     RMDir /r /REBOOTOK $INSTDIR\doc
     Delete /REBOOTOK $INSTDIR\platforms\*.dll
     RMDir /r /REBOOTOK $INSTDIR\platforms
+    Delete /REBOOTOK $INSTDIR\imageformats\*.dll
+    RMDir /r /REBOOTOK $INSTDIR\imageformats
     DeleteRegValue HKCU "${REGKEY}\Components" Main
 SectionEnd
 

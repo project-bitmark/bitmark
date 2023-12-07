@@ -14,6 +14,9 @@
 
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
+#if OPENSSL_VERSION_NUMBER >= 0x11000000L
+#include <openssl/evp.h>
+#endif
 #include <QDateTime>
 #include <QDebug>
 #include <QSslCertificate>
@@ -159,15 +162,28 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         std::string data_to_verify;                     // Everything but the signature
         rcopy.SerializeToString(&data_to_verify);
 
+	#if OPENSSL_VERSION_NUMBER >= 0x11000000L
+	EVP_MD_CTX *ctx = EV_MD_CTX_new();
+	EVP_PKEY *pubkey = X509_get_pubkey(signing_cert);
+	if (!EVP_VerifyInit_ex(ctx, digestAlgorithm, NULL) ||
+            !EVP_VerifyUpdate(ctx, data_to_verify.data(), data_to_verify.size()) ||
+            !EVP_VerifyFinal(ctx, (const unsigned char*)paymentRequest.signature().data(), paymentRequest.signature().size(), pubkey)) {
+	  EVP_MD_CTX_free(ctx);
+	  throw SSLVerifyError("Bad signature, invalid PaymentRequest.");
+        }
+	else {
+	  EVP_MD_CTX_free(ctx);
+	}
+	#else
         EVP_MD_CTX ctx;
-        EVP_PKEY *pubkey = X509_get_pubkey(signing_cert);
-        EVP_MD_CTX_init(&ctx);
+	EVP_PKEY *pubkey = X509_get_pubkey(signing_cert);
+	EVP_MD_CTX_init(&ctx);
         if (!EVP_VerifyInit_ex(&ctx, digestAlgorithm, NULL) ||
             !EVP_VerifyUpdate(&ctx, data_to_verify.data(), data_to_verify.size()) ||
             !EVP_VerifyFinal(&ctx, (const unsigned char*)paymentRequest.signature().data(), paymentRequest.signature().size(), pubkey)) {
-
             throw SSLVerifyError("Bad signature, invalid PaymentRequest.");
         }
+	#endif
 
         // OpenSSL API for getting human printable strings from certs is baroque.
         int textlen = X509_NAME_get_text_by_NID(certname, NID_commonName, NULL, 0);

@@ -24,10 +24,9 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, boo
     // minimum difficulty = 1.0.
     if (blockindex == NULL)
     {
-        if (chainActive.Tip() == NULL)
+      blockindex = chainActive.Tip();
+        if (blockindex == NULL)
             return 1.0;
-        else
-            blockindex = chainActive.Tip();
     }
     if (algo<0) {
       algo = GetAlgo(blockindex->nVersion);
@@ -37,12 +36,12 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, boo
     // Q? <<<  Please comment on working of this code
     // 3 Cases 
     if (weighted) algoWeight = GetAlgoWeight(algo);
+    bool blockOnFork = false;
+    if (onFork(blockindex)) blockOnFork = true;
     if (next) {
       nBits = GetNextWorkRequired(blockindex,algo);
     }
     else if (blockindex && blockindex->nHeight>0) {
-      bool blockOnFork = false;
-      if (onFork(blockindex)) blockOnFork = true;
       if (blockOnFork) {
 	int algo_tip = GetAlgo(blockindex->nVersion);
 	if (algo_tip != algo) {

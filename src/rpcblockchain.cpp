@@ -32,14 +32,6 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, boo
     if (algo<0) {
       algo = GetAlgo(blockindex->nVersion);
     }
-    bool blockOnFork = false;
-    if (onFork(blockindex)) blockOnFork = true;
-    if (blockOnFork) {
-      int algo_tip = GetAlgo(blockindex->nVersion);
-      if (algo_tip != algo) {
-	blockindex = get_pprev_algo(blockindex,algo);
-      }
-    }
     unsigned int nBits = 0;
     unsigned int algoWeight = 1;
     // Q? <<<  Please comment on working of this code
@@ -49,6 +41,14 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, boo
       nBits = GetNextWorkRequired(blockindex,algo);
     }
     else if (blockindex && blockindex->nHeight>0) {
+      bool blockOnFork = false;
+      if (onFork(blockindex)) blockOnFork = true;
+      if (blockOnFork) {
+	int algo_tip = GetAlgo(blockindex->nVersion);
+	if (algo_tip != algo) {
+	  blockindex = get_pprev_algo(blockindex,algo);
+	}
+      }
       nBits = blockindex->nBits;
     }
     else {

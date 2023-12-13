@@ -617,15 +617,15 @@ Value chaindynamics(const Array& params, bool fHelp)
 //                                       boolean for weighted / unweighted -------v
     obj.push_back(Pair("difficulty",      (double)GetDifficulty(NULL,miningAlgo,true,true)));
 //  sdifficulty: the "simple", unweighted difficulty
-    obj.push_back(Pair("sdifficulty",       (double)GetDifficulty(NULL,miningAlgo,false,true)));
-    obj.push_back(Pair("sdifficulty SCRYPT", (double)GetDifficulty(NULL,ALGO_SCRYPT,false,true)));
-    obj.push_back(Pair("sdifficulty SHA256D",    (double)GetDifficulty(NULL,ALGO_SHA256D,false,true)));
-    obj.push_back(Pair("sdifficulty YESCRYPT",    (double)GetDifficulty(NULL,ALGO_YESCRYPT,false,true)));
-    obj.push_back(Pair("sdifficulty ARGON2",    (double)GetDifficulty(NULL,ALGO_ARGON2,false,true)));
-    obj.push_back(Pair("sdifficulty X17",    (double)GetDifficulty(NULL,ALGO_X17,false,true)));
-    obj.push_back(Pair("sdifficulty LYRA2REv2",    (double)GetDifficulty(NULL,ALGO_LYRA2REv2,false,true)));
-    obj.push_back(Pair("sdifficulty EQUIHASH",    (double)GetDifficulty(NULL,ALGO_EQUIHASH,false,true)));
-    obj.push_back(Pair("sdifficulty CRYPTONIGHT",    (double)GetDifficulty(NULL,ALGO_CRYPTONIGHT,false,true)));
+    obj.push_back(Pair("sdifficulty",       (double)GetDifficulty(pindex,miningAlgo,false,true)));
+    obj.push_back(Pair("sdifficulty SCRYPT", (double)GetDifficulty(pindex,ALGO_SCRYPT,false,true)));
+    obj.push_back(Pair("sdifficulty SHA256D",    (double)GetDifficulty(pindex,ALGO_SHA256D,false,true)));
+    obj.push_back(Pair("sdifficulty YESCRYPT",    (double)GetDifficulty(pindex,ALGO_YESCRYPT,false,true)));
+    obj.push_back(Pair("sdifficulty ARGON2",    (double)GetDifficulty(pindex,ALGO_ARGON2,false,true)));
+    obj.push_back(Pair("sdifficulty X17",    (double)GetDifficulty(pindex,ALGO_X17,false,true)));
+    obj.push_back(Pair("sdifficulty LYRA2REv2",    (double)GetDifficulty(pindex,ALGO_LYRA2REv2,false,true)));
+    obj.push_back(Pair("sdifficulty EQUIHASH",    (double)GetDifficulty(pindex,ALGO_EQUIHASH,false,true)));
+    obj.push_back(Pair("sdifficulty CRYPTONIGHT",    (double)GetDifficulty(pindex,ALGO_CRYPTONIGHT,false,true)));
 
     obj.push_back(Pair("difficulty SCRYPT",    (double)GetDifficulty(pindex,ALGO_SCRYPT)));
     obj.push_back(Pair("difficulty SHA256D",    (double)GetDifficulty(pindex,ALGO_SHA256D)));

@@ -46,7 +46,7 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, boo
     // 3 Cases 
     if (weighted) algoWeight = GetAlgoWeight(algo);
     if (next) {
-      nBits = GetNextWorkRequired(chainActive.Tip(),algo);
+      nBits = GetNextWorkRequired(blockindex,algo);
     }
     else if (blockindex && blockindex->nHeight>0) {
       nBits = blockindex->nBits;

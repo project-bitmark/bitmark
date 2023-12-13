@@ -321,10 +321,11 @@ double GetAverageBlockSpacing (const CBlockIndex * blockindex, const int algo, c
     }
     CountBlocks++;
     if(LastBlockTime > 0){
-      int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
-      nActualTimespan += Diff;
+      nActualTimespan = LastBlockTime - BlockReading->GetMedianTimePast();
     }
-    LastBlockTime = BlockReading->GetBlockTime();
+    else {
+      LastBlockTime = BlockReading->GetMedianTimePast();
+    }
 
     BlockReading = BlockReading->pprev;
     

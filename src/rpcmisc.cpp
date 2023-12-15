@@ -483,7 +483,8 @@ Value getblockreward(const Array& params, bool fHelp) {
 			"Returns an object containing blockreward info.\n"
 	    "\nArguments:\n"
 	    "1. \"algo\"     (numeric, optional) The algo, 2 (scrypt) by default\n"
-	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"	    
+	    "2. \"height\"     (numeric, optional) The height to look at, tip by default\n"
+	    "3. \"noScale\" (boolean, optional) get the unscaled version, false by default\n"
 	    "\nResult:\n"
 	    "{\n"
 	    " \"block reward\": xxxxx           (numeric)\n"
@@ -492,20 +493,21 @@ Value getblockreward(const Array& params, bool fHelp) {
   
   int algo = ALGO_SCRYPT;
   CBlockIndex * blockindex = NULL;
+  bool noScale = false;
 	   
   if (params.size()>0) {
     algo = params[0].get_int();
     if (params.size()>1) {
 	int height = params[1].get_int();
-	blockindex = chainActive.Tip();
-	while (blockindex && blockindex->nHeight > height) {
-	  blockindex = blockindex->pprev;
+	blockindex = chainActive[height];
+	if (params.size()>2) {
+	  noScale = params[2].get_bool();
 	}
     }
   }
 
   Object obj;
-  obj.push_back(Pair("block reward",(double)GetBlockReward(blockindex,algo,false)));
+  obj.push_back(Pair("block reward",(double)GetBlockReward(blockindex,algo,noScale)));
   return obj;
 }
 

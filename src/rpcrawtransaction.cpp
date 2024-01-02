@@ -396,13 +396,14 @@ Value createrawtransaction(const Array& params, bool fHelp)
 
 Value decoderawtransaction(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
+  if (fHelp || params.size() == 0 || params.size() > 2)
         throw runtime_error(
-            "decoderawtransaction \"hexstring\"\n"
+            "decoderawtransaction \"hexstring\" (vectorFormat)\n"
             "\nReturn a JSON object representing the serialized, hex-encoded transaction.\n"
 
             "\nArguments:\n"
             "1. \"hex\"      (string, required) The transaction hex string\n"
+	    "2. vectorFormat (boolean, optional). Whether the transaction is encoded in vector format\n"
 
             "\nResult:\n"
             "{\n"
@@ -446,8 +447,19 @@ Value decoderawtransaction(const Array& params, bool fHelp)
         );
 
     vector<unsigned char> txData(ParseHexV(params[0], "argument"));
+    printf("txData =");
+    for (int i=0; i<txData.size(); i++) {
+      printf(" %u",txData[i]);
+    }
+    printf("\n");
     CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
     CTransaction tx;
+    bool vectorFormat = false;
+    if (params.size() > 1) {
+      vectorFormat = params[1].get_bool();
+    }
+    if (vectorFormat)
+      tx.vector_format = true;
     try {
         ssData >> tx;
     }
@@ -456,7 +468,12 @@ Value decoderawtransaction(const Array& params, bool fHelp)
     }
 
     Object result;
-    TxToJSON(tx, 0, result);
+    if (vectorFormat) {
+      result.push_back(Pair("txid", tx.GetCachedHash().GetHex()));
+    }
+    else {
+      TxToJSON(tx, 0, result);
+    }
 
     return result;
 }

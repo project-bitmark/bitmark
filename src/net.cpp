@@ -359,20 +359,20 @@ bool GetMyExternalIP(CNetAddr& ipRet)
         //  <?php echo $_SERVER["REMOTE_ADDR"]; ?>
         if (nHost == 1)
         {
-            addrConnect = CService("104.21.35.75", 80);  // whatismyip.io
-            //addrConnect = CService("91.198.22.70", 80); // checkip.dyndns.org
+	  //addrConnect = CService("104.21.35.75", 80);  // whatismyip.io
+            addrConnect = CService("193.122.130.0", 80); // checkip.dyndns.org
 
             if (nLookup == 1)
             {
-                CService addrIP("whatismyip.io", 80, true);
-                //CService addrIP("checkip.dyndns.org", 80, true);
+	      //CService addrIP("whatismyip.io", 80, true);
+                CService addrIP("checkip.dyndns.org", 80, true);
                 if (addrIP.IsValid())
                     addrConnect = addrIP;
             }
 
             pszGet = "GET / HTTP/1.1\r\n"
-                     "Host: whatismyip.io\r\n"
-                     //"Host: checkip.dyndns.org\r\n"
+	      //"Host: whatismyip.io\r\n"
+                     "Host: checkip.dyndns.org\r\n"
                      "User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)\r\n"
                      "Connection: close\r\n"
                      "\r\n";

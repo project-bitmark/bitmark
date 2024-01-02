@@ -33,11 +33,13 @@ double GetDifficulty(const CBlockIndex* blockindex, int algo, bool weighted, boo
     }
     unsigned int nBits = 0;
     unsigned int algoWeight = 1;
+    bool blockOnFork = false;
+    if (blockindex && blockindex->nHeight>0) {
+      if (onFork(blockindex)) blockOnFork = true;
+    }
     // Q? <<<  Please comment on working of this code
     // 3 Cases 
     if (weighted) algoWeight = GetAlgoWeight(algo);
-    bool blockOnFork = false;
-    if (onFork(blockindex)) blockOnFork = true;
     if (next) {
       nBits = GetNextWorkRequired(blockindex,algo);
     }

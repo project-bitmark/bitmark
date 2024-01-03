@@ -131,7 +131,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "setminingalgo"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "setgenerate"            && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getnetworkhashps"       && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getnetworkhashps"       && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getnetworkhashps"       && n > 2) ConvertTo<int64_t>(params[2]);

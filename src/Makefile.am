@@ -144,6 +144,7 @@ libbitmark_common_a_SOURCES = \
   blake.c \
   blake2s-ref.c \
   bmw.c \
+  bmw/BlueMidnightWish.c \
   cubehash.c \
   echo.c \
   jh.c \

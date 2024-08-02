@@ -1,8 +1,8 @@
 ### TestGen ###
 
-Utilities to generate test vectors for the data-driven Bitmark tests.
+Utilities to generate test vectors for the data-driven Bitcoin tests.
 
-Usage: 
+To use inside a scripted-diff (or just execute directly):
 
-    gen_base58_test_vectors.py valid 50 > ../../src/test/data/base58_keys_valid.json
-    gen_base58_test_vectors.py invalid 50 > ../../src/test/data/base58_keys_invalid.json
+    ./gen_key_io_test_vectors.py valid 70 > ../../src/test/data/key_io_valid.json
+    ./gen_key_io_test_vectors.py invalid 70 > ../../src/test/data/key_io_invalid.json

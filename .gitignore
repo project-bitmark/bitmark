@@ -1,15 +1,19 @@
 *.tar.gz
 
 *.exe
-src/bitcoin
+*.pdb
+src/bitmark
 src/bitmarkd
 src/bitmark-cli
+src/bitmark-gui
+src/bitmark-node
 src/bitmark-tx
-src/qt/bitmark-qt
-src/test/test_bitcoin
+src/bitmark-util
+src/bitmark-chainstate
+src/bitmark-wallet
+src/test/fuzz/fuzz
 src/test/test_bitmark
-src/qt/test/test_bitcoin-qt
-binaries/*
+src/qt/test/test_bitmark-qt
 
 # autoreconf
 Makefile.in
@@ -28,8 +32,7 @@ build-aux/m4/ltversion.m4
 build-aux/missing
 build-aux/compile
 build-aux/test-driver
-src/build-aux/
-src/build.h
+config.cache
 config.log
 config.status
 configure
@@ -37,13 +40,9 @@ libtool
 src/config/bitcoin-config.h
 src/config/bitcoin-config.h.in
 src/config/stamp-h1
-src/stamp-h1
-src/bitmark-config.h.in
-src/bitmark-config.h
+src/obj
 share/setup.nsi
 share/qt/Info.plist
-
-src/univalue/gen
 
 src/qt/*.moc
 src/qt/moc_*.cpp
@@ -51,30 +50,39 @@ src/qt/forms/ui_*.h
 
 src/qt/test/moc*.cpp
 
+src/qt/bitcoin-qt.config
+src/qt/bitcoin-qt.creator
+src/qt/bitcoin-qt.creator.user
+src/qt/bitcoin-qt.files
+src/qt/bitcoin-qt.includes
+
 .deps
 .dirstamp
 .libs
 .*.swp
-*.*~*
+*~
 *.bak
 *.rej
 *.orig
 *.pyc
 *.o
 *.o-*
-*.patch
-!contrib/test-patches/temp-revert-2.patch
-.bitcoin
 *.a
 *.pb.cc
 *.pb.h
+*.dat
 
 *.log
 *.trs
-*.dmg
+*.zip
 
 *.json.h
 *.raw.h
+
+# Only ignore unexpected patches
+*.patch
+!contrib/guix/patches/*.patch
+!depends/patches/**/*.patch
 
 #libtool object files
 *.lo
@@ -83,44 +91,62 @@ src/qt/test/moc*.cpp
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-bitcoin-qt
-Bitcoin-Qt.app
+!depends/Makefile
+src/qt/bitmark-qt
+Bitmark-Qt.app
+
+# Qt Creator
+Makefile.am.user
 
 # Unit-tests
 Makefile.test
-bitcoin-qt_test
-src/test/buildenv.py
+bitmark-qt_test
 
 # Resources cpp
 qrc_*.cpp
-
-# Qt creator
-*.pro.user
 
 # Mac specific
 .DS_Store
 build
 
+# Previous releases
+releases
+
 #lcov
 *.gcno
+*.gcda
 /*.info
-test_bitcoin.coverage/
+test_bitmark.coverage/
 total.coverage/
+fuzz.coverage/
 coverage_percent.txt
+/cov_tool_wrapper.sh
+qa-assets/
 
 #build tests
 linux-coverage-build
 linux-build
 win32-build
-qa/pull-tester/build-tests.sh
-qa/pull-tester/run-bitmarkd-for-test.sh
-qa/pull-tester/tests-config.sh
-qa/pull-tester/cache/*
-qa/pull-tester/test.*/*
+test/config.ini
+test/cache/*
+test/.mypy_cache/
 
 !src/leveldb*/Makefile
 
 /doc/doxygen/
 
 libbitcoinconsensus.pc
-*~
+contrib/devtools/split-debug.sh
+
+# Output from running db4 installation
+db4/
+
+# clang-check
+*.plist
+
+osx_volname
+dist/
+
+/guix-build-*
+
+/ci/scratch/

@@ -1,10 +1,9 @@
-// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2011-2020 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef QVALUECOMBOBOX_H
-#define QVALUECOMBOBOX_H
+#ifndef BITCOIN_QT_QVALUECOMBOBOX_H
+#define BITCOIN_QT_QVALUECOMBOBOX_H
 
 #include <QComboBox>
 #include <QVariant>
@@ -17,7 +16,7 @@ class QValueComboBox : public QComboBox
     Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged USER true)
 
 public:
-    explicit QValueComboBox(QWidget *parent = 0);
+    explicit QValueComboBox(QWidget *parent = nullptr);
 
     QVariant value() const;
     void setValue(const QVariant &value);
@@ -25,14 +24,14 @@ public:
     /** Specify model role to use as ordinal value (defaults to Qt::UserRole) */
     void setRole(int role);
 
-signals:
+Q_SIGNALS:
     void valueChanged();
 
 private:
-    int role;
+    int role{Qt::UserRole};
 
-private slots:
+private Q_SLOTS:
     void handleSelectionChanged(int idx);
 };
 
-#endif // QVALUECOMBOBOX_H
+#endif // BITCOIN_QT_QVALUECOMBOBOX_H

@@ -1,175 +1,283 @@
-Mac OS X Build Instructions and Notes
-====================================
-This guide will show you how to build bitmarkd(headless client) for OSX.
+# macOS Build Guide
 
-Notes
------
+**Updated for MacOS [11.2](https://www.apple.com/macos/big-sur/)**
 
-* Tested on OS X 10.6 through 10.9 on 64-bit Intel processors only.
-Older OSX releases or 32-bit processors are no longer supported.
+This guide describes how to build bitcoind, command-line utilities, and GUI on macOS
 
-* All of the commands should be executed in a Terminal application. The
-built-in one is located in `/Applications/Utilities`.
+## Preparation
 
-Preparation
------------
+The commands in this guide should be executed in a Terminal application.
+macOS comes with a built-in Terminal located in:
 
-You need to install XCode with all the options checked so that the compiler
-and everything is available in /usr not just /Developer. XCode should be
-available on your OS X installation media, but if not, you can get the
-current version from https://developer.apple.com/xcode/. If you install
-Xcode 4.3 or later, you'll need to install its command line tools. This can
-be done in `Xcode > Preferences > Downloads > Components` and generally must
-be re-done or updated every time Xcode is updated.
+```
+/Applications/Utilities/Terminal.app
+```
 
-There's an assumption that you already have `git` installed, as well. If
-not, it's the path of least resistance to install [Github for Mac](https://mac.github.com/)
-(OS X 10.7+) or
-[Git for OS X](https://code.google.com/p/git-osx-installer/). It is also
-available via Homebrew or MacPorts.
+### 1. Xcode Command Line Tools
 
-You will also need to install [Homebrew](http://brew.sh)
-or [MacPorts](https://www.macports.org/) in order to install library
-dependencies. It's largely a religious decision which to choose, but, as of
-December 2012, MacPorts is a little easier because you can just install the
-dependencies immediately - no other work required. If you're unsure, read
-the instructions through first in order to assess what you want to do.
-Homebrew is a little more popular among those newer to OS X.
+The Xcode Command Line Tools are a collection of build tools for macOS.
+These tools must be installed in order to build Bitcoin Core from source.
 
-If you have both Homebrew and MacPorts installed, make sure to disable one of
-them using appropriate configure options --without-homebrew or --without-macports.
+To install, run the following command from your terminal:
 
-The installation of the actual dependencies is covered in the Instructions
-sections below.
+``` bash
+xcode-select --install
+```
 
-Instructions: MacPorts
-----------------------
+Upon running the command, you should see a popup appear.
+Click on `Install` to continue the installation process.
 
-### Install dependencies
+### 2. Homebrew Package Manager
 
-Installing the dependencies using MacPorts is very straightforward.
+Homebrew is a package manager for macOS that allows one to install packages from the command line easily.
+While several package managers are available for macOS, this guide will focus on Homebrew as it is the most popular.
+Since the examples in this guide which walk through the installation of a package will use Homebrew, it is recommended that you install it to follow along.
+Otherwise, you can adapt the commands to your package manager of choice.
 
-    sudo port install boost db48@+no_java openssl miniupnpc autoconf pkgconfig automake
+To install the Homebrew package manager, see: https://brew.sh
 
-Optional: install Qt4
+Note: If you run into issues while installing Homebrew or pulling packages, refer to [Homebrew's troubleshooting page](https://docs.brew.sh/Troubleshooting).
 
-    sudo port install qt4-mac qrencode protobuf-cpp py-appscript
+### 3. Install Required Dependencies
 
-### Building `bitmarkd`
+The first step is to download the required dependencies.
+These dependencies represent the packages required to get a barebones installation up and running.
 
-1. Clone the github tree to get the source code and go into the directory.
+See [dependencies.md](dependencies.md) for a complete overview.
 
-        git clone git@github.com:project-bitmark/bitmark.git bitmark
-        cd bitmark
+To install, run the following from your terminal:
 
-2.  Build bitmarkd (and Bitmark-Qt, if configured):
+``` bash
+brew install automake libtool boost pkg-config libevent libssl libsodium
+```
 
-        ./autogen.sh
-        ./configure
-        make
+For macOS 11 (Big Sur) and 12 (Monterey) you need to install a more recent version of llvm.
 
-3.  It is a good idea to build and run the unit tests, too:
+``` bash
+brew install llvm
+```
 
-        make check
+And append the following to the configure commands below:
 
-Instructions: Homebrew
-----------------------
+``` bash
+CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++
+```
 
-#### Install dependencies using Homebrew
+Try `llvm@17` if compilation fails with the default version of llvm.
 
-        brew install autoconf automake berkeley-db4 boost miniupnpc openssl pkg-config protobuf qt
+### 4. Clone Bitcoin repository
 
-Note: After you have installed the dependencies, you should check that the Homebrew installed version of OpenSSL is the one available for compilation. You can check this by typing
+`git` should already be installed by default on your system.
+Now that all the required dependencies are installed, let's clone the Bitcoin Core repository to a directory.
+All build scripts and commands will run from this directory.
 
-        openssl version
+``` bash
+git clone https://github.com/bitcoin/bitcoin.git
+```
 
-into Terminal. You should see OpenSSL 1.0.1f 6 Jan 2014.
+### 5. Install Optional Dependencies
 
-If not, you can ensure that the Homebrew OpenSSL is correctly linked by running
+#### Wallet Dependencies
 
-        brew link openssl --force
+It is not necessary to build wallet functionality to run `bitcoind` or  `bitcoin-qt`.
 
-Rerunning "openssl version" should now return the correct version. If it
-doesn't, make sure `/usr/local/bin` comes before `/usr/bin` in your
-PATH. 
+###### Descriptor Wallet Support
 
-### Building `bitmarkd`
+`sqlite` is required to support for descriptor wallets.
 
-1. Clone the github tree to get the source code and go into the directory.
+macOS ships with a useable `sqlite` package, meaning you don't need to
+install anything.
 
-        git clone https://github.com/project-bitmark/bitmark.git
-        cd bitmark
+###### Legacy Wallet Support
 
-2.  Build bitmarkd:
+`berkeley-db@4` is only required to support for legacy wallets.
+Skip if you don't intend to use legacy wallets.
 
-        ./autogen.sh
-        ./configure
-        make
+``` bash
+brew install berkeley-db@4
+```
+---
 
-3.  It is a good idea to build and run the unit tests, too:
+#### GUI Dependencies
 
-        make check
+###### Qt
 
+Bitcoin Core includes a GUI built with the cross-platform Qt Framework.
+To compile the GUI, we need to install `qt@5`.
+Skip if you don't intend to use the GUI.
 
-Building .dmg package
----------------------
-Run "make deploy" in order to prepare .dmg package from Bitmark-Qt.app bundle.
-You may have to set QTDIR environment variable first, for example:
+``` bash
+brew install qt@5
+```
 
-        export QTDIR=/opt/local/libexec/qt4/share
-        make deploy
+Note: Building with Qt binaries downloaded from the Qt website is not officially supported.
+See the notes in [#7714](https://github.com/bitcoin/bitcoin/issues/7714).
 
+###### qrencode
 
-Creating a release build
-------------------------
-You can ignore this section if you are building `bitmarkd` for your own use.
+The GUI can encode addresses in a QR Code. To build in QR support for the GUI, install `qrencode`.
+Skip if not using the GUI or don't want QR code functionality.
 
-bitmarkd/bitmark-cli binaries are not included in the Bitmark-Qt.app bundle.
+``` bash
+brew install qrencode
+```
+---
 
-If you are building `bitmarkd` or `Bitmark-Qt` for others, your build machine should be set up
-as follows for maximum compatibility:
+#### Port Mapping Dependencies
 
-All dependencies should be compiled with these flags:
+###### miniupnpc
 
- -mmacosx-version-min=10.6
- -arch x86_64
- -isysroot $(xcode-select --print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk
+miniupnpc may be used for UPnP port mapping.
+Skip if you do not need this functionality.
 
-For MacPorts, that means editing your macports.conf and setting
-`macosx_deployment_target` and `build_arch`:
+``` bash
+brew install miniupnpc
+```
 
-    macosx_deployment_target=10.6
-    build_arch=x86_64
+###### libnatpmp
 
-... and then uninstalling and re-installing, or simply rebuilding, all ports.
+libnatpmp may be used for NAT-PMP port mapping.
+Skip if you do not need this functionality.
 
-As of December 2012, the `boost` port does not obey `macosx_deployment_target`.
-Download `http://gavinandresen-bitmark.s3.amazonaws.com/boost_macports_fix.zip`
-for a fix.
+``` bash
+brew install libnatpmp
+```
 
-Once dependencies are compiled, see release-process.md for how the Bitmark-Qt.app
-bundle is packaged and signed to create the .dmg disk image that is distributed.
+Note: UPnP and NAT-PMP support will be compiled in and disabled by default.
+Check out the [further configuration](#further-configuration) section for more information.
 
-Running
--------
+---
 
-It's now available at `./bitmarkd`, provided that you are still in the `src`
-directory. We have to first create the RPC configuration file, though.
+#### ZMQ Dependencies
 
-Run `./bitmarkd` to get the filename where it should be put, or just try these
-commands:
+Support for ZMQ notifications requires the following dependency.
+Skip if you do not need ZMQ functionality.
 
-    echo -e "rpcuser=bitmarkrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Bitmark/bitmark.conf"
-    chmod 600 "/Users/${USER}/Library/Application Support/Bitmark/bitmark.conf"
+``` bash
+brew install zeromq
+```
 
-When next you run it, it will start downloading the blockchain, but it won't
-output anything while it's doing this. This process may take several hours;
-you can monitor its process by looking at the debug.log file, like this:
+ZMQ is automatically compiled in and enabled if the dependency is detected.
+Check out the [further configuration](#further-configuration) section for more information.
 
-    tail -f $HOME/Library/Application\ Support/Bitmark/debug.log
+For more information on ZMQ, see: [zmq.md](zmq.md)
 
-Other commands:
+---
 
-    ./bitmarkd -daemon # to start the bitmark daemon.
-    ./bitmark-cli --help  # for a list of command-line options.
-    ./bitmark-cli help    # When the daemon is running, to get a list of RPC commands
+#### Test Suite Dependencies
+
+There is an included test suite that is useful for testing code changes when developing.
+To run the test suite (recommended), you will need to have Python 3 installed:
+
+``` bash
+brew install python
+```
+
+---
+
+#### Deploy Dependencies
+
+You can deploy a `.zip` containing the Bitcoin Core application using `make deploy`.
+It is required that you have `python` installed.
+
+## Building Bitcoin Core
+
+### 1. Configuration
+
+There are many ways to configure Bitcoin Core, here are a few common examples:
+
+##### Wallet (BDB + SQlite) Support, No GUI:
+
+If `berkeley-db@4` is installed, then legacy wallet support will be built.
+If `sqlite` is installed, then descriptor wallet support will also be built.
+Additionally, this explicitly disables the GUI.
+
+``` bash
+./autogen.sh
+./configure --with-gui=no
+```
+
+##### Wallet (only SQlite) and GUI Support:
+
+This explicitly enables the GUI and disables legacy wallet support.
+If `qt` is not installed, this will throw an error.
+If `sqlite` is installed then descriptor wallet functionality will be built.
+If `sqlite` is not installed, then wallet functionality will be disabled.
+
+``` bash
+./autogen.sh
+./configure --without-bdb --with-gui=yes
+```
+
+##### No Wallet or GUI
+
+``` bash
+./autogen.sh
+./configure --without-wallet --with-gui=no
+```
+
+##### Further Configuration
+
+You may want to dig deeper into the configuration options to achieve your desired behavior.
+Examine the output of the following command for a full list of configuration options:
+
+``` bash
+./configure -help
+```
+
+### 2. Compile
+
+After configuration, you are ready to compile.
+Run the following in your terminal to compile Bitcoin Core:
+
+``` bash
+make        # use "-j N" here for N parallel jobs
+make check  # Run tests if Python 3 is available
+```
+
+### 3. Deploy (optional)
+
+You can also create a  `.zip` containing the `.app` bundle by running the following command:
+
+``` bash
+make deploy
+```
+
+## Running Bitcoin Core
+
+Bitcoin Core should now be available at `./src/bitcoind`.
+If you compiled support for the GUI, it should be available at `./src/qt/bitcoin-qt`.
+
+The first time you run `bitcoind` or `bitcoin-qt`, it will start downloading the blockchain.
+This process could take many hours, or even days on slower than average systems.
+
+By default, blockchain and wallet data files will be stored in:
+
+``` bash
+/Users/${USER}/Library/Application Support/Bitcoin/
+```
+
+Before running, you may create an empty configuration file:
+
+```shell
+mkdir -p "/Users/${USER}/Library/Application Support/Bitcoin"
+
+touch "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
+
+chmod 600 "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
+```
+
+You can monitor the download process by looking at the debug.log file:
+
+```shell
+tail -f $HOME/Library/Application\ Support/Bitcoin/debug.log
+```
+
+## Other commands:
+
+```shell
+./src/bitcoind -daemon      # Starts the bitcoin daemon.
+./src/bitcoin-cli --help    # Outputs a list of command-line options.
+./src/bitcoin-cli help      # Outputs a list of RPC commands when the daemon is running.
+./src/qt/bitcoin-qt -server # Starts the bitcoin-qt server mode, allows bitcoin-cli control
+```

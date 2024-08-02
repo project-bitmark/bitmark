@@ -1,10 +1,9 @@
-// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2011-2022 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef QVALIDATEDLINEEDIT_H
-#define QVALIDATEDLINEEDIT_H
+#ifndef BITCOIN_QT_QVALIDATEDLINEEDIT_H
+#define BITCOIN_QT_QVALIDATEDLINEEDIT_H
 
 #include <QLineEdit>
 
@@ -19,22 +18,27 @@ public:
     explicit QValidatedLineEdit(QWidget *parent);
     void clear();
     void setCheckValidator(const QValidator *v);
+    bool isValid();
 
 protected:
-    void focusInEvent(QFocusEvent *evt);
-    void focusOutEvent(QFocusEvent *evt);
+    void focusInEvent(QFocusEvent *evt) override;
+    void focusOutEvent(QFocusEvent *evt) override;
 
 private:
-    bool valid;
-    const QValidator *checkValidator;
+    bool valid{true};
+    const QValidator* checkValidator{nullptr};
 
-public slots:
+public Q_SLOTS:
+    void setText(const QString&);
     void setValid(bool valid);
     void setEnabled(bool enabled);
 
-private slots:
+Q_SIGNALS:
+    void validationDidChange(QValidatedLineEdit *validatedLineEdit);
+
+private Q_SLOTS:
     void markValid();
     void checkValidity();
 };
 
-#endif // QVALIDATEDLINEEDIT_H
+#endif // BITCOIN_QT_QVALIDATEDLINEEDIT_H

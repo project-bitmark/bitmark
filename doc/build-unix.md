@@ -1,233 +1,213 @@
 UNIX BUILD NOTES
 ====================
-Some notes on how to build Bitmark in Unix. 
+Some notes on how to build Bitcoin Core in Unix.
+
+(For BSD specific instructions, see `build-*bsd.md` in this directory.)
 
 To Build
 ---------------------
 
-	./autogen.sh
-	./configure
-	make
+```bash
+./autogen.sh
+./configure
+make # use "-j N" for N parallel jobs
+make install # optional
+```
 
-This will build bitmark-qt as well if the dependencies are met.
+See below for instructions on how to [install the dependencies on popular Linux
+distributions](#linux-distribution-specific-instructions), or the
+[dependencies](#dependencies) section for a complete overview.
 
-Dependencies
----------------------
+## Memory Requirements
 
- Library     | Purpose          | Description
- ------------|------------------|----------------------
- libssl      | SSL Support      | Secure communications
- libdb4.8    | Berkeley DB      | Wallet storage
- libboost    | Boost            | C++ Library
- miniupnpc   | UPnP Support     | Optional firewall-jumping support
- qt          | GUI              | GUI toolkit
- protobuf    | Payments in GUI  | Data interchange format used for payment protocol
- libqrencode | QR codes in GUI  | Optional for generating QR codes
- libsodium   | PoW algos        | Some of the new PoW algos require this
+C++ compilers are memory-hungry. It is recommended to have at least 1.5 GB of
+memory available when compiling Bitcoin Core. On systems with less, gcc can be
+tuned to conserve memory with additional CXXFLAGS:
 
-[miniupnpc](http://miniupnp.free.fr/) may be used for UPnP port mapping.  It can be downloaded from [here](
-http://miniupnp.tuxfamily.org/files/).  UPnP support is compiled in and
-turned off by default.  See the configure options for upnp behavior desired:
 
-	--without-miniupnpc      No UPnP support miniupnp not required
-	--disable-upnp-default   (the default) UPnP support turned off by default at runtime
-	--enable-upnp-default    UPnP support turned on by default at runtime
+    ./configure CXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768"
 
-Licenses of statically linked libraries:
- Berkeley DB   New BSD license with additional requirement that linked
-               software must be free open source
- Boost         MIT-like license
- miniupnpc     New (3-clause) BSD license
+Alternatively, or in addition, debugging information can be skipped for compilation. The default compile flags are
+`-g -O2`, and can be changed with:
 
-- For the versions used in the release, see doc/release-process.md under *Fetch and build inputs*.
+    ./configure CXXFLAGS="-O2"
 
-System requirements
---------------------
+Finally, clang (often less resource hungry) can be used instead of gcc, which is used by default:
 
-C++ compilers are memory-hungry. It is recommended to have at least 1 GB of
-memory available when compiling Bitmark Core. With 512MB of memory or less
-compilation will take much longer due to swap thrashing.
+    ./configure CXX=clang++ CC=clang
 
-Dependency Build Instructions: Ubuntu & Debian
-----------------------------------------------
+## Linux Distribution Specific Instructions
+
+### Ubuntu & Debian
+
+#### Dependency Build Instructions
+
 Build requirements:
 
-	sudo apt-get install build-essential
-	sudo apt-get install libtool autotools-dev autoconf
-	sudo apt-get install libssl-dev
-	sudo apt-get install libsodium-dev
+    sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils python3
 
-for Ubuntu 12.04 and later:
+Now, you can either build from self-compiled [depends](#dependencies) or install the required dependencies:
 
-	sudo apt-get install libboost-all-dev
+    sudo apt-get install libevent-dev libboost-dev libssl-dev libsodium-dev
 
- db4.8 packages are available [here](https://launchpad.net/~bitcoin/+archive/bitcoin).
- You can add the repository using the following command:
+SQLite is required for the descriptor wallet:
 
-        sudo add-apt-repository ppa:bitcoin/bitcoin
-        sudo apt-get update
+    sudo apt install libsqlite3-dev
 
- Ubuntu 12.04 and later have packages for libdb5.1-dev and libdb5.1++-dev,
- but using these will break binary wallet compatibility, and is not recommended.
+Berkeley DB is only required for the legacy wallet. Ubuntu and Debian have their own `libdb-dev` and `libdb++-dev` packages,
+but these will install Berkeley DB 5.3 or later. This will break binary wallet compatibility with the distributed
+executables, which are based on BerkeleyDB 4.8. If you do not care about wallet compatibility, pass
+`--with-incompatible-bdb` to configure. Otherwise, you can build Berkeley DB [yourself](#berkeley-db).
 
-for Ubuntu 13.10:
-	libboost1.54 will not work,
-	remove libboost1.54-all-dev and install libboost1.53-all-dev instead.
+To build Bitcoin Core without wallet, see [*Disable-wallet mode*](#disable-wallet-mode)
 
-for Debian 7 (Wheezy) and later:
- The oldstable repository contains db4.8 packages.
- Add the following line to /etc/apt/sources.list,
- replacing [mirror] with any official debian mirror.
+Optional port mapping libraries (see: `--with-miniupnpc` and `--with-natpmp`):
 
-	deb http://[mirror]/debian/ oldstable main
+    sudo apt install libminiupnpc-dev libnatpmp-dev
 
-To enable the change run
+ZMQ dependencies (provides ZMQ API):
 
-	sudo apt-get update
+    sudo apt-get install libzmq3-dev
 
-for other Ubuntu & Debian:
+User-Space, Statically Defined Tracing (USDT) dependencies:
 
-	sudo apt-get install libdb4.8-dev
-	sudo apt-get install libdb4.8++-dev
+    sudo apt install systemtap-sdt-dev
 
-Optional:
+GUI dependencies:
 
-	sudo apt-get install libminiupnpc-dev (see --with-miniupnpc and --enable-upnp-default)
-
-Dependencies for the GUI: Ubuntu & Debian
------------------------------------------
-
-If you want to build Bitmark-Qt, make sure that the required packages for Qt development
-are installed. Either Qt 4 or Qt 5 are necessary to build the GUI.
-If both Qt 4 and Qt 5 are installed, Qt 4 will be used. Pass `--with-gui=qt5` to configure to choose Qt5.
+If you want to build bitcoin-qt, make sure that the required packages for Qt development
+are installed. Qt 5 is necessary to build the GUI.
 To build without GUI pass `--without-gui`.
 
-To build with Qt 4 you need the following:
+To build with Qt 5 you need the following:
 
-    sudo apt-get install libqt4-dev libprotobuf-dev protobuf-compiler
+    sudo apt-get install qtbase5-dev qttools5-dev qttools5-dev-tools
 
-For Qt 5 you need the following:
+Additionally, to support Wayland protocol for modern desktop environments:
 
-    sudo apt-get install libqt5gui5 libqt5core5 libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev
+    sudo apt install qtwayland5
 
 libqrencode (optional) can be installed with:
 
     sudo apt-get install libqrencode-dev
 
-Once these are installed, they will be found by configure and a bitmark-qt executable will be
+Once these are installed, they will be found by configure and a bitcoin-qt executable will be
 built by default.
 
-Notes
------
-The release is built with GCC and then "strip bitmarkd" to strip the debug
-symbols, which reduces the executable size by about 90%.
 
+### Fedora
 
-miniupnpc
----------
-	tar -xzvf miniupnpc-1.6.tar.gz
-	cd miniupnpc-1.6
-	make
-	sudo su
-	make install
+#### Dependency Build Instructions
 
+Build requirements:
 
-Berkeley DB
------------
-It is recommended to use Berkeley DB 4.8. If you have to build it yourself:
+    sudo dnf install gcc-c++ libtool make autoconf automake python3
 
+Now, you can either build from self-compiled [depends](#dependencies) or install the required dependencies:
+
+    sudo dnf install libevent-devel boost-devel openssl-devel libsodium-devel
+
+SQLite is required for the descriptor wallet:
+
+    sudo dnf install sqlite-devel
+
+Berkeley DB is only required for the legacy wallet. Fedora releases have only `libdb-devel` and `libdb-cxx-devel` packages, but these will install
+Berkeley DB 5.3 or later. This will break binary wallet compatibility with the distributed executables, which
+are based on Berkeley DB 4.8. If you do not care about wallet compatibility,
+pass `--with-incompatible-bdb` to configure. Otherwise, you can build Berkeley DB [yourself](#berkeley-db).
+
+To build Bitcoin Core without wallet, see [*Disable-wallet mode*](#disable-wallet-mode)
+
+Optional port mapping libraries (see: `--with-miniupnpc` and `--with-natpmp`):
+
+    sudo dnf install miniupnpc-devel libnatpmp-devel
+
+ZMQ dependencies (provides ZMQ API):
+
+    sudo dnf install zeromq-devel
+
+User-Space, Statically Defined Tracing (USDT) dependencies:
+
+    sudo dnf install systemtap-sdt-devel
+
+GUI dependencies:
+
+If you want to build bitcoin-qt, make sure that the required packages for Qt development
+are installed. Qt 5 is necessary to build the GUI.
+To build without GUI pass `--without-gui`.
+
+To build with Qt 5 you need the following:
+
+    sudo dnf install qt5-qttools-devel qt5-qtbase-devel
+
+Additionally, to support Wayland protocol for modern desktop environments:
+
+    sudo dnf install qt5-qtwayland
+
+libqrencode (optional) can be installed with:
+
+    sudo dnf install qrencode-devel
+
+Once these are installed, they will be found by configure and a bitcoin-qt executable will be
+built by default.
+
+## Dependencies
+
+See [dependencies.md](dependencies.md) for a complete overview, and
+[depends](/depends/README.md) on how to compile them yourself, if you wish to
+not use the packages of your Linux distribution.
+
+### Berkeley DB
+
+The legacy wallet uses Berkeley DB. To ensure backwards compatibility it is
+recommended to use Berkeley DB 4.8. If you have to build it yourself, and don't
+want to use any other libraries built in depends, you can do:
 ```bash
-BITMARK_ROOT=$(pwd)
+make -C depends NO_BOOST=1 NO_LIBEVENT=1 NO_QT=1 NO_SQLITE=1 NO_NATPMP=1 NO_UPNP=1 NO_ZMQ=1 NO_USDT=1
+...
+to: /path/to/bitcoin/depends/x86_64-pc-linux-gnu
+```
+and configure using the following:
+```bash
+export BDB_PREFIX="/path/to/bitcoin/depends/x86_64-pc-linux-gnu"
 
-# Pick some path to install BDB to, here we create a directory within the bitmark directory
-BDB_PREFIX="${BITMARK_ROOT}/db4"
-mkdir -p $BDB_PREFIX
-
-# Fetch the source and verify that it is not tampered with
-wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
-echo '12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef  db-4.8.30.NC.tar.gz' | sha256sum -c
-# -> db-4.8.30.NC.tar.gz: OK
-tar -xzvf db-4.8.30.NC.tar.gz
-
-# Build the library and install to our prefix
-cd db-4.8.30.NC/build_unix/
-#  Note: Do a static build so that it can be embedded into the exectuable, instead of having to find a .so at runtime
-../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
-make install
-
-# Configure Bitmark Core to use our own-built instance of BDB
-cd $BITMARK_ROOT
-./configure (other args...) LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/"
+./configure \
+    BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" \
+    BDB_CFLAGS="-I${BDB_PREFIX}/include"
 ```
 
-**Note**: You only need Berkeley DB if the wallet is enabled (see the section *Disable-Wallet mode* below).
+**Note**: Make sure that `BDB_PREFIX` is an absolute path.
 
-Boost
------
-If you need to build Boost yourself:
-
-	sudo su
-	./bootstrap.sh
-	./bjam install
-
-
-Security
---------
-To help make your bitmark installation more secure by making certain attacks impossible to
-exploit even if a vulnerability is found, binaries are hardened by default.
-This can be disabled with:
-
-Hardening Flags:
-
-	./configure --enable-hardening
-	./configure --disable-hardening
-
-
-Hardening enables the following features:
-
-* Position Independent Executable
-    Build position independent code to take advantage of Address Space Layout Randomization
-    offered by some kernels. An attacker who is able to cause execution of code at an arbitrary
-    memory location is thwarted if he doesn't know where anything useful is located.
-    The stack and heap are randomly located by default but this allows the code section to be
-    randomly located as well.
-
-    On an Amd64 processor where a library was not compiled with -fPIC, this will cause an error
-    such as: "relocation R_X86_64_32 against `......' can not be used when making a shared object;"
-
-    To test that you have built PIE executable, install scanelf, part of paxutils, and use:
-
-    	scanelf -e ./bitmark
-
-    The output should contain:
-     TYPE
-    ET_DYN
-
-* Non-executable Stack
-    If the stack is executable then trivial stack based buffer overflow exploits are possible if
-    vulnerable buffers are found. By default, bitmark should be built with a non-executable stack
-    but if one of the libraries it uses asks for an executable stack or someone makes a mistake
-    and uses a compiler extension which requires an executable stack, it will silently build an
-    executable without the non-executable stack protection.
-
-    To verify that the stack is non-executable after compiling use:
-    `scanelf -e ./bitmark`
-
-    the output should contain:
-	STK/REL/PTL
-	RW- R-- RW-
-
-    The STK RW- means that the stack is readable and writeable but not executable.
+**Note**: You only need Berkeley DB if the legacy wallet is enabled (see [*Disable-wallet mode*](#disable-wallet-mode)).
 
 Disable-wallet mode
 --------------------
-When the intention is to run only a P2P node without a wallet, bitmark may be compiled in
-disable-wallet mode with:
+When the intention is to only run a P2P node, without a wallet, Bitcoin Core can
+be compiled in disable-wallet mode with:
 
     ./configure --disable-wallet
 
-In this case there is no dependency on Berkeley DB 4.8.
+In this case there is no dependency on SQLite or Berkeley DB.
 
-Mining is also possible in disable-wallet mode, but only using the `getblocktemplate` RPC
-call not `getwork`.
+Mining is also possible in disable-wallet mode using the `getblocktemplate` RPC call.
 
+Additional Configure Flags
+--------------------------
+A list of additional configure flags can be displayed with:
+
+    ./configure --help
+
+
+Setup and Build Example: Arch Linux
+-----------------------------------
+This example lists the steps necessary to setup and build a command line only distribution of the latest changes on Arch Linux:
+
+    pacman --sync --needed autoconf automake boost gcc git libevent libtool make pkgconf python sqlite libssl libsodium
+    git clone https://github.com/bitcoin/bitcoin.git
+    cd bitcoin/
+    ./autogen.sh
+    ./configure
+    make check
+    ./src/bitcoind
+
+If you intend to work with legacy Berkeley DB wallets, see [Berkeley DB](#berkeley-db) section.

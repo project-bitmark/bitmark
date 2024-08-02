@@ -18,9 +18,9 @@ Bitmark aims to be a relatively stable, user focused crypto currency, which refi
 
 **User focused**: Daily development effort and innovation goes in to making bitmark as [user friendly, and simple to integrate](https://github.com/project-bitmark/bitmark/wiki#user-focused) as possible.
 
-**Earned Value**: Every aspect of Project Bitmark is focused on earned value. It's a project to make a viable every day currency, any value will be earned. 
+**Earned Value**: Every aspect of Project Bitmark is focused on earned value. It's a project to make a viable every day currency, any value will be earned.
 
-**Longevity**: The Bitmark network has been operational since mid July, 2014. A well funded Bitmark Foundation is being created and funded by the community to support long term development. 
+**Longevity**: The Bitmark network has been operational since mid July, 2014. A well funded Bitmark Foundation is being created and funded by the community to support long term development.
 
 **Distribution**: A [configuration](https://github.com/project-bitmark/bitmark/wiki#block-chain-parameters) which aims to ensure [fair distribution](https://github.com/project-bitmark/bitmark/wiki/Currency#supply-and-distribution) whilst using [proven PoW](https://github.com/project-bitmark/bitmark/wiki#proof-of-work) which has had substantial investment in hardware. Extensive distribution of the currency is achieved through wide spread adoption under the banner of [Marking](https://github.com/project-bitmark/marking/wiki).
 
@@ -35,16 +35,12 @@ Bitmark aims to be a relatively stable, user focused crypto currency, which refi
 
 All Bitmark software releases are published through the github release process, you can download the [latest release](https://github.com/project-bitmark/bitmark/releases) from the releases tab above.
 
-## v0.9.7.4 Works with newer TLS / SSL libraries in Ubuntu 18-20 and Debian 10
-This release branches off Master's tag v0.9.7.2 to use the latest TLS/SSL libraries.
-v0.9.7.4, is compatible with all previous 0.9.7.x series versions.
-
 ## Eight Algortihm mPoW Hard Fork (v0.9.7)
 
-The hard fork for multiple proof-of-work algorithms (SCRYPT, SHA256D, YESCRYPT, ARGON2D, X17, LYRA2REv2, EQUIHASH, CRYPTONIGHT) under DGWv3 was adopted by the Bitmark community by supermajority consensus after block 450946. The first block where v0.9.7 rules are in effect is 450947. 
+The hard fork for multiple proof-of-work algorithms (SCRYPT, SHA256D, YESCRYPT, ARGON2D, X17, LYRA2REv2, EQUIHASH, CRYPTONIGHT) under DGWv3 was adopted by the Bitmark community by supermajority consensus after block 450946. The first block where v0.9.7 rules are in effect is 450947.
 
-Each algorithm has its difficulty adjusted independently, with a target spacing of 16 min (for a combined average of  2 min as per the Bitmark specification). 
-The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 90 blocks per algo, which is approximately once a day ). 
+Each algorithm has its difficulty adjusted independently, with a target spacing of 16 min (for a combined average of  2 min as per the Bitmark specification).
+The subsidy reduces at the same emission points as before, but each algorithm contributes only 1/8 of the number of emitted coins. The peak hash rate that determines the subsidy scaling factor is dynamic (depends on at most 1 year of hashing history for each algorithm) and the scaling factor remains constant throughout each 24 hour period (it is updated every 90 blocks per algo, which is approximately once a day ).
 The difficulty adjustment algorithm is Dark Gravity Wave v3, customized for multi algo usage. It has special difficulty retargeting rules, the Surge Protector and the Resurrector. Surge Protector activates if there is a string of 9 blocks in-a-row by the same algorithm. Resurrector activates if blocks from one algo are halted for over 160 minutes.
 
 Download the current version from 'Master' branch, and put the following settings in your bitmark.conf
@@ -58,16 +54,16 @@ listen=1
 
 Ubuntu 16 and higher may simply do:
 
-  sudo apt-get install libsodium-dev
+sudo apt-get install libsodium-dev
 
 otherwise, you may compile this library from sources::
 
-  git clone git://github.com/jedisct1/libsodium.git
-  cd libsodium
-  ./autogen.sh
-  ./configure && make check
-  sudo make install
-  sudo ldconfig
+git clone git://github.com/jedisct1/libsodium.git
+cd libsodium
+./autogen.sh
+./configure && make check
+sudo make install
+sudo ldconfig
 
 
 ## Mining
@@ -78,7 +74,7 @@ You can mine all algorithms using our fork of cpuminer-multi (https://github.com
 `<algo>` is `sha256d`, `scrypt`, `ar2`, `x17`, `lyra2REV2`, `equihash`, or `cryptonight`.
 
 Note: The `miningAlgo` variable in src/rpcmining.cpp (choose one from `ALGO_SCRYPT` (0), `ALGO_SHA256D` (1), `ALGO_YESCRYPT` (2), `ALGO_ARGON2` (3), `ALGO_X17` (4), `ALGO_LYRA2REv2` (5), `ALGO_EQUIHASH` (6), `ALGO_CRYPTONIGHT` (7).
-      
+
 You can also control the mining algo via the rpcommand `bitmark-cli setminingalgo <algo number>`.
 
 You can also use the bitmark-cli command to mine. The last parameter is the algorithm number as defined in core.h. For example, to mine argon2,

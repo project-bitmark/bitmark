@@ -1,74 +1,93 @@
-Bitmark 0.9.7.3	BETA
-===========================================
-
-Copyright (c) 2009-2018 Bitmark Developers
-
+Bitcoin Core
+=============
 
 Setup
 ---------------------
-[Bitmark Core](http://bitmark.io/en/download) is the original Bitmark client and it builds the backbone of the network. It downloads and stores the entire history of Bitmark transactions (as of August 2018, less than 1 GiB of data); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more. Thankfully you only have to do this once. If you would like the process to go faster you can [download the blockchain directly](bootstrap.md).
+Bitcoin Core is the original Bitcoin client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Bitcoin transactions, which requires a few hundred gigabytes of disk space. Depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+
+To download Bitcoin Core, visit [bitcoincore.org](https://bitcoincore.org/en/download/).
 
 Running
 ---------------------
-The following are some helpful notes on how to run Bitmark on your native platform. 
+The following are some helpful notes on how to run Bitcoin Core on your native platform.
 
 ### Unix
 
-You need the Qt4 run-time libraries to run Bitmark-Qt. On Debian or Ubuntu:
-
-	sudo apt-get install libqtgui4
-
 Unpack the files into a directory and run:
 
-- bin/32/bitmark-qt (GUI, 32-bit) or bin/32/bitmarkd (headless, 32-bit)
-- bin/64/bitmark-qt (GUI, 64-bit) or bin/64/bitmarkd (headless, 64-bit)
-
-
+- `bin/bitcoin-qt` (GUI) or
+- `bin/bitcoind` (headless)
 
 ### Windows
 
-Unpack the files into a directory, and then run bitmark-qt.exe.
+Unpack the files into a directory, and then run bitcoin-qt.exe.
 
-### OSX
+### macOS
 
-Drag Bitmark-Qt to your applications folder, and then run Bitmark-Qt.
+Drag Bitcoin Core to your applications folder, and then run Bitcoin Core.
 
 ### Need Help?
 
-* See the documentation at the [Bitmark Wiki](https://github.com/project-bitmark/bitmark/wiki) The documentation on the [Bitcoin Wiki](https://en.bitmark.it/wiki/Main_Page) may also be helpful.
+* See the documentation at the [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
 for help and more information.
-* Ask for help on the [bitcointalk](https://bitcointalk.org/index.php?topic=3169983.0) forums, in the [Technical Support board](https://bitcointalk.org/index.php?board=4.0).
+* Ask for help on [Bitcoin StackExchange](https://bitcoin.stackexchange.com).
+* Ask for help on #bitcoin on Libera Chat. If you don't have an IRC client, you can use [web.libera.chat](https://web.libera.chat/#bitcoin).
+* Ask for help on the [BitcoinTalk](https://bitcointalk.org/) forums, in the [Technical Support board](https://bitcointalk.org/index.php?board=4.0).
 
 Building
 ---------------------
-The following are developer notes on how to build Bitmark on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
+The following are developer notes on how to build Bitcoin Core on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
 
-- [OSX Build Notes](build-osx.md)
+- [Dependencies](dependencies.md)
+- [macOS Build Notes](build-osx.md)
 - [Unix Build Notes](build-unix.md)
-- [Windows Build Notes](build-msw.md)
+- [Windows Build Notes](build-windows.md)
+- [FreeBSD Build Notes](build-freebsd.md)
+- [OpenBSD Build Notes](build-openbsd.md)
+- [NetBSD Build Notes](build-netbsd.md)
+- [Android Build Notes](build-android.md)
 
 Development
 ---------------------
-The Bitmark repo's [root README](https://github.com/project-bitmark/bitmark/blob/master/README.md) contains relevant information on the development process and automated testing.
+The Bitcoin repo's [root README](/README.md) contains relevant information on the development process and automated testing.
 
-- [Coding Guidelines](coding.md)
-- [Multiwallet Qt Development](multiwallet-qt.md)
-- [Release Notes](release-notes.md)
+- [Developer Notes](developer-notes.md)
+- [Productivity Notes](productivity.md)
 - [Release Process](release-process.md)
-- [Source Code Documentation (External Link)](https://dev.visucore.com/bitmark/doxygen/)
+- [Source Code Documentation (External Link)](https://doxygen.bitcoincore.org/)
 - [Translation Process](translation_process.md)
-- [Unit Tests](unit-tests.md)
+- [Translation Strings Policy](translation_strings_policy.md)
+- [JSON-RPC Interface](JSON-RPC-interface.md)
+- [Unauthenticated REST Interface](REST-interface.md)
+- [Shared Libraries](shared-libraries.md)
+- [BIPS](bips.md)
+- [Dnsseed Policy](dnsseed-policy.md)
+- [Benchmarking](benchmarking.md)
+- [Internal Design Docs](design/)
 
 ### Resources
-* Discuss on the [bitcointalk](https://bitcointalk.org/) forums, in the [Development & Technical Discussion board](https://bitcointalk.org/index.php?board=6.0).
-* Discuss on [#bitmark-dev](http://webchat.freenode.net/?channels=bitmark) on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net/?channels=bitmark-dev).
+* Discuss on the [BitcoinTalk](https://bitcointalk.org/) forums, in the [Development & Technical Discussion board](https://bitcointalk.org/index.php?board=6.0).
+* Discuss project-specific development on #bitcoin-core-dev on Libera Chat. If you don't have an IRC client, you can use [web.libera.chat](https://web.libera.chat/#bitcoin-core-dev).
 
 ### Miscellaneous
 - [Assets Attribution](assets-attribution.md)
+- [bitcoin.conf Configuration File](bitcoin-conf.md)
+- [CJDNS Support](cjdns.md)
 - [Files](files.md)
+- [Fuzz-testing](fuzzing.md)
+- [I2P Support](i2p.md)
+- [Init Scripts (systemd/upstart/openrc)](init.md)
+- [Managing Wallets](managing-wallets.md)
+- [Multisig Tutorial](multisig-tutorial.md)
+- [Offline Signing Tutorial](offline-signing-tutorial.md)
+- [P2P bad ports definition and list](p2p-bad-ports.md)
+- [PSBT support](psbt.md)
+- [Reduce Memory](reduce-memory.md)
+- [Reduce Traffic](reduce-traffic.md)
 - [Tor Support](tor.md)
+- [Transaction Relay Policy](policy/README.md)
+- [ZMQ](zmq.md)
 
 License
 ---------------------
-Distributed under the [MIT/X11 software license](http://www.opensource.org/licenses/mit-license.php).
-This product includes software developed by the OpenSSL Project for use in the [OpenSSL Toolkit](http://www.openssl.org/). This product includes cryptographic software written by Eric Young ([eay@cryptsoft.com](mailto:eay@cryptsoft.com)), and UPnP software written by Thomas Bernard.
+Distributed under the [MIT software license](/COPYING).

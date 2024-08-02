@@ -1,63 +1,68 @@
-// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2011-2021 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "walletmodeltransaction.h"
+#include <qt/walletmodeltransaction.h>
 
-#include "wallet.h"
+#include <policy/policy.h>
 
-WalletModelTransaction::WalletModelTransaction(const QList<SendCoinsRecipient> &recipients) :
-    recipients(recipients),
-    walletTransaction(0),
-    keyChange(0),
-    fee(0)
+WalletModelTransaction::WalletModelTransaction(const QList<SendCoinsRecipient>& _recipients)
+    : recipients(_recipients)
 {
-    walletTransaction = new CWalletTx();
 }
 
-WalletModelTransaction::~WalletModelTransaction()
-{
-    delete keyChange;
-    delete walletTransaction;
-}
-
-QList<SendCoinsRecipient> WalletModelTransaction::getRecipients()
+QList<SendCoinsRecipient> WalletModelTransaction::getRecipients() const
 {
     return recipients;
 }
 
-CWalletTx *WalletModelTransaction::getTransaction()
+CTransactionRef& WalletModelTransaction::getWtx()
 {
-    return walletTransaction;
+    return wtx;
 }
 
-qint64 WalletModelTransaction::getTransactionFee()
+void WalletModelTransaction::setWtx(const CTransactionRef& newTx)
+{
+    wtx = newTx;
+}
+
+unsigned int WalletModelTransaction::getTransactionSize()
+{
+    return wtx ? GetVirtualTransactionSize(*wtx) : 0;
+}
+
+CAmount WalletModelTransaction::getTransactionFee() const
 {
     return fee;
 }
 
-void WalletModelTransaction::setTransactionFee(qint64 newFee)
+void WalletModelTransaction::setTransactionFee(const CAmount& newFee)
 {
     fee = newFee;
 }
 
-qint64 WalletModelTransaction::getTotalTransactionAmount()
+void WalletModelTransaction::reassignAmounts(int nChangePosRet)
 {
-    qint64 totalTransactionAmount = 0;
-    foreach(const SendCoinsRecipient &rcp, recipients)
+    const CTransaction* walletTransaction = wtx.get();
+    int i = 0;
+    for (QList<SendCoinsRecipient>::iterator it = recipients.begin(); it != recipients.end(); ++it)
+    {
+        SendCoinsRecipient& rcp = (*it);
+        {
+            if (i == nChangePosRet)
+                i++;
+            rcp.amount = walletTransaction->vout[i].nValue;
+            i++;
+        }
+    }
+}
+
+CAmount WalletModelTransaction::getTotalTransactionAmount() const
+{
+    CAmount totalTransactionAmount = 0;
+    for (const SendCoinsRecipient &rcp : recipients)
     {
         totalTransactionAmount += rcp.amount;
     }
     return totalTransactionAmount;
-}
-
-void WalletModelTransaction::newPossibleKeyChange(CWallet *wallet)
-{
-    keyChange = new CReserveKey(wallet);
-}
-
-CReserveKey *WalletModelTransaction::getPossibleKeyChange()
-{
-    return keyChange;
 }

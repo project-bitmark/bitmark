@@ -1,10 +1,11 @@
-// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2011-2021 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef RECEIVECOINSDIALOG_H
-#define RECEIVECOINSDIALOG_H
+#ifndef BITCOIN_QT_RECEIVECOINSDIALOG_H
+#define BITCOIN_QT_RECEIVECOINSDIALOG_H
+
+#include <qt/guiutil.h>
 
 #include <QDialog>
 #include <QHeaderView>
@@ -14,19 +15,18 @@
 #include <QPoint>
 #include <QVariant>
 
-#include "guiutil.h"
+class PlatformStyle;
+class WalletModel;
 
 namespace Ui {
     class ReceiveCoinsDialog;
 }
-class OptionsModel;
-class WalletModel;
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
 
-/** Dialog for requesting payment of bitmarks */
+/** Dialog for requesting payment of bitcoins */
 class ReceiveCoinsDialog : public QDialog
 {
     Q_OBJECT
@@ -35,32 +35,33 @@ public:
     enum ColumnWidths {
         DATE_COLUMN_WIDTH = 130,
         LABEL_COLUMN_WIDTH = 120,
-        AMOUNT_MINIMUM_COLUMN_WIDTH = 160,
+        AMOUNT_MINIMUM_COLUMN_WIDTH = 180,
         MINIMUM_COLUMN_WIDTH = 130
     };
 
-    explicit ReceiveCoinsDialog(QWidget *parent = 0);
+    explicit ReceiveCoinsDialog(const PlatformStyle *platformStyle, QWidget *parent = nullptr);
     ~ReceiveCoinsDialog();
 
     void setModel(WalletModel *model);
 
-public slots:
+public Q_SLOTS:
     void clear();
-    void reject();
-    void accept();
-
-protected:
-    virtual void keyPressEvent(QKeyEvent *event);
+    void reject() override;
+    void accept() override;
 
 private:
     Ui::ReceiveCoinsDialog *ui;
-    GUIUtil::TableViewLastColumnResizingFixer *columnResizingFixer;
-    WalletModel *model;
+    WalletModel* model{nullptr};
     QMenu *contextMenu;
-    void copyColumnToClipboard(int column);
-    virtual void resizeEvent(QResizeEvent *event);
+    QAction* copyLabelAction;
+    QAction* copyMessageAction;
+    QAction* copyAmountAction;
+    const PlatformStyle *platformStyle;
 
-private slots:
+    QModelIndex selectedRow();
+    void copyColumnToClipboard(int column);
+
+private Q_SLOTS:
     void on_receiveButton_clicked();
     void on_showRequestButton_clicked();
     void on_removeRequestButton_clicked();
@@ -68,9 +69,11 @@ private slots:
     void recentRequestsView_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void updateDisplayUnit();
     void showMenu(const QPoint &point);
+    void copyURI();
+    void copyAddress();
     void copyLabel();
     void copyMessage();
     void copyAmount();
 };
 
-#endif // RECEIVECOINSDIALOG_H
+#endif // BITCOIN_QT_RECEIVECOINSDIALOG_H

@@ -1,13 +1,14 @@
-// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2011-2022 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef TRAFFICGRAPHWIDGET_H
-#define TRAFFICGRAPHWIDGET_H
+#ifndef BITCOIN_QT_TRAFFICGRAPHWIDGET_H
+#define BITCOIN_QT_TRAFFICGRAPHWIDGET_H
 
 #include <QWidget>
 #include <QQueue>
+
+#include <chrono>
 
 class ClientModel;
 
@@ -21,29 +22,29 @@ class TrafficGraphWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit TrafficGraphWidget(QWidget *parent = 0);
+    explicit TrafficGraphWidget(QWidget *parent = nullptr);
     void setClientModel(ClientModel *model);
-    int getGraphRangeMins() const;
+    std::chrono::minutes getGraphRange() const;
 
 protected:
-    void paintEvent(QPaintEvent *);
+    void paintEvent(QPaintEvent *) override;
 
-public slots:
+public Q_SLOTS:
     void updateRates();
-    void setGraphRangeMins(int mins);
+    void setGraphRange(std::chrono::minutes new_range);
     void clear();
 
 private:
     void paintPath(QPainterPath &path, QQueue<float> &samples);
 
-    QTimer *timer;
-    float fMax;
-    int nMins;
+    QTimer* timer{nullptr};
+    float fMax{0.0f};
+    std::chrono::minutes m_range{0};
     QQueue<float> vSamplesIn;
     QQueue<float> vSamplesOut;
-    quint64 nLastBytesIn;
-    quint64 nLastBytesOut;
-    ClientModel *clientModel;
+    quint64 nLastBytesIn{0};
+    quint64 nLastBytesOut{0};
+    ClientModel* clientModel{nullptr};
 };
 
-#endif // TRAFFICGRAPHWIDGET_H
+#endif // BITCOIN_QT_TRAFFICGRAPHWIDGET_H

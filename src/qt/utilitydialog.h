@@ -1,39 +1,20 @@
-// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2011-2020 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef UTILITYDIALOG_H
-#define UTILITYDIALOG_H
+#ifndef BITCOIN_QT_UTILITYDIALOG_H
+#define BITCOIN_QT_UTILITYDIALOG_H
 
 #include <QDialog>
-#include <QObject>
+#include <QWidget>
 
-class BitmarkGUI;
-class ClientModel;
+QT_BEGIN_NAMESPACE
+class QMainWindow;
+QT_END_NAMESPACE
 
 namespace Ui {
-    class AboutDialog;
     class HelpMessageDialog;
 }
-
-/** "About" dialog box */
-class AboutDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    explicit AboutDialog(QWidget *parent);
-    ~AboutDialog();
-
-    void setModel(ClientModel *model);
-
-private:
-    Ui::AboutDialog *ui;
-
-private slots:
-    void on_buttonBox_accepted();
-};
 
 /** "Help message" dialog box */
 class HelpMessageDialog : public QDialog
@@ -41,7 +22,7 @@ class HelpMessageDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit HelpMessageDialog(QWidget *parent);
+    explicit HelpMessageDialog(QWidget *parent, bool about);
     ~HelpMessageDialog();
 
     void printToConsole();
@@ -49,22 +30,24 @@ public:
 
 private:
     Ui::HelpMessageDialog *ui;
-    QString header;
-    QString coreOptions;
-    QString uiOptions;
+    QString text;
 
-private slots:
+private Q_SLOTS:
     void on_okButton_accepted();
 };
 
 
 /** "Shutdown" window */
-class ShutdownWindow : public QObject
+class ShutdownWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    static void showShutdownWindow(BitmarkGUI *window);
+    explicit ShutdownWindow(QWidget *parent=nullptr, Qt::WindowFlags f=Qt::Widget);
+    static QWidget* showShutdownWindow(QMainWindow* window);
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 };
 
-#endif // UTILITYDIALOG_H
+#endif // BITCOIN_QT_UTILITYDIALOG_H

@@ -1,45 +1,47 @@
-// Original Code: Copyright (c) 2011-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014 Project Bitmark
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2011-2021 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef WALLETMODELTRANSACTION_H
-#define WALLETMODELTRANSACTION_H
+#ifndef BITCOIN_QT_WALLETMODELTRANSACTION_H
+#define BITCOIN_QT_WALLETMODELTRANSACTION_H
 
-#include "walletmodel.h"
+#include <primitives/transaction.h>
+#include <qt/sendcoinsrecipient.h>
+
+#include <consensus/amount.h>
 
 #include <QObject>
 
 class SendCoinsRecipient;
 
-class CReserveKey;
-class CWallet;
-class CWalletTx;
+namespace interfaces {
+class Node;
+}
 
 /** Data model for a walletmodel transaction. */
 class WalletModelTransaction
 {
 public:
     explicit WalletModelTransaction(const QList<SendCoinsRecipient> &recipients);
-    ~WalletModelTransaction();
 
-    QList<SendCoinsRecipient> getRecipients();
+    QList<SendCoinsRecipient> getRecipients() const;
 
-    CWalletTx *getTransaction();
+    CTransactionRef& getWtx();
+    void setWtx(const CTransactionRef&);
 
-    void setTransactionFee(qint64 newFee);
-    qint64 getTransactionFee();
+    unsigned int getTransactionSize();
 
-    qint64 getTotalTransactionAmount();
+    void setTransactionFee(const CAmount& newFee);
+    CAmount getTransactionFee() const;
 
-    void newPossibleKeyChange(CWallet *wallet);
-    CReserveKey *getPossibleKeyChange();
+    CAmount getTotalTransactionAmount() const;
+
+    void reassignAmounts(int nChangePosRet); // needed for the subtract-fee-from-amount feature
 
 private:
-    const QList<SendCoinsRecipient> recipients;
-    CWalletTx *walletTransaction;
-    CReserveKey *keyChange;
-    qint64 fee;
+    QList<SendCoinsRecipient> recipients;
+    CTransactionRef wtx;
+    CAmount fee{0};
 };
 
-#endif // WALLETMODELTRANSACTION_H
+#endif // BITCOIN_QT_WALLETMODELTRANSACTION_H

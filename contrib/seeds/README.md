@@ -1,11 +1,20 @@
-### Seeds ###
+# Seeds
 
-Utility to generate the pnSeed[] array that is compiled into the client
-(see [src/net.cpp](/src/net.cpp)).
+Utility to generate the seeds.txt list that is compiled into the client
+(see [src/chainparamsseeds.h](/src/chainparamsseeds.h) and other utilities in [contrib/seeds](/contrib/seeds)).
 
-The 600 seeds compiled into the 0.8 release were created from sipa's DNS seed data, like this:
+Be sure to update `PATTERN_AGENT` in `makeseeds.py` to include the current version,
+and remove old versions as necessary (at a minimum when SeedsServiceFlags()
+changes its default return value, as those are the services which seeds are added
+to addrman with).
 
-	curl -s http://bitmark.sipa.be/seeds.txt | head -1000 | makeseeds.py
+The seeds compiled into the release are created from sipa's DNS seed and AS map
+data. Run the following commands from the `/contrib/seeds` directory:
 
-The input to makeseeds.py is assumed to be approximately sorted from most-reliable to least-reliable,
-with IP:port first on each line (lines that don't match IPv4:port are ignored).
+```
+curl https://bitcoin.sipa.be/seeds.txt.gz | gzip -dc > seeds_main.txt
+curl https://bitcoin.sipa.be/asmap-filled.dat > asmap-filled.dat
+python3 makeseeds.py -a asmap-filled.dat -s seeds_main.txt > nodes_main.txt
+cat nodes_main_manual.txt >> nodes_main.txt
+python3 generate-seeds.py . > ../../src/chainparamsseeds.h
+```

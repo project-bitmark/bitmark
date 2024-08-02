@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\common.init.vcxproj" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6190199C-6CF4-4DAD-BFBD-93FA72A760C1}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>
+      </LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>
+      </LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\crypto\aes.cpp">
+      <ObjectFileName>$(IntDir)crypto_aes.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\ar2\argon2.c" />
+    <ClCompile Include="..\..\src\crypto\ar2\blake2\blake2b.c" />
+    <ClCompile Include="..\..\src\crypto\ar2\core.c" />
+    <ClCompile Include="..\..\src\crypto\ar2\encoding.c" />
+    <ClCompile Include="..\..\src\crypto\ar2\opt.c" />
+    <ClCompile Include="..\..\src\crypto\ar2\thread.c" />
+    <ClCompile Include="..\..\src\crypto\chacha20.cpp">
+      <ObjectFileName>$(IntDir)crypto_chacha20.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\chacha20poly1305.cpp">
+      <ObjectFileName>$(IntDir)crypto_chacha20poly1305.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\cryptonight\common\c_keccak.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\aesb.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\blake256.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\cn-groestl.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\hash-extra-blake.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\hash-extra-groestl.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\hash-extra-jh.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\hash-extra-skein.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\hash.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\cn-jh.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\oaes_lib.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\cn-skein.c" />
+    <ClCompile Include="..\..\src\crypto\cryptonight\crypto\slow-hash.c" />
+    <ClCompile Include="..\..\src\crypto\equihash\equihash.cpp" />
+    <ClCompile Include="..\..\src\crypto\hkdf_sha256_32.cpp">
+      <ObjectFileName>$(IntDir)crypto_hkdf_sha256_32.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\hmac_sha256.cpp">
+      <ObjectFileName>$(IntDir)crypto_hmac_sha256.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\hmac_sha512.cpp">
+      <ObjectFileName>$(IntDir)crypto_hmac_sha512.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\lyra2\Lyra2.c" />
+    <ClCompile Include="..\..\src\crypto\lyra2\Lyra2RE.c" />
+    <ClCompile Include="..\..\src\crypto\lyra2\Sponge.c" />
+    <ClCompile Include="..\..\src\crypto\poly1305.cpp">
+      <ObjectFileName>$(IntDir)crypto_poly1305.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\muhash.cpp">
+      <ObjectFileName>$(IntDir)crypto_muhash.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\ripemd160.cpp">
+      <ObjectFileName>$(IntDir)crypto_ripemd160.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\scrypt.cpp">
+      <ObjectFileName>$(IntDir)crypto_scrypt.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\scrypt-sse2.cpp">
+      <ObjectFileName>$(IntDir)crypto_scrypt-sse2.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\sha1.cpp">
+      <ObjectFileName>$(IntDir)crypto_sha1.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\sha256.cpp">
+      <ObjectFileName>$(IntDir)crypto_sha256.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\sha256_sse4.cpp">
+      <ObjectFileName>$(IntDir)crypto_sha256_sse4.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\sha3.cpp">
+      <ObjectFileName>$(IntDir)crypto_sha3.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\sha512.cpp">
+      <ObjectFileName>$(IntDir)crypto_sha512.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\siphash.cpp">
+      <ObjectFileName>$(IntDir)crypto_siphash.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crypto\sph\blake.c" />
+    <ClCompile Include="..\..\src\crypto\sph\bmw.c" />
+    <ClCompile Include="..\..\src\crypto\sph\cubehash.c" />
+    <ClCompile Include="..\..\src\crypto\sph\echo.c" />
+    <ClCompile Include="..\..\src\crypto\sph\fugue.c" />
+    <ClCompile Include="..\..\src\crypto\sph\groestl.c" />
+    <ClCompile Include="..\..\src\crypto\sph\hamsi.c" />
+    <ClCompile Include="..\..\src\crypto\sph\haval.c" />
+    <ClCompile Include="..\..\src\crypto\sph\jh.c" />
+    <ClCompile Include="..\..\src\crypto\sph\keccak.c" />
+    <ClCompile Include="..\..\src\crypto\sph\luffa.c" />
+    <ClCompile Include="..\..\src\crypto\sph\shabal.c" />
+    <ClCompile Include="..\..\src\crypto\sph\shavite.c" />
+    <ClCompile Include="..\..\src\crypto\sph\simd.c" />
+    <ClCompile Include="..\..\src\crypto\sph\skein.c" />
+    <ClCompile Include="..\..\src\crypto\sph\sph_sha2big.c" />
+    <ClCompile Include="..\..\src\crypto\sph\whirlpool.c" />
+    <ClCompile Include="..\..\src\crypto\yescrypt\sha256_Y.c" />
+    <ClCompile Include="..\..\src\crypto\yescrypt\yescrypt-best.c" />
+    <ClCompile Include="..\..\src\crypto\yescrypt\yescryptcommon.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\common.vcxproj" />
+</Project>

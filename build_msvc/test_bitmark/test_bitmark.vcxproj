@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\common.init.vcxproj" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A56B73DB-D46D-4882-8374-1FE3FFA08F07}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <DisableSpecificWarnings>4018;4244;4267;4715;4805;2398</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <DisableSpecificWarnings>4018;4244;4267;4715;4805;2398</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\test\*_properties.cpp" />
+    <ClCompile Include="..\..\src\test\addrman_tests.cpp" />
+    <ClCompile Include="..\..\src\test\allocator_tests.cpp" />
+    <ClCompile Include="..\..\src\test\amount_tests.cpp" />
+    <ClCompile Include="..\..\src\test\argsman_tests.cpp" />
+    <ClCompile Include="..\..\src\test\arith_uint256_tests.cpp" />
+    <ClCompile Include="..\..\src\test\auxpow_tests.cpp" />
+    <ClCompile Include="..\..\src\test\banman_tests.cpp" />
+    <ClCompile Include="..\..\src\test\base32_tests.cpp" />
+    <ClCompile Include="..\..\src\test\base58_tests.cpp" />
+    <ClCompile Include="..\..\src\test\base64_tests.cpp" />
+    <ClCompile Include="..\..\src\test\bech32_tests.cpp" />
+    <ClCompile Include="..\..\src\test\bip324_tests.cpp" />
+    <ClCompile Include="..\..\src\test\bip32_tests.cpp" />
+    <ClCompile Include="..\..\src\test\blockchain_tests.cpp" />
+    <ClCompile Include="..\..\src\test\blockencodings_tests.cpp" />
+    <ClCompile Include="..\..\src\test\blockfilter_index_tests.cpp" />
+    <ClCompile Include="..\..\src\test\blockfilter_tests.cpp" />
+    <ClCompile Include="..\..\src\test\blockmanager_tests.cpp" />
+    <ClCompile Include="..\..\src\test\bloom_tests.cpp" />
+    <ClCompile Include="..\..\src\test\bswap_tests.cpp" />
+    <ClCompile Include="..\..\src\test\checkqueue_tests.cpp" />
+    <ClCompile Include="..\..\src\test\coinstatsindex_tests.cpp" />
+    <ClCompile Include="..\..\src\test\coins_tests.cpp" />
+    <ClCompile Include="..\..\src\test\compilerbug_tests.cpp" />
+    <ClCompile Include="..\..\src\test\compress_tests.cpp" />
+    <ClCompile Include="..\..\src\test\crypto_tests.cpp" />
+    <ClCompile Include="..\..\src\test\cuckoocache_tests.cpp" />
+    <ClCompile Include="..\..\src\test\dbwrapper_tests.cpp" />
+    <ClCompile Include="..\..\src\test\denialofservice_tests.cpp" />
+    <ClCompile Include="..\..\src\test\descriptor_tests.cpp" />
+    <ClCompile Include="..\..\src\test\flatfile_tests.cpp" />
+    <ClCompile Include="..\..\src\test\fs_tests.cpp" />
+    <ClCompile Include="..\..\src\test\getarg_tests.cpp" />
+    <ClCompile Include="..\..\src\test\hash_tests.cpp" />
+    <ClCompile Include="..\..\src\test\headers_sync_chainwork_tests.cpp" />
+    <ClCompile Include="..\..\src\test\httpserver_tests.cpp" />
+    <ClCompile Include="..\..\src\test\i2p_tests.cpp" />
+    <ClCompile Include="..\..\src\test\interfaces_tests.cpp" />
+    <ClCompile Include="..\..\src\test\key_io_tests.cpp" />
+    <ClCompile Include="..\..\src\test\key_tests.cpp" />
+    <ClCompile Include="..\..\src\test\logging_tests.cpp" />
+    <ClCompile Include="..\..\src\test\mempool_tests.cpp" />
+    <ClCompile Include="..\..\src\test\merkleblock_tests.cpp" />
+    <ClCompile Include="..\..\src\test\merkle_tests.cpp" />
+    <ClCompile Include="..\..\src\test\miner_tests.cpp" />
+    <ClCompile Include="..\..\src\test\miniminer_tests.cpp" />
+    <ClCompile Include="..\..\src\test\miniscript_tests.cpp" />
+    <ClCompile Include="..\..\src\test\minisketch_tests.cpp" />
+    <ClCompile Include="..\..\src\test\multisig_tests.cpp" />
+    <ClCompile Include="..\..\src\test\netbase_tests.cpp" />
+    <ClCompile Include="..\..\src\test\net_peer_connection_tests.cpp" />
+    <ClCompile Include="..\..\src\test\net_peer_eviction_tests.cpp" />
+    <ClCompile Include="..\..\src\test\net_tests.cpp" />
+    <ClCompile Include="..\..\src\test\orphanage_tests.cpp" />
+    <ClCompile Include="..\..\src\test\peerman_tests.cpp" />
+    <ClCompile Include="..\..\src\test\pmt_tests.cpp" />
+    <ClCompile Include="..\..\src\test\policyestimator_tests.cpp" />
+    <ClCompile Include="..\..\src\test\policy_fee_tests.cpp" />
+    <ClCompile Include="..\..\src\test\pool_tests.cpp" />
+    <ClCompile Include="..\..\src\test\pow_tests.cpp" />
+    <ClCompile Include="..\..\src\test\prevector_tests.cpp" />
+    <ClCompile Include="..\..\src\test\raii_event_tests.cpp" />
+    <ClCompile Include="..\..\src\test\random_tests.cpp" />
+    <ClCompile Include="..\..\src\test\rbf_tests.cpp" />
+    <ClCompile Include="..\..\src\test\rest_tests.cpp" />
+    <ClCompile Include="..\..\src\test\result_tests.cpp" />
+    <ClCompile Include="..\..\src\test\reverselock_tests.cpp" />
+    <ClCompile Include="..\..\src\test\rpc_tests.cpp" />
+    <ClCompile Include="..\..\src\test\sanity_tests.cpp" />
+    <ClCompile Include="..\..\src\test\scheduler_tests.cpp" />
+    <ClCompile Include="..\..\src\test\scriptnum_tests.cpp" />
+    <ClCompile Include="..\..\src\test\script_p2sh_tests.cpp" />
+    <ClCompile Include="..\..\src\test\script_parse_tests.cpp" />
+    <ClCompile Include="..\..\src\test\script_segwit_tests.cpp" />
+    <ClCompile Include="..\..\src\test\script_standard_tests.cpp" />
+    <ClCompile Include="..\..\src\test\script_tests.cpp" />
+    <ClCompile Include="..\..\src\test\scrypt_tests.cpp" />
+    <ClCompile Include="..\..\src\test\serfloat_tests.cpp" />
+    <ClCompile Include="..\..\src\test\serialize_tests.cpp" />
+    <ClCompile Include="..\..\src\test\settings_tests.cpp" />
+    <ClCompile Include="..\..\src\test\sighash_tests.cpp" />
+    <ClCompile Include="..\..\src\test\sigopcount_tests.cpp" />
+    <ClCompile Include="..\..\src\test\skiplist_tests.cpp" />
+    <ClCompile Include="..\..\src\test\sock_tests.cpp" />
+    <ClCompile Include="..\..\src\test\span_tests.cpp" />
+    <ClCompile Include="..\..\src\test\streams_tests.cpp" />
+    <ClCompile Include="..\..\src\test\sync_tests.cpp" />
+    <ClCompile Include="..\..\src\test\system_tests.cpp" />
+    <ClCompile Include="..\..\src\test\torcontrol_tests.cpp" />
+    <ClCompile Include="..\..\src\test\transaction_tests.cpp" />
+    <ClCompile Include="..\..\src\test\translation_tests.cpp" />
+    <ClCompile Include="..\..\src\test\txindex_tests.cpp" />
+    <ClCompile Include="..\..\src\test\txpackage_tests.cpp" />
+    <ClCompile Include="..\..\src\test\txreconciliation_tests.cpp" />
+    <ClCompile Include="..\..\src\test\txrequest_tests.cpp" />
+    <ClCompile Include="..\..\src\test\txvalidationcache_tests.cpp" />
+    <ClCompile Include="..\..\src\test\txvalidation_tests.cpp" />
+    <ClCompile Include="..\..\src\test\uint256_tests.cpp" />
+    <ClCompile Include="..\..\src\test\util_tests.cpp" />
+    <ClCompile Include="..\..\src\test\util_threadnames_tests.cpp" />
+    <ClCompile Include="..\..\src\test\validationinterface_tests.cpp" />
+    <ClCompile Include="..\..\src\test\validation_block_tests.cpp" />
+    <ClCompile Include="..\..\src\test\validation_chainstatemanager_tests.cpp" />
+    <ClCompile Include="..\..\src\test\validation_chainstate_tests.cpp" />
+    <ClCompile Include="..\..\src\test\validation_flush_tests.cpp" />
+    <ClCompile Include="..\..\src\test\validation_tests.cpp" />
+    <ClCompile Include="..\..\src\test\versionbits_tests.cpp" />
+    <ClCompile Include="..\..\src\test\xoroshiro128plusplus_tests.cpp" />
+    <ClCompile Include="..\..\src\test\gen\*_gen.cpp" />
+    <ClCompile Include="..\..\src\test\main.cpp" />
+    <ClCompile Include="..\..\src\test\util\*.cpp" />
+    <ClCompile Include="..\..\src\wallet\test\*_fixture.cpp" />
+    <ClCompile Include="..\..\src\wallet\test\*_tests.cpp" />
+    <ClCompile Include="..\..\src\wallet\test\util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libminisketch\libminisketch.vcxproj">
+      <Project>{542007e3-be0d-4b0d-a6b0-aa8813e2558d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_consensus\libbitcoin_consensus.vcxproj">
+      <Project>{2b384fa8-9ee1-4544-93cb-0d733c25e8ce}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_cli\libbitcoin_cli.vcxproj">
+      <Project>{0667528c-d734-4009-adf9-c0d6c4a5a5a6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_common\libbitcoin_common.vcxproj">
+      <Project>{7c87e378-df58-482e-aa2f-1bc129bc19ce}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_crypto\libbitcoin_crypto.vcxproj">
+      <Project>{6190199c-6cf4-4dad-bfbd-93fa72a760c1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_node\libbitcoin_node.vcxproj">
+      <Project>{460fee33-1fe1-483f-b3bf-931ff8e969a5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_util\libbitcoin_util.vcxproj">
+      <Project>{b53a5535-ee9d-4c6f-9a26-f79ee3bc3754}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_wallet\libbitcoin_wallet.vcxproj">
+      <Project>{93b86837-b543-48a5-a89b-7c87abb77df2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libbitcoin_zmq\libbitcoin_zmq.vcxproj">
+      <Project>{792d487f-f14c-49fc-a9de-3fc150f31c3f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libtest_util\libtest_util.vcxproj">
+      <Project>{1e065f03-3566-47d0-8fa9-daa72b084e7d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libunivalue\libunivalue.vcxproj">
+      <Project>{5724ba7d-a09a-4ba8-800b-c4c1561b3d69}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libsecp256k1\libsecp256k1.vcxproj">
+      <Project>{bb493552-3b8c-4a8c-bf69-a6e7a51d2ea6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libleveldb\libleveldb.vcxproj">
+      <Project>{18430fef-6b61-4c53-b396-718e02850f1b}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <DisableSpecificWarnings>4018;4244;4267;4703;4715;4805</DisableSpecificWarnings>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </AdditionalLibraryDirectories>
+    </Link>
+    <Link>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Target Name="RawBenchHeaderGen" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>There was an error executing the JSON test header generation task.</ErrorText>
+    </PropertyGroup>
+    <ItemGroup>
+      <JsonTestFile Include="..\..\src\test\data\*.json" />
+      <RawTestFile Include="..\..\src\test\data\*.raw" />
+    </ItemGroup>
+    <HeaderFromHexdump RawFilePath="%(RawTestFile.FullPath)" HeaderFilePath="%(RawTestFile.FullPath).h" SourceHeader="static unsigned const char %(RawTestFile.Filename)_raw[] = {" SourceFooter="};" />
+    <HeaderFromHexdump RawFilePath="%(JsonTestFile.FullPath)" HeaderFilePath="%(JsonTestFile.FullPath).h" SourceHeader="#include &lt;string&gt;&#xD;&#xA;namespace json_tests{ static const std::string %(JsonTestFile.Filename){" SourceFooter="};}" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Label="hexdumpTarget" Project="..\msbuild\tasks\hexdump.targets" />
+  <Import Project="..\common.vcxproj" />
+</Project>

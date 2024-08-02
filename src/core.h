@@ -751,6 +751,11 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+    	block.nNonce256 	 = nNonce256;
+    	block.nSolution 	 = nSolution;
+    	block.hashReserved   = hashReserved;
+        block.auxpow         = auxpow;
+
         return block;
     }
 
@@ -963,6 +968,11 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+    	block.nNonce256 	 = nNonce256;
+    	block.nSolution 	 = nSolution;
+    	block.hashReserved   = hashReserved;
+        block.auxpow         = pauxpow;
+
         return block;
     }
 

@@ -1,0 +1,46 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libtool \
+    autotools-dev \
+    autoconf \
+    pkg-config \
+    libssl-dev \
+    libboost-all-dev \
+    libsodium-dev \
+    libminiupnpc-dev \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Build BDB 4.8 from source (Bitcoin PPA no longer maintained)
+RUN wget -q http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz \
+    && echo "12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef  db-4.8.30.NC.tar.gz" | sha256sum -c \
+    && tar -xzf db-4.8.30.NC.tar.gz \
+    && sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' db-4.8.30.NC/dbinc/atomic.h \
+    && cd db-4.8.30.NC/build_unix \
+    && ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=/usr/local \
+    && make -j$(nproc) \
+    && make install \
+    && cd / && rm -rf db-4.8.30.NC db-4.8.30.NC.tar.gz
+
+WORKDIR /bitmark
+
+# Copy source
+COPY . .
+
+# Clean any previous build artifacts
+RUN make clean 2>/dev/null || true
+RUN rm -f Makefile src/Makefile
+
+# Build
+RUN ./autogen.sh
+RUN ./configure --without-gui --disable-tests LDFLAGS="-L/usr/local/lib/" CPPFLAGS="-I/usr/local/include/ -DBOOST_BIND_GLOBAL_PLACEHOLDERS"
+RUN make -j$(nproc)
+
+# Output binaries to /output
+RUN mkdir -p /output && cp src/bitmarkd src/bitmark-cli /output/

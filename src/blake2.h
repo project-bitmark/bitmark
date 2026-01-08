@@ -61,7 +61,7 @@ extern "C" {
     uint8_t  personal[BLAKE2S_PERSONALBYTES];  // 32
   } blake2s_param;
 
-  ALIGN( 64 ) typedef struct __blake2s_state
+  typedef struct __blake2s_state
   {
     uint32_t h[8];
     uint32_t t[2];
@@ -86,7 +86,7 @@ extern "C" {
     uint8_t  personal[BLAKE2B_PERSONALBYTES];  // 64
   } blake2b_param;
 
-  ALIGN( 64 ) typedef struct __blake2b_state
+  typedef struct __blake2b_state
   {
     uint64_t h[8];
     uint64_t t[2];
@@ -96,6 +96,9 @@ extern "C" {
     uint8_t  last_node;
   } blake2b_state;
 
+#pragma pack(pop)
+
+  // These structs contain aligned types, must be outside pack(1)
   typedef struct __blake2sp_state
   {
     blake2s_state S[8][1];
@@ -111,7 +114,6 @@ extern "C" {
     uint8_t buf[4 * BLAKE2B_BLOCKBYTES];
     size_t  buflen;
   } blake2bp_state;
-#pragma pack(pop)
 
   // Streaming API
   int blake2s_init( blake2s_state *S, const uint8_t outlen );

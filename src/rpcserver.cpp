@@ -547,7 +547,7 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol> > accep
                 boost::ref(context),
                 fUseSSL,
                 conn,
-                _1));
+                boost::placeholders::_1));
 }
 
 
@@ -769,7 +769,7 @@ void RPCRunLater(const std::string& name, boost::function<void(void)> func, int6
                                         boost::shared_ptr<deadline_timer>(new deadline_timer(*rpc_io_service))));
     }
     deadlineTimers[name]->expires_from_now(posix_time::seconds(nSeconds));
-    deadlineTimers[name]->async_wait(boost::bind(RPCRunHandler, _1, func));
+    deadlineTimers[name]->async_wait(boost::bind(RPCRunHandler, boost::placeholders::_1, func));
 }
 
 class JSONRequest

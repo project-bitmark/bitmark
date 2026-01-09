@@ -2,6 +2,23 @@ include Makefile.include
 
 AM_CPPFLAGS += -I$(builddir)
 
+# GCC 13+ has optimization bugs that affect the BMW256 hash function used in LYRA2RE.
+# These files must be compiled with reduced optimization (-O1) to avoid undefined behavior.
+# See: https://github.com/project-bitmark/bitmark/issues/141
+LYRA2RE_CFLAGS = -O1
+
+bmw.o: bmw.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(LYRA2RE_CFLAGS) $(AM_CFLAGS) -c -o $@ $<
+
+Lyra2RE.o: Lyra2RE.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(LYRA2RE_CFLAGS) $(AM_CFLAGS) -c -o $@ $<
+
+Lyra2.o: Lyra2.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(LYRA2RE_CFLAGS) $(AM_CFLAGS) -c -o $@ $<
+
+Sponge.o: Sponge.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(LYRA2RE_CFLAGS) $(AM_CFLAGS) -c -o $@ $<
+
 noinst_LIBRARIES = \
   libbitmark_server.a \
   libbitmark_common.a \

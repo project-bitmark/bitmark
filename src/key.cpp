@@ -21,7 +21,98 @@ namespace {
         if (ps != NULL)
             *ps = sig->s;
     }
+    int ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
+    {
+        if (r == NULL || s == NULL)
+            return 0;
+        BN_clear_free(sig->r);
+        BN_clear_free(sig->s);
+        sig->r = r;
+        sig->s = s;
+        return 1;
+    }
 #endif
+
+// Manual DER signature parser - more permissive than OpenSSL 3.x's strict parser
+// Returns ECDSA_SIG on success, NULL on failure
+ECDSA_SIG* ecdsa_sig_parse_der_lax(const unsigned char *sig, size_t siglen) {
+    ECDSA_SIG *ret = NULL;
+    BIGNUM *r = NULL;
+    BIGNUM *s = NULL;
+    const unsigned char *pos = sig;
+    const unsigned char *end = sig + siglen;
+    size_t rlen, slen;
+
+    // Minimum valid DER signature is 8 bytes: 30 06 02 01 XX 02 01 XX
+    if (siglen < 8 || siglen > 73) return NULL;
+
+    // SEQUENCE tag
+    if (*pos != 0x30) return NULL;
+    pos++;
+
+    // SEQUENCE length (skip length byte(s))
+    if (*pos & 0x80) {
+        // Long form length not expected for ECDSA sigs
+        return NULL;
+    }
+    size_t seqlen = *pos++;
+    if ((size_t)(end - pos) < seqlen) return NULL;
+
+    // INTEGER tag for R
+    if (*pos != 0x02) return NULL;
+    pos++;
+    if (pos >= end) return NULL;
+
+    // R length
+    rlen = *pos++;
+    if (rlen == 0 || rlen > 33 || (size_t)(end - pos) < rlen) return NULL;
+
+    // Parse R - allow leading zeros
+    r = BN_bin2bn(pos, rlen, NULL);
+    if (!r) return NULL;
+    pos += rlen;
+
+    // INTEGER tag for S
+    if (pos >= end || *pos != 0x02) {
+        BN_free(r);
+        return NULL;
+    }
+    pos++;
+    if (pos >= end) {
+        BN_free(r);
+        return NULL;
+    }
+
+    // S length
+    slen = *pos++;
+    if (slen == 0 || slen > 33 || (size_t)(end - pos) < slen) {
+        BN_free(r);
+        return NULL;
+    }
+
+    // Parse S - allow leading zeros
+    s = BN_bin2bn(pos, slen, NULL);
+    if (!s) {
+        BN_free(r);
+        return NULL;
+    }
+
+    ret = ECDSA_SIG_new();
+    if (!ret) {
+        BN_free(r);
+        BN_free(s);
+        return NULL;
+    }
+
+    if (!ECDSA_SIG_set0(ret, r, s)) {
+        ECDSA_SIG_free(ret);
+        BN_free(r);
+        BN_free(s);
+        return NULL;
+    }
+
+    return ret;
+}
 // Generate a private key from just the secret parameter
 int EC_KEY_regenerate_key(EC_KEY *eckey, BIGNUM *priv_key)
 {
@@ -248,11 +339,7 @@ public:
     }
 
     bool Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) {
-      //if (ECDSA_verify(0, (unsigned char*)&hash, sizeof(hash), &vchSig[0], vchSig.size(), pkey) != 1)
-      //return false;
-      //return true;
       if (vchSig.empty()) {
-	//printf("empty sig\n");
 	return false;
       }
       // New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
@@ -262,15 +349,14 @@ public:
       assert(norm_sig);
       if (d2i_ECDSA_SIG(&norm_sig, &sigptr, vchSig.size()) == NULL)
         {
-	  /* As of OpenSSL 1.0.0p d2i_ECDSA_SIG frees and nulls the pointer on
-	   * error. But OpenSSL's own use of this function redundantly frees the
-	   * result. As ECDSA_SIG_free(NULL) is a no-op, and in the absence of a
-	   * clear contract for the function behaving the same way is more
-	   * conservative.
+	  /* OpenSSL 3.x has stricter DER parsing that rejects some valid signatures.
+	   * Fall back to manual parsing for compatibility with older blockchain data.
 	   */
 	  ECDSA_SIG_free(norm_sig);
-	  //printf("d2i failed\n");
-	  return false;
+	  norm_sig = ecdsa_sig_parse_der_lax(&vchSig[0], vchSig.size());
+	  if (norm_sig == NULL) {
+	    return false;
+	  }
         }
       int derlen = i2d_ECDSA_SIG(norm_sig, &norm_der);
       ECDSA_SIG_free(norm_sig);

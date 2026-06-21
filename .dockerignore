@@ -1,0 +1,14 @@
+# Keep the build context small and reproducible: only the daemon source.
+.git
+electrum-bitmark/
+electrumx-bitmark/
+electrum/
+db-4.8.30.NC/
+db-4.8.30.NC.tar.gz
+venv/
+venv-wallet/
+docs/
+tools/
+bitmarkd
+bitmark-cli
+*.log

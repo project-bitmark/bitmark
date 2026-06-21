@@ -1,4 +1,10 @@
-FROM ubuntu:22.04
+# Canonical reproducible build for Bitmark.
+# Pinned to Ubuntu 24.04 LTS: a settled toolchain (GCC 13) whose
+# consensus-affecting miscompiles are already fixed in-tree (BMW256/LYRA2REv2,
+# OpenSSL 3.x). The resulting binary also runs on newer releases (e.g. 26.04).
+# Building on bleeding-edge toolchains is deliberately avoided here because a
+# new optimizer can silently change PoW/signature results and fork the chain.
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -15,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     libminiupnpc-dev \
     git \
     wget \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Build BDB 4.8 from source (Bitcoin PPA no longer maintained)
@@ -24,6 +31,7 @@ RUN wget -q http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz \
     && sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' db-4.8.30.NC/dbinc/atomic.h \
     && cd db-4.8.30.NC/build_unix \
     && ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=/usr/local \
+       --with-mutex=POSIX/pthreads \
     && make -j$(nproc) \
     && make install \
     && cd / && rm -rf db-4.8.30.NC db-4.8.30.NC.tar.gz

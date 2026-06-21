@@ -124,3 +124,8 @@ qa/pull-tester/test.*/*
 
 libbitcoinconsensus.pc
 *~
+
+# Reproducible Docker build: keep built binaries and the BDB source tree out
+/bitmarkd
+/bitmark-cli
+db-4.8.30.NC/

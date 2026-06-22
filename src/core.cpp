@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Original Code: Copyright (c) 2009-2014 The Bitcoin Core Developers
-// Modified Code: Copyright (c) 2014-2018 Project Bitmark
+// Modified Code: Copyright (c) 2014-2021 Project Bitmark
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -335,6 +335,7 @@ int GetBlockVersion (const int nVersion) {
   return nVersion & 255;
 }
 
+// Q? <<< Comments, Logic ?
 bool GetBlockVariant (const int nVersion) {
   return nVersion & BLOCK_VERSION_VARIANT;
 }
@@ -346,6 +347,9 @@ bool GetBlockVariant2 (const int nVersion) {
 
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
+  /* force the fork after a certain height */
+  //if (minVersion==4 && pstart->nHeight>=nForkHeightForce-1) return true;
+  
   unsigned int nFound = 0;
   for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
     {
@@ -400,17 +404,17 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
   //LogPrintf("check auxpow with parentBlock chainId = %d and vChainMerkleBranch size %d and nChainIndex %d\n",parentBlock.GetChainId(),vChainMerkleBranch.size(),nChainIndex);
   
   if (nIndex != 0) {
-    LogPrintf("check auxpow err 1\n");
+    //LogPrintf("check auxpow err 1\n");
     return error("AuxPow is not a generate");
   }
 
   if (params.StrictChainId() && parentBlock.GetChainId() == nChainId) {
-    LogPrintf("check auxpow err 2\n");
+    //LogPrintf("check auxpow err 2\n");
     return error("Aux POW parent has our chain ID");
   }
   
   if (vChainMerkleBranch.size() > 30) {
-    LogPrintf("check auxpow err 3\n");
+    //LogPrintf("check auxpow err 3\n");
     return error("Aux POW chain merkle branch too long");
   }
   //LogPrintf("get nRootHash vChainMerkleBranch size %d\n",vChainMerkleBranch.size());
@@ -461,14 +465,14 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
       std::vector<unsigned char> vector_rep_block = parentBlock.vector_rep;
       std::vector<unsigned char>::iterator pc_block = std::search(vector_rep_block.begin(),vector_rep_block.end(), vchMerkleBranchHash.begin(), vchMerkleBranchHash.end());
       if (pc_block == vector_rep_block.end()) {
-	LogPrintf("check auxpow err 4: \n");
+	//LogPrintf("check auxpow err 4: \n");
 	return error("Aux POW merkle root incorrect");
       }
     }
     else {
       const uint256 merklebranch_hash = CBlock::CheckMerkleBranch(transaction_hash, vMerkleBranch, nIndex);
       if (merklebranch_hash != parentBlock.hashMerkleRoot) {
-	LogPrintf("check auxpow err 4: \n");
+	//LogPrintf("check auxpow err 4: \n");
         return error("Aux POW merkle root incorrect");
       }
     }
@@ -509,11 +513,11 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
 
       if (script.end() != std::search(pcHead + 1, script.end(), UBEGIN(pchMergedMiningHeader), UEND(pchMergedMiningHeader))) {
 	return error("Multiple merged mining headers in coinbase");
-	LogPrintf("check auxpow err 6\n");
+	//LogPrintf("check auxpow err 6\n");
       }
 
       if (pcHead + sizeof(pchMergedMiningHeader) != pc) {
-	LogPrintf("check auxpow err 7\n");
+	//LogPrintf("check auxpow err 7\n");
 	return error("Merged mining header is not just before chain merkle root");
       }
     } else {
@@ -521,7 +525,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
       // Enforce only one chain merkle root by checking that it starts early in the coinbase.
       // 8-12 bytes are enough to encode extraNonce and nBits.
       if (pc - script.begin() > 20) {
-	LogPrintf("check auxpow err 8\n");
+	//LogPrintf("check auxpow err 8\n");
 	return error("Aux POW chain merkle root must start in the first 20 bytes of the parent coinbase");
       }
     }
@@ -531,7 +535,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     //LogPrintf("vchRootHash size = %lu\n",vchRootHash.size());
     pc += vchRootHash.size();
     if (script.end() - pc < 8) {
-      LogPrintf("check auxpow err 9\n");
+      //LogPrintf("check auxpow err 9\n");
       return error("Aux POW missing chain merkle tree size and nonce in parent coinbase");
     }
 
@@ -539,7 +543,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     memcpy(&nSize, &pc[0], 4);
     const unsigned merkleHeight = vChainMerkleBranch.size();
     if (nSize != (1 << merkleHeight)) {
-      LogPrintf("check auxpow err 10\n");
+      //LogPrintf("check auxpow err 10\n");
       return error("Aux POW merkle branch size does not match parent coinbase");
     }
 
@@ -548,7 +552,7 @@ CAuxPow::check(const uint256& hashAuxBlock, int nChainId, const CChainParams& pa
     
     int expectedIndex = getExpectedIndex(nNonce, nChainId, merkleHeight);
     if (nChainIndex != expectedIndex) {
-      LogPrintf("check auxpow err 11: nChainIndex = %d while expectedIndex (%d,%d,%d) = %d\n",nNonce,nChainId,merkleHeight,nChainIndex,expectedIndex);
+      if (fDebug) LogPrintf("check auxpow err 11: nChainIndex = %d while expectedIndex (%d,%d,%d) = %d\n",nNonce,nChainId,merkleHeight,nChainIndex,expectedIndex);
       return error("Aux POW wrong index");
     }
 
@@ -595,14 +599,14 @@ FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 	counter ++;
 	}*/
     if (!file) {
-      LogPrintf("unable to open file %s\n",path.string());
+      if (fDebug) LogPrintf("unable to open file %s\n",path.string());
       return NULL;
     }
     if (pos.nPos) {
         if (fseek(file, pos.nPos, SEEK_SET)) {
-	  LogPrintf("Unable to seek to position %u of %s\n", pos.nPos, path.string());
-            fclose(file);
-            return NULL;
+	  if (fDebug) LogPrintf("Unable to seek to position %u of %s\n", pos.nPos, path.string());
+	  fclose(file);
+	  return NULL;
         }
     }
     return file;
@@ -621,7 +625,7 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
     }*/
 
   if (block.nVersion > 3 && block.IsAuxpow() && params.StrictChainId() && block.GetChainId() != params.GetAuxpowChainId()) {
-    LogPrintf("auxpow err 1\n");
+    //LogPrintf("auxpow err 1\n");
     return error("%s : block does not have our chain ID"
 		 " (got %d, expected %d, full nVersion %d)",
 		 __func__,
@@ -632,13 +636,13 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
   if (!block.auxpow) {
     if (block.IsAuxpow()) {
-      LogPrintf("auxpow err 2\n");
+      //LogPrintf("auxpow err 2\n");
       return error("%s : no auxpow on block with auxpow version",
 		   __func__);
     }
 
     if (!CheckProofOfWork(block.GetPoWHash(algo), block.nBits,block.GetAlgo())) {
-      LogPrintf("auxpow err 3\n");
+      //LogPrintf("auxpow err 3\n");
       return error("%s : non-AUX proof of work failed", __func__);
     }
 
@@ -646,12 +650,12 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
   }
 
   if (!block.IsAuxpow()) {
-    LogPrintf("auxpow err 4\n");
+    //LogPrintf("auxpow err 4\n");
     return error("%s : auxpow on block with non-auxpow version", __func__);
   }
 
   if (!block.auxpow->check(block.GetHash(), block.GetChainId(), params)) {
-    LogPrintf("auxpow err 5\n");
+    //LogPrintf("auxpow err 5\n");
     return error("%s : AUX POW is not valid", __func__);
   }
 
@@ -710,4 +714,22 @@ unsigned int GetAlgoWeight (const int algo) {
       break;
     }
   return weight;
+}
+
+BoostBigNum BoostBigNumFromCompact(unsigned int nCompact) {
+    unsigned int nSize = nCompact >> 24;
+    bool fNegative     = (nCompact & 0x00800000) != 0;
+    unsigned int nWord = nCompact & 0x007fffff;
+    BoostBigNum out;
+    if (nSize <= 3) {
+	nWord >>= 8*(3-nSize);
+	out = BoostBigNum(nWord);
+    }
+    else {
+	out = BoostBigNum(nWord);
+	out <<= 8*(nSize-3);
+    }
+    if (fNegative && out > 0 || !fNegative && out < 0)
+      out = -out;
+    return out;
 }

@@ -108,7 +108,7 @@ public:
     }
 };
 
-CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
+CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 {
     // Create new block
     auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
@@ -116,26 +116,27 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         return NULL;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
     CBlockIndex* pindexPrev = chainActive.Tip();
-    if (!confAlgoIsSet) {
-      miningAlgo = GetArg("-miningalgo", miningAlgo);
-      confAlgoIsSet = true;
-    }
+
+    if (algo == -1)
+      algo = miningAlgo;
+
     // To simulate v3 blocks occuring after nForkHeight
-    if (TestNet() && pindexPrev->nHeight < 300 && miningAlgo==0) {
+    if (TestNet() && pindexPrev->nHeight < 300 && algo==0) {
       pblock->nVersion = 3;
     }
 
     //LogPrintf("pindexPrev nHeight = %d while nForkHeight = %d\n",pindexPrev->nHeight,nForkHeight);
     if (pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
-      //LogPrintf("algo set to %d\n",miningAlgo);
+      //LogPrintf("algo set to %d\n",algo);
       //pblock->nVersion = 3;
       //LogPrintf("pblock nVersion is %d\n",pblock->nVersion);
-      pblock->SetAlgo(miningAlgo);
+      pblock->SetAlgo(algo);
       //pblock->SetVariant2(true);
       //pblock->SetChainId(Params().GetAuxpowChainId());
-      //LogPrintf("after setting algo to %d, it is %d\n",miningAlgo,pblock->nVersion);
+      //LogPrintf("after setting algo to %d, it is %d\n",algo,pblock->nVersion);
     }
 
+	// Q? <<< How does this affect functioning of TestNet
     if (TestNet() && pindexPrev->nHeight < 1725) {
       pblock->SetVariant(false);
     }
@@ -352,8 +353,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	if (pindexPrev->nHeight>=nForkHeight-1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100)) {
 	  //LogPrintf("miner on fork\n");
 	  CBlockIndex * pprev_algo = pindexPrev;
-	  if (GetAlgo(pprev_algo->nVersion)!=miningAlgo) {
-	    pprev_algo = get_pprev_algo(pindexPrev,miningAlgo);
+	  if (GetAlgo(pprev_algo->nVersion)!=algo) {
+	    pprev_algo = get_pprev_algo(pindexPrev,algo);
 	  }
 	  if (!pprev_algo) {
 	    //LogPrintf("miner set update ssf\n");
@@ -385,10 +386,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
 	//printf("create new block with hash prev = %s (height %d)\n",pblock->hashPrevBlock.GetHex().c_str(),pindexPrev->nHeight);
 
 	UpdateTime(*pblock, pindexPrev);
-	pblock->nBits          = GetNextWorkRequired(pindexPrev, miningAlgo);
+	pblock->nBits          = GetNextWorkRequired(pindexPrev, algo);
 	//LogPrintf("create block nBits = %s\n",CBigNum().SetCompact(pblock->nBits).getuint256().GetHex().c_str());
 	pblock->nNonce         = 0;
-	if (miningAlgo==ALGO_EQUIHASH) {
+	if (algo==ALGO_EQUIHASH) {
 	  pblock->nNonce256.SetNull();
 	  pblock->nSolution.clear();
 	}
@@ -483,14 +484,14 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
 double dHashesPerSec = 0.0;
 int64_t nHPSTimerStart = 0;
 
-CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey)
+CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, int algo)
 {
     CPubKey pubkey;
     if (!reservekey.GetReservedKey(pubkey))
         return NULL;
 
     CScript scriptPubKey = CScript() << pubkey << OP_CHECKSIG;
-    return CreateNewBlock(scriptPubKey);
+    return CreateNewBlock(scriptPubKey,algo);
 }
 
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
@@ -791,6 +792,11 @@ void static BitmarkMiner(CWallet *pwallet)
 void GenerateBitmarks(bool fGenerate, CWallet* pwallet, int nThreads)
 {
 
+  if (!confAlgoIsSet) {
+    miningAlgo = GetArg("-miningalgo", miningAlgo);
+    confAlgoIsSet = true;
+  }
+  
     static boost::thread_group* minerThreads = NULL;
 
     if (nThreads < 0) {

@@ -1,6 +1,9 @@
 include Makefile.include
 
-AM_CPPFLAGS += -I$(builddir)
+AM_CPPFLAGS += -I$(builddir) -I$(srcdir)/secp256k1/include
+
+$(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
 noinst_LIBRARIES = \
   libbitmark_server.a \
@@ -20,8 +23,8 @@ if BUILD_BITMARK_CLI
   bin_PROGRAMS += bitmark-cli
 endif
 
-SUBDIRS = . $(BUILD_QT) $(BUILD_TEST)
-DIST_SUBDIRS = . qt test
+SUBDIRS = . $(BUILD_QT) $(BUILD_TEST) $(BUILD_SECP)
+DIST_SUBDIRS = . qt test secp256k1
 .PHONY: FORCE
 # bitmark core #
 BITMARK_CORE_H = \
@@ -144,6 +147,7 @@ libbitmark_common_a_SOURCES = \
   blake.c \
   blake2s-ref.c \
   bmw.c \
+  bmw/BlueMidnightWish.c \
   cubehash.c \
   echo.c \
   jh.c \
@@ -163,14 +167,6 @@ libbitmark_common_a_SOURCES = \
   Lyra2RE.c \
   Sponge.c \
   sph_sha2big.c \
-  ar2/argon2.c \
-  ar2/core.c \
-  ar2/encoding.c \
-  ar2/genkat.c \
-  ar2/run.c \
-  ar2/test.c \
-  ar2/thread.c \
-  ar2/blake2/blake2b.c \
   equihash.cpp \
   equihash.tcc \
   cryptonight/crypto/slow-hash.c \
@@ -190,10 +186,19 @@ libbitmark_common_a_SOURCES = \
   yescrypt/yescrypt-best.c \
   yescrypt/yescrypt-platform.c \
   yescrypt/sha256_Y.c \
+  ar2/argon2.c \
+  ar2/core.c \
+  ar2/encoding.c \
+  ar2/thread.c \
+  ar2/blake2/blake2b.c \
   $(BITMARK_CORE_H)
 
 if BUILD_ARGON2_OPTIMIZED
+if TARGET_WINDOWS
+libbitmark_common_a_SOURCES += ar2/ref.c
+else
 libbitmark_common_a_SOURCES += ar2/opt.c
+endif
 else
 libbitmark_common_a_SOURCES += ar2/ref.c
 endif
@@ -215,6 +220,7 @@ bitmarkd_LDADD = \
   libbitmark_server.a \
   libbitmark_cli.a \
   libbitmark_common.a \
+  $(LIBSECP256K1) \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
 
@@ -235,6 +241,7 @@ bitmarkd_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
 bitmark_cli_LDADD = \
   libbitmark_cli.a \
   libbitmark_common.a \
+  $(LIBSECP256K1) \
   $(BOOST_LIBS)
 bitmark_cli_SOURCES = bitmark-cli.cpp
 #
@@ -263,4 +270,5 @@ EXTRA_DIST = leveldb Makefile.include
 
 clean-local:
 	-$(MAKE) -C leveldb clean
+	-$(MAKE) -C secp256k1 clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno

@@ -490,7 +490,7 @@ bool Equihash<N,K>::OptimisedSolve(const eh_HashState& base_state,
                                    const std::function<bool(std::vector<unsigned char>)> validBlock,
                                    const std::function<bool(EhSolverCancelCheck)> cancelled)
 {
-  LogPrintf("in eh optimised solve\n");
+  //LogPrintf("in eh optimised solve\n");
     eh_index init_size { 1 << (CollisionBitLength + 1) };
     eh_index recreate_size { UntruncateIndex(1, 0, CollisionBitLength + 1) };
 
@@ -516,7 +516,7 @@ bool Equihash<N,K>::OptimisedSolve(const eh_HashState& base_state,
             if (cancelled(ListGeneration)) throw solver_cancelled;
         }
 
-	LogPrintf("generated list\n");
+	//LogPrintf("generated list\n");
 	
         // 3) Repeat step 2 until 2n/(k+1) bits remain
         for (int r = 1; r < K && Xt.size() > 0; r++) {
@@ -722,16 +722,16 @@ bool Equihash<N,K>::IsValidSolution(const eh_HashState& base_state, std::vector<
         std::vector<FullStepRow<FinalFullWidth>> Xc;
         for (int i = 0; i < X.size(); i += 2) {
             if (!HasCollision(X[i], X[i+1], CollisionByteLength)) {
-	      LogPrintf("!hascollision %d\n",i);
-                return false;
+	      if (fDebug) LogPrintf("Equihash::IsValidSolution: !HasCollision %d\n",i);
+	      return false;
             }
             if (X[i+1].IndicesBefore(X[i], hashLen, lenIndices)) {
-	      LogPrintf("indicesbefore %d\n",i);
-                return false;
+	      if (fDebug) LogPrintf("Equihash::IsValidSolution: IndicesBefore %d\n",i);
+	      return false;
             }
             if (!DistinctIndices(X[i], X[i+1], hashLen, lenIndices)) {
-	      LogPrintf("!distinctindices %d\n",i);
-                return false;
+	      if (fDebug) LogPrintf("!DistinctIndices %d\n",i);
+	      return false;
             }
             Xc.emplace_back(X[i], X[i+1], hashLen, lenIndices, CollisionByteLength);
         }

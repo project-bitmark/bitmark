@@ -1294,7 +1294,13 @@ union cn_slow_hash_state {
 #pragma pack(pop)
 
 void cn_slow_hash(const void *data, size_t length, char *hash, int variant, int prehashed) {
+  #ifndef FORCE_USE_HEAP
   uint8_t long_state[MEMORY];
+#else
+  uint8_t *long_state = NULL;
+  long_state = (uint8_t *)malloc(MEMORY);
+#endif
+
   union cn_slow_hash_state state;
   uint8_t text[INIT_SIZE_BYTE];
   uint8_t a[AES_BLOCK_SIZE];
@@ -1317,6 +1323,7 @@ void cn_slow_hash(const void *data, size_t length, char *hash, int variant, int 
   VARIANT1_PORTABLE_INIT();
 
   oaes_key_import_data(aes_ctx, aes_key, AES_KEY_SIZE);
+
   for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++) {
     for (j = 0; j < INIT_SIZE_BLK; j++) {
       aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], aes_ctx->key->exp_data);
@@ -1365,11 +1372,15 @@ void cn_slow_hash(const void *data, size_t length, char *hash, int variant, int 
       aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], aes_ctx->key->exp_data);
     }
   }
+
   memcpy(state.init, text, INIT_SIZE_BYTE);
   hash_permutation(&state.hs);
   /*memcpy(hash, &state, 32);*/
   extra_hashes[state.hs.b[0] & 3](&state, 200, hash);
   oaes_free((OAES_CTX **) &aes_ctx);
+#ifdef FORCE_USE_HEAP
+  free(long_state);
+#endif
 }
 
 #endif

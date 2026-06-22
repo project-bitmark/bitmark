@@ -52,7 +52,7 @@ Q_IMPORT_PLUGIN(qtwcodecs)
 Q_IMPORT_PLUGIN(qkrcodecs)
 Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 #else
-Q_IMPORT_PLUGIN(AccessibleFactory)
+//Q_IMPORT_PLUGIN(AccessibleFactory)
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #endif
 #endif

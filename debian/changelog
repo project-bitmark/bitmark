@@ -1,0 +1,15 @@
+bitmark-qt (0.9.7.6-1) UNRELEASED; urgency=medium
+
+  * Fix header attributes needed for headers-first sync.
+ -- AK <ak@xmark.cc>  Sat, 24 Aug 2024 15:55:43 +0000
+
+bitmark-qt (0.9.7.5-2) UNRELEASED; urgency=medium
+
+  * Use specific versions of boost for the runtime dependencies.
+ -- AK <ak@xmark.cc>  Mon, 22 Jul 2024 08:39:16 +0000
+
+bitmark-qt (0.9.7.5-1) UNRELEASED; urgency=medium
+
+  * First release for 0.9.7.5 series.
+
+ -- AK <ak@xmark.cc>  Thu, 11 Jul 2024 10:28:24 +0000

@@ -40,6 +40,7 @@ enum
     BLOCK_VERSION_CHAIN = (1 << 16)
   };
 
+// Comment on Block Header History, Versions  Q? <<<
 class CPureBlockHeader { // Needed to resolve circular dependecies with CAuxPow in CBlockHeader
  public:
   static const int CURRENT_VERSION=4;

@@ -350,7 +350,7 @@ bitmark_qt_LDADD = libbitmarkqt.a $(LIBBITMARK_SERVER)
 if ENABLE_WALLET
 bitmark_qt_LDADD += $(LIBBITMARK_WALLET)
 endif
-bitmark_qt_LDADD += $(LIBBITMARK_CLI) $(LIBBITMARK_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
+bitmark_qt_LDADD += $(LIBBITMARK_CLI) $(LIBBITMARK_COMMON) $(LIBSECP256K1) $(LIBLEVELDB) $(LIBMEMENV) \
   $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS)
 bitmark_qt_LDFLAGS = $(QT_LDFLAGS)
 
@@ -359,6 +359,12 @@ QT_FORMS_H=$(join $(dir $(QT_FORMS_UI)),$(addprefix ui_, $(notdir $(QT_FORMS_UI:
 
 #locale/foo.ts -> locale/foo.qm
 QT_QM=$(QT_TS:.ts=.qm)
+
+icondir = $(datadir)/pixmaps
+utildir = $(datadir)/applications
+
+dist_icon_DATA = $(top_srcdir)/share/pixmaps/bitmark256.png
+dist_util_DATA = $(top_srcdir)/share/bitmark-qt.desktop
 
 .PHONY: FORCE
 .SECONDARY: $(QT_QM)

@@ -4,40 +4,52 @@ set -e
 
 datadir="$(pwd)/.bitmark"
 
-set +e
-bitmark-cli -datadir="$datadir" stop
-set -e
+datadirD="$datadir"
+unameS="`uname -s`"
+if [[ "$unameS" == "CYGWIN"* ]]
+then
+    datadirD="$(cygpath -w -- "$datadir")"
+fi
 
+set +e
+bitmark-cli -datadir="$datadirD" stop
+echo "Stopped bitmarkd for datadir $datadirD. If this script fails, make sure this bitmarkd process has fully terminated."
+set -e
 rm -rf "$datadir"
 mkdir -p "$datadir"
 cp bitmark.conf "$datadir"
 
 set +e
-for i in {1..10}
-do
-    sleep 1
-    if bitmarkd -datadir="$datadir" -daemon
+if [[ "$unameS" == "CYGWIN"* ]]
+then
+  bitmarkd -datadir="$datadirD" -daemon
+else
+  for i in {1..20}
+  do
+    if bitmarkd -datadir="$datadirD" -daemon
     then
 	break
-    elif [[ "$i" == "10" ]]
+    elif [[ "$i" == "20" ]]
     then
 	echo "Please shutdown your instance of bitmarkd before starting the test"
     fi
-done
+    sleep 5
+  done
+fi
 set -e
 
 set +e
 while true
 do
     sleep 1
-    if bitmark-cli -datadir="$datadir" getinfo
+    if bitmark-cli -datadir="$datadirD" getinfo
     then
 	break
     fi
 done
 set -e
 
-bitmarkcli="bitmark-cli -datadir=$datadir"
+bitmarkcli="bitmark-cli -datadir=$datadirD"
 
 # activate fork
 # Note: blocks 0 to 149 have subsidy 20, while the rest have subsidy 15

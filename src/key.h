@@ -15,11 +15,6 @@
 #include <stdexcept>
 #include <vector>
 
-// #if OPENSSL_VERSION_NUMBER < 0x10100000L
-// #include <openssl/ecdsa.h>
-//     void ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
-// #endif
-
 // secp256k1:
 // const unsigned int PRIVATE_KEY_SIZE = 279;
 // const unsigned int PUBLIC_KEY_SIZE  = 65;

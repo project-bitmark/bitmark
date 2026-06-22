@@ -108,7 +108,7 @@ Value GetNetworkHashPS(int lookup, int height, int algo) {
     //uint256 workDiff = pb->nChainWork - pb0->nChainWork;
     int64_t timeDiff = maxTime - minTime;
 
-    return (((double)hashes_bn.getulong()) / (double)timeDiff);
+    return ((hashes_bn.getuint256().getdouble()) / ((double)timeDiff));
 }
 
 Value getnetworkhashps(const Array& params, bool fHelp)
@@ -129,7 +129,12 @@ Value getnetworkhashps(const Array& params, bool fHelp)
             + HelpExampleRpc("getnetworkhashps", "")
        );
 
-    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1, params.size() > 2 ? params[2].get_int() : ALGO_SCRYPT);
+      if (!confAlgoIsSet) {
+	miningAlgo = GetArg("-miningalgo", miningAlgo);
+	confAlgoIsSet = true;
+      }
+
+    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1, params.size() > 2 ? params[2].get_int() : miningAlgo);
 }
 
 #ifdef ENABLE_WALLET
@@ -164,6 +169,10 @@ Value setminingalgo(const Array& params, bool fHelp)
 			);
 
   miningAlgo = params[0].get_int();
+
+  if (!confAlgoIsSet) {
+    confAlgoIsSet = true;
+  }
 
   return Value::null;
 }
@@ -224,6 +233,11 @@ Value setgenerate(const Array& params, bool fHelp)
             fGenerate = false;
     }
 
+    if (!confAlgoIsSet) {
+      miningAlgo = GetArg("-miningalgo", miningAlgo);
+      confAlgoIsSet = true;
+    }
+
     if (params.size() > 2) {
       miningAlgo = params[2].get_int();
     }
@@ -260,7 +274,7 @@ Value setgenerate(const Array& params, bool fHelp)
     {
         mapArgs["-gen"] = (fGenerate ? "1" : "0");
         mapArgs ["-genproclimit"] = itostr(nGenProcLimit);
-	LogPrintf("do generatebitmarks\n");
+	//LogPrintf("do generatebitmarks\n");
         GenerateBitmarks(fGenerate, pwalletMain, nGenProcLimit);
     }
 
@@ -326,6 +340,11 @@ Value getmininginfo(const Array& params, bool fHelp)
             + HelpExampleCli("getmininginfo", "")
             + HelpExampleRpc("getmininginfo", "")
         );
+
+    if (!confAlgoIsSet) {
+      miningAlgo = GetArg("-miningalgo", miningAlgo);
+      confAlgoIsSet = true;
+    }
 
     Object obj;
     obj.push_back(Pair("blocks",           (int)chainActive.Height()));
@@ -396,6 +415,11 @@ Value getwork(const Array& params, bool fHelp)
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
     static vector<CBlockTemplate*> vNewBlockTemplate;
 
+    if (!confAlgoIsSet) {
+      miningAlgo = GetArg("-miningalgo", miningAlgo);
+      confAlgoIsSet = true;
+    }
+
     if (params.size() == 0)
     {
         // Update block
@@ -436,14 +460,6 @@ Value getwork(const Array& params, bool fHelp)
 
 	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajority(4,pindexPrev,75,100))) {
 	  pblock->SetAlgo(miningAlgo);
-	}
-
-	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant12(4,true,pindexPrev,950,1000))) {
-	  pblock->SetVariant(true);
-	}
-
-	if ((pindexPrev->nHeight >= nForkHeight - 1 && CBlockIndex::IsSuperMajorityVariant2(4,true,pindexPrev,950,1000))) {
-	  pblock->SetVariant2(true);
 	}
 
         // Update nTime
@@ -517,6 +533,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
             "           \"support\"           (string) client side supported feature, 'longpoll', 'coinbasetxn', 'coinbasevalue', 'proposal', 'serverlist', 'workid'\n"
             "           ,...\n"
             "         ]\n"
+	    "       \"algo\": n             (numeric, optional) The mining algo id for the block\n"
             "     }\n"
             "\n"
 
@@ -562,6 +579,13 @@ Value getblocktemplate(const Array& params, bool fHelp)
             + HelpExampleRpc("getblocktemplate", "")
          );
 
+    if (!confAlgoIsSet) {
+      miningAlgo = GetArg("-miningalgo", miningAlgo);
+      confAlgoIsSet = true;
+    }
+
+    int miningAlgoChosen = miningAlgo;
+
     std::string strMode = "template";
     if (params.size() > 0)
     {
@@ -575,6 +599,15 @@ Value getblocktemplate(const Array& params, bool fHelp)
         }
         else
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
+	const Value& algoval = find_value(oparam, "algo");
+	if (algoval.type() == int_type)
+	  miningAlgoChosen = algoval.get_int();
+	else if (algoval.type() == null_type)
+	  {
+	    /* Do nothing */
+	  }
+	else
+	  throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid algo");
     }
 
     if (strMode != "template")
@@ -591,7 +624,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     static CBlockIndex* pindexPrev;
     static int64_t nStart;
     static CBlockTemplate* pblocktemplate;
-    if (pindexPrev != chainActive.Tip() || miningAlgo != miningAlgoGBT ||
+    if (pindexPrev != chainActive.Tip() || miningAlgoChosen != miningAlgoGBT ||
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -609,13 +642,13 @@ Value getblocktemplate(const Array& params, bool fHelp)
             pblocktemplate = NULL;
         }
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = CreateNewBlock(scriptDummy);
+        pblocktemplate = CreateNewBlock(scriptDummy,miningAlgoChosen);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
         // Need to update only after we know CreateNewBlock succeeded
         pindexPrev = pindexPrevNew;
-	miningAlgoGBT = miningAlgo;
+	miningAlgoGBT = miningAlgoChosen;
     }
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
@@ -711,7 +744,7 @@ Value submitblock(const Array& params, bool fHelp)
         );
 
     vector<unsigned char> blockData(ParseHex(params[0].get_str()));
-    LogPrintf("block submitted:\n%s\n",params[0].get_str());
+    //LogPrintf("block submitted:\n%s\n",params[0].get_str());
     CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
     CBlock pblock;
     try {
@@ -721,7 +754,7 @@ Value submitblock(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
-    LogPrintf("block algo is %d\n",pblock.GetAlgo());
+    if (fDebug) LogPrintf("submitted block with algo %d\n",pblock.GetAlgo());
 
     CValidationState state;
     bool fAccepted = ProcessBlock(state, NULL, &pblock);
@@ -734,14 +767,17 @@ Value submitblock(const Array& params, bool fHelp)
 #ifdef ENABLE_WALLET
 Value getauxblock(const Array& params, bool fHelp)
 {
-  if (fHelp || (params.size() != 0 && params.size() != 2))
+  if (fHelp || (params.size() > 2))
     throw runtime_error(
 			"getauxblock (hash auxpow)\n"
 	                "\nCreate or submit a merge-mined block.\n"
-	                "\nWithout arguments, create a new block and return information\n"
-	                "required to merge-mine it.  With arguments, submit a solved\n"
+	                "\nWith 0 to 1 arguments, create a new block and return information\n"
+	                "required to merge-mine it.  With two arguments, submit a solved\n"
 	                "auxpow for a previously returned block.\n"
 	                "\nArguments:\n"
+			"Either\n"
+			"1. \"algo\"    (numeric, optional) mining algo for aux block\n"
+			"Or\n"
 	                "1. \"hash\"    (string, optional) hash of the block to submit\n"
 	                "2. \"auxpow\"  (string, optional) serialised auxpow found\n"
 	                "\nResult (without arguments):\n"
@@ -750,17 +786,13 @@ Value getauxblock(const Array& params, bool fHelp)
 	                "  \"chainid\"            (numeric) chain ID for this block\n"
 	                "  \"previousblockhash\"  (string) hash of the previous block\n"
 	                "  \"coinbasevalue\"      (numeric) value of the block's coinbase\n"
+			"  \"address\"            (string) address for coinbase output\n"
 	                "  \"bits\"               (string) compressed target of the block\n"
 	                "  \"height\"             (numeric) height of the block\n"
 	                "  \"target\"             (string) target in reversed byte order\n"
-			"{\n"
-			"  \"hash\"               (string) hash of the created block\n"
-			"  \"chainid\"            (numeric) chain ID for this block\n"
-			"  \"previousblockhash\"  (string) hash of the previous block\n"
-			"  \"coinbasevalue\"      (numeric) value of the block's coinbase\n"
-			"  \"bits\"               (string) compressed target of the block\n"
-			"  \"height\"             (numeric) height of the block\n"
-			"  \"target\"             (string) target in reversed byte order\n"
+			"  \"version\"            (numeric) block version number\n"
+			"  \"curtime\"            (numeric) block timestamp\n"
+			"  \"scriptsig\"          (string) scriptSig for coinbase tx\n"
 			"}\n"
 			"\nResult (with arguments):\n"
 			"xxxxx        (boolean) whether the submitted block was correct\n"
@@ -769,6 +801,14 @@ Value getauxblock(const Array& params, bool fHelp)
 			+ HelpExampleCli("getauxblock", "\"hash\" \"serialised auxpow\"")
 			+ HelpExampleRpc("getauxblock", "")
 			);
+
+  if (!confAlgoIsSet) {
+    miningAlgo = GetArg("-miningalgo", miningAlgo);
+    confAlgoIsSet = true;
+  }
+
+  int miningAlgoChosen = miningAlgo;
+  
   if (pwalletMain == NULL)
     throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
   if (vNodes.empty())
@@ -779,7 +819,12 @@ Value getauxblock(const Array& params, bool fHelp)
   LOCK(cs_auxblockCache);
   static std::map<uint256, CBlock*> mapNewBlock;
   static std::vector<CBlockTemplate*> vNewBlockTemplate;
-  if (params.size() == 0) {
+  if (params.size() < 2) {
+
+    if (params.size() == 1) {
+      miningAlgoChosen = params[0].get_int();
+    }
+    
     static unsigned nTransactionsUpdatedLast;
     static CBlockIndex* pindexPrev = NULL;
     static uint64_t nStart;
@@ -789,7 +834,7 @@ Value getauxblock(const Array& params, bool fHelp)
 
     {
       LOCK(cs_main);
-      if (pindexPrev != chainActive.Tip() || miningAlgo != miningAlgoGAB
+      if (pindexPrev != chainActive.Tip() || miningAlgoChosen != miningAlgoGAB
 	  || (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast
 	      && GetTime() - nStart > 60)) {
 	if (pindexPrev != chainActive.Tip()) {
@@ -799,7 +844,7 @@ Value getauxblock(const Array& params, bool fHelp)
 	  vNewBlockTemplate.clear();
 	}
 
-	pblocktemplate = CreateNewBlockWithKey(reservekey);
+	pblocktemplate = CreateNewBlockWithKey(reservekey,miningAlgoChosen);
 	if (!pblocktemplate)
 	  throw JSONRPCError(RPC_OUT_OF_MEMORY, "out of memory");
 
@@ -815,7 +860,7 @@ Value getauxblock(const Array& params, bool fHelp)
 
 	mapNewBlock[pblock->GetHash()] = pblock;
 	vNewBlockTemplate.push_back(pblocktemplate);
-	miningAlgoGAB = miningAlgo;
+	miningAlgoGAB = miningAlgoChosen;
       }	    	  
     }
 
@@ -858,7 +903,7 @@ Value getauxblock(const Array& params, bool fHelp)
     throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
   CBlock& block = *mit->second;
   const char * block_str = params[1].get_str().c_str();
-  if (fDebug) LogPrintf("getauxblock block_str = %s\n",block_str);
+  //if (fDebug) LogPrintf("getauxblock block_str = %s\n",block_str);
   const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
   CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
   CAuxPow pow;

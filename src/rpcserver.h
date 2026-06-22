@@ -19,7 +19,6 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_writer_template.h"
 
-
 class CBlockIndex;
 
 /* Start RPC threads */
@@ -104,8 +103,8 @@ extern int64_t nWalletUnlockTime;
 extern int64_t AmountFromValue(const json_spirit::Value& value);
 extern json_spirit::Value ValueFromAmount(int64_t amount);
 extern double GetDifficulty(const CBlockIndex* blockindex = NULL, const int algo = 0, const bool weighted = true, const bool next = true);
-extern double GetPeakHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0);
-extern double GetCurrentHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0);
+extern double GetPeakHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0, const bool giga = true);
+extern double GetCurrentHashrate(const CBlockIndex* blockindex = NULL, const int algo = 0, const bool giga = true);
 extern double GetMoneySupply(const CBlockIndex* blockindex = NULL, const int algo = -1);
 extern double GetBlockReward(CBlockIndex* blockindex = NULL, const int algo = 0, const bool noScale = false);
 extern int GetNBlocksUpdateSSF(const CBlockIndex* blockindex = NULL, const int algo = 0);

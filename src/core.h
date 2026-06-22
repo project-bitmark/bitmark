@@ -17,6 +17,7 @@
 #include "chainparams.h"
 #include "pureheader.h"
 
+// SSF - Subsidy Scaling Factor
 static const int nSSF = 720/NUM_ALGOS; //interval for ssf updates
 
 class CBlockHeader;
@@ -751,6 +752,11 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+    	block.nNonce256 	 = nNonce256;
+    	block.nSolution 	 = nSolution;
+    	block.hashReserved   = hashReserved;
+        block.auxpow         = auxpow;
+
         return block;
     }
 
@@ -794,6 +800,8 @@ bool CheckAuxPowProofOfWork(const CBlockHeader& block, const CChainParams& param
 
 unsigned int GetAlgoWeight (const int algo);
 
+BoostBigNum BoostBigNumFromCompact(unsigned int nCompact);
+
 static const int64_t nForkHeight = 200; // We set it in past so not really used for fork condition
 
 /** The block chain is a tree shaped structure starting with the
@@ -820,7 +828,7 @@ public:
     int64_t nMoneySupply;
 
     // the scaling factor for the block
-    CBigNum subsidyScalingFactor;
+    BoostBigNum subsidyScalingFactor;
     
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
@@ -864,7 +872,7 @@ public:
 	pauxpow.reset();
         nHeight = 0;
         nMoneySupply = 0;
-	subsidyScalingFactor = 0;
+	subsidyScalingFactor = BoostBigNum(0);
         nFile = 0;
         nDataPos = 0;
         nUndoPos = 0;
@@ -963,6 +971,11 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+    	block.nNonce256 	 = nNonce256;
+    	block.nSolution 	 = nSolution;
+    	block.hashReserved   = hashReserved;
+        block.auxpow         = pauxpow;
+
         return block;
     }
 
@@ -987,8 +1000,24 @@ public:
 	//LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
         return (CBigNum(1)<<256) / (bnTarget/weight+1);
     }
+
+  BoostBigNum GetBlockWorkBoost() const {
+    BoostBigNum bnTarget = BoostBigNumFromCompact(nBits);
+    if (bnTarget <= 0)
+      return 0;
+    unsigned int algo_weight = GetAlgoWeight(this->GetAlgo());
+    BoostBigNum weight(algo_weight);
+    //LogPrintf("algo is %d and weight is %lu\n",nVersion & BLOCK_VERSION_ALGO,weight.getulong());
+    return (BoostBigNum(1)<<256) / (bnTarget/weight+BoostBigNum(1));
+  }
   
     // Get Average Work of latest 50 Blocks
+    // Q?<<< 
+    // Is for _all_ the last sequential 50 Blocks ?
+    //    or   
+    //    for the n/50 blocks of a particular algo within the last sequential 50 BLocks ? 
+    // Note, this introduction of variable "n" was in commit 52943a3
+    //  which also modified 'main.cpp' which also modified conditions that identify a chain tip split warning (blockchain fork)
     CBigNum GetBlockWorkAv() const
     {
       CBigNum work = 0;

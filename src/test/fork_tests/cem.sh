@@ -6,7 +6,13 @@ set -e
 source assert.sh
 
 datadir="$(pwd)/.bitmark"
-bitmarkcli="bitmark-cli -datadir=$datadir"
+datadirD="$datadir"
+unameS="`uname -s`"
+if [[ "$unameS" == "CYGWIN"* ]]
+then
+	  datadirD="$(cygpath -w -- "$datadir")"
+fi
+bitmarkcli="bitmark-cli -datadir=$datadirD"
 
 nssf=$($bitmarkcli chaindynamics | grep 'nblocks update SSF SHA256D' | awk '{print $6}' | awk -F ',' '{print $1}')
 

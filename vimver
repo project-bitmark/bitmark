@@ -1,2 +1,3 @@
 #!/bin/bash
-vim configure.ac src/clientversion.h src/version.h README.md 
+
+vim configure.ac src/clientversion.h src/version.h README.md

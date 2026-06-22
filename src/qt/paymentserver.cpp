@@ -491,7 +491,7 @@ bool PaymentServer::processPaymentRequest(PaymentRequestPlus& request, SendCoins
     QList<std::pair<CScript, qint64> > sendingTos = request.getPayTo();
     QStringList addresses;
 
-    foreach(const PAIRTYPE(CScript, qint64)& sendingTo, sendingTos) {
+    for (const PAIRTYPE(CScript, qint64)& sendingTo : sendingTos) {
         // Extract and check destination addresses
         CTxDestination dest;
         if (ExtractDestination(sendingTo.first, dest)) {

@@ -208,7 +208,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 // Construct block index object
                 CBlockIndex* pindexNew = InsertBlockIndex(diskindex.GetBlockHash());
                 pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-		pindexNew->pauxpow        = diskindex.pauxpow;
+		        pindexNew->pauxpow        = diskindex.pauxpow;
                 pindexNew->nHeight        = diskindex.nHeight;
                 pindexNew->nMoneySupply   = diskindex.nMoneySupply;
                 pindexNew->nFile          = diskindex.nFile;
@@ -221,6 +221,9 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 pindexNew->nNonce         = diskindex.nNonce;
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
+                pindexNew->nNonce256 	 = diskindex.nNonce256;
+                pindexNew->nSolution 	 = diskindex.nSolution;
+                pindexNew->hashReserved  = diskindex.hashReserved;
 
                 if (!pindexNew->CheckIndex())
                     return error("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString());

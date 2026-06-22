@@ -9,7 +9,18 @@ To Build
 	./configure
 	make
 
-This will build bitmark-qt as well if the dependencies are met.
+This will build bitmark-qt as well if the dependencies are met. The binaries (bitmarkd and bitmark-cli)
+are placed in src/. For ./configure options, run:
+./configure --help
+--prefix is a useful option if you want to install the binaries (make install) to a non default location
+that doesn't require root access.
+
+Note: gcc version greater than or equal to 9 is recommended (such as the default on Ubuntu 20).
+For lower versions of gcc, configure may fail and you can try:
+CFLAGS="-g -O2 -fPIC" ./configure
+Boost greater than or equal to 1.71 is recommended (such as the default on Ubuntu 20).
+Lower versions of boost may not compile Bitmark, and thus you may need to obtain boost from
+https://www.boost.org
 
 Dependencies
 ---------------------
@@ -99,16 +110,17 @@ Dependencies for the GUI: Ubuntu & Debian
 
 If you want to build Bitmark-Qt, make sure that the required packages for Qt development
 are installed. Either Qt 4 or Qt 5 are necessary to build the GUI.
-If both Qt 4 and Qt 5 are installed, Qt 4 will be used. Pass `--with-gui=qt5` to configure to choose Qt5.
+You also need protobuf (see below). If both Qt 4 and Qt 5 are installed, Qt 5 will be used.
+Pass `--with-gui=qt4` to configure to choose Qt4.
 To build without GUI pass `--without-gui`.
 
 To build with Qt 4 you need the following:
 
-    sudo apt-get install libqt4-dev libprotobuf-dev protobuf-compiler
+    sudo apt-get install libqt4-dev
 
 For Qt 5 you need the following:
 
-    sudo apt-get install libqt5gui5 libqt5core5 libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev
+    sudo apt-get install libqt5gui5 libqt5core5 libqt5dbus5 qttools5-dev qttools5-dev-tools
 
 libqrencode (optional) can be installed with:
 
@@ -149,6 +161,11 @@ echo '12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef  db-4.8.3
 # -> db-4.8.30.NC.tar.gz: OK
 tar -xzvf db-4.8.30.NC.tar.gz
 
+# Patch for new compilers (Debian 12 / Ubuntu 24)
+cd db-4.8.30.NC/dbinc
+chmod u+w atomic.h
+sed -i 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g' atomic.h
+
 # Build the library and install to our prefix
 cd db-4.8.30.NC/build_unix/
 #  Note: Do a static build so that it can be embedded into the exectuable, instead of having to find a .so at runtime
@@ -169,6 +186,18 @@ If you need to build Boost yourself:
 	sudo su
 	./bootstrap.sh
 	./bjam install
+
+Protobuf
+--------
+For the GUI, you need libprotobuf and the protobuf compiler.
+You can set it up as follows:
+	git clone https://github.com/google/protobuf
+	cd protobuf
+	git checkout v3.9.0
+	./autogen.sh
+	./configure --prefix=/usr/local --enable-shared=no
+	make
+	sudo make install
 
 
 Security

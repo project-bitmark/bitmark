@@ -9,6 +9,11 @@
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
 #include <openssl/rand.h>
+#include <secp256k1.h>
+//#include <secp256k1_ellswift.h>
+//#include <secp256k1_extrakeys.h>
+//#include <secp256k1_recovery.h>
+//#include <secp256k1_schnorrsig.h>
 
 // anonymous namespace with local implementation code (OpenSSL interaction)
 namespace {
@@ -80,6 +85,7 @@ int ECDSA_SIG_recover_key_GFp(EC_KEY *eckey, ECDSA_SIG *ecsig, const unsigned ch
     EC_POINT *Q = NULL;
     BIGNUM *rr = NULL;
     BIGNUM *zero = NULL;
+    BIGNUM *r = 0;
     BIGNUM *s = 0;
     int n = 0;
     int i = recid / 2;
@@ -92,8 +98,8 @@ int ECDSA_SIG_recover_key_GFp(EC_KEY *eckey, ECDSA_SIG *ecsig, const unsigned ch
     x = BN_CTX_get(ctx);
     if (!BN_copy(x, order)) { ret=-1; goto err; }
     if (!BN_mul_word(x, i)) { ret=-1; goto err; }
-    ECDSA_SIG_get0(ecsig, (const BIGNUM **)&s, 0);
-    if (!BN_add(x, x, s)) { ret=-1; goto err; }
+    ECDSA_SIG_get0(ecsig, (const BIGNUM **)&r, (const BIGNUM **)&s);
+    if (!BN_add(x, x, r)) { ret=-1; goto err; }
     // if (!BN_add(x, x, ecsig->r)) { ret=-1; goto err; }
     field = BN_CTX_get(ctx);
     if (!EC_GROUP_get_curve_GFp(group, field, NULL, NULL, ctx)) { ret=-2; goto err; }
@@ -112,14 +118,16 @@ int ECDSA_SIG_recover_key_GFp(EC_KEY *eckey, ECDSA_SIG *ecsig, const unsigned ch
     if (!BN_bin2bn(msg, msglen, e)) { ret=-1; goto err; }
     if (8*msglen > n) BN_rshift(e, e, 8-(n & 7));
     zero = BN_CTX_get(ctx);
+    #if OPENSSL_VERSION_NUMBER < 0x11000000L
+    if (!BN_zero(zero)) { ret=-1; goto err; }
+    #else
     BN_zero(zero);
+    #endif
     if (!BN_mod_sub(e, zero, e, order, ctx)) { ret=-1; goto err; }
     rr = BN_CTX_get(ctx);
-    ECDSA_SIG_get0(ecsig, (const BIGNUM **)&s, 0);
-    if (!BN_mod_inverse(rr, s, order, ctx)) { ret=-1; goto err; }
+    if (!BN_mod_inverse(rr, r, order, ctx)) { ret=-1; goto err; }
     // if (!BN_mod_inverse(rr, ecsig->r, order, ctx)) { ret=-1; goto err; }
     sor = BN_CTX_get(ctx);
-    ECDSA_SIG_get0(ecsig, 0, (const BIGNUM **)&s);
     if (!BN_mod_mul(sor, s, rr, order, ctx)) { ret=-1; goto err; }
     // if (!BN_mod_mul(sor, ecsig->s, rr, order, ctx)) { ret=-1; goto err; }
     eor = BN_CTX_get(ctx);
@@ -219,6 +227,7 @@ public:
     }
 
     bool Sign(const uint256 &hash, std::vector<unsigned char>& vchSig) {
+      BIGNUM *r = 0;
         BIGNUM *s = 0;
         vchSig.clear();
         ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
@@ -231,7 +240,7 @@ public:
         BIGNUM *halforder = BN_CTX_get(ctx);
         EC_GROUP_get_order(group, order, ctx);
         BN_rshift1(halforder, order);
-        ECDSA_SIG_get0(sig, 0, (const BIGNUM **)&s);
+        ECDSA_SIG_get0(sig, (const BIGNUM **)&r, (const BIGNUM **)&s);
         if (BN_cmp(s, halforder) > 0) {
             // enforce low S values, by negating the value (modulo the order) if above order/2.
             BN_sub(s, order, s);
@@ -323,7 +332,6 @@ public:
                 }
             }
             assert(fOk);
-            ECDSA_SIG_get0(sig, (const BIGNUM **)&r, (const BIGNUM **)&s);
             BN_bn2bin(r,&p64[32-(nBitsR+7)/8]);
             BN_bn2bin(s,&p64[64-(nBitsS+7)/8]);
         }
@@ -342,6 +350,9 @@ public:
         if (rec<0 || rec>=3)
             return false;
         ECDSA_SIG *sig = ECDSA_SIG_new();
+	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	ECDSA_SIG_set0(sig,BN_new(),BN_new());
+	#endif
         ECDSA_SIG_get0(sig, (const BIGNUM **)&r, (const BIGNUM **)&s);
         BN_bin2bn(&p64[0],  32, r);
         BN_bin2bn(&p64[32], 32, s);
@@ -403,6 +414,158 @@ public:
 };
 
 }; // end of anonymous namespace
+
+ /** This function is taken from the libsecp256k1 distribution and implements
+ *  DER parsing for ECDSA signatures, while supporting an arbitrary subset of
+ *  format violations.
+ *
+ *  Supported violations include negative integers, excessive padding, garbage
+ *  at the end, and overly long length descriptors. This is safe to use in
+ *  Bitcoin because since the activation of BIP66, signatures are verified to be
+ *  strict DER before being passed to this module, and we know it supports all
+ *  violations present in the blockchain before that point.
+ */
+int ecdsa_signature_parse_der_lax(secp256k1_ecdsa_signature* sig, const unsigned char *input, size_t inputlen) {
+    size_t rpos, rlen, spos, slen;
+    size_t pos = 0;
+    size_t lenbyte;
+    unsigned char tmpsig[64] = {0};
+    int overflow = 0;
+
+    /* Hack to initialize sig with a correctly-parsed but invalid signature. */
+    secp256k1_ecdsa_signature_parse_compact(secp256k1_context_static, sig, tmpsig);
+
+    /* Sequence tag byte */
+    if (pos == inputlen || input[pos] != 0x30) {
+        return 0;
+    }
+    pos++;
+
+    /* Sequence length bytes */
+    if (pos == inputlen) {
+        return 0;
+    }
+    lenbyte = input[pos++];
+    if (lenbyte & 0x80) {
+        lenbyte -= 0x80;
+        if (lenbyte > inputlen - pos) {
+            return 0;
+        }
+        pos += lenbyte;
+    }
+
+    /* Integer tag byte for R */
+    if (pos == inputlen || input[pos] != 0x02) {
+        return 0;
+    }
+    pos++;
+
+    /* Integer length for R */
+    if (pos == inputlen) {
+        return 0;
+    }
+    lenbyte = input[pos++];
+    if (lenbyte & 0x80) {
+        lenbyte -= 0x80;
+        if (lenbyte > inputlen - pos) {
+            return 0;
+        }
+        while (lenbyte > 0 && input[pos] == 0) {
+            pos++;
+            lenbyte--;
+        }
+        static_assert(sizeof(size_t) >= 4, "size_t too small");
+        if (lenbyte >= 4) {
+            return 0;
+        }
+        rlen = 0;
+        while (lenbyte > 0) {
+            rlen = (rlen << 8) + input[pos];
+            pos++;
+            lenbyte--;
+        }
+    } else {
+        rlen = lenbyte;
+    }
+    if (rlen > inputlen - pos) {
+        return 0;
+    }
+    rpos = pos;
+    pos += rlen;
+
+    /* Integer tag byte for S */
+    if (pos == inputlen || input[pos] != 0x02) {
+        return 0;
+    }
+    pos++;
+
+    /* Integer length for S */
+    if (pos == inputlen) {
+        return 0;
+    }
+    lenbyte = input[pos++];
+    if (lenbyte & 0x80) {
+        lenbyte -= 0x80;
+        if (lenbyte > inputlen - pos) {
+            return 0;
+        }
+        while (lenbyte > 0 && input[pos] == 0) {
+            pos++;
+            lenbyte--;
+        }
+        static_assert(sizeof(size_t) >= 4, "size_t too small");
+        if (lenbyte >= 4) {
+            return 0;
+        }
+        slen = 0;
+        while (lenbyte > 0) {
+            slen = (slen << 8) + input[pos];
+            pos++;
+            lenbyte--;
+        }
+    } else {
+        slen = lenbyte;
+    }
+    if (slen > inputlen - pos) {
+        return 0;
+    }
+    spos = pos;
+
+    /* Ignore leading zeroes in R */
+    while (rlen > 0 && input[rpos] == 0) {
+        rlen--;
+        rpos++;
+    }
+    /* Copy R value */
+    if (rlen > 32) {
+        overflow = 1;
+    } else {
+        memcpy(tmpsig + 32 - rlen, input + rpos, rlen);
+    }
+
+    /* Ignore leading zeroes in S */
+    while (slen > 0 && input[spos] == 0) {
+        slen--;
+        spos++;
+    }
+    /* Copy S value */
+    if (slen > 32) {
+        overflow = 1;
+    } else {
+        memcpy(tmpsig + 64 - slen, input + spos, slen);
+    }
+
+    if (!overflow) {
+        overflow = !secp256k1_ecdsa_signature_parse_compact(secp256k1_context_static, sig, tmpsig);
+    }
+    if (overflow) {
+        /* Overwrite the result again with a correctly-parsed but invalid
+           signature if parsing failed. */
+        memset(tmpsig, 0, 64);
+        secp256k1_ecdsa_signature_parse_compact(secp256k1_context_static, sig, tmpsig);
+    }
+    return 1;
+}
 
 bool CKey::Check(const unsigned char *vch) {
     // Do not convert to OpenSSL's data structures for range-checking keys,
@@ -507,7 +670,7 @@ bool CKey::Load(CPrivKey &privkey, CPubKey &vchPubKey, bool fSkipCheck=false) {
 bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) const {
     if (!IsValid())
         return false;
-    CECKey key;
+    /*CECKey key;
     if (!key.SetPubKey(*this)) {
       //printf("cpubkey::verify: !key.SetPubKey\n");
       return false;
@@ -515,8 +678,19 @@ bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchS
     if (!key.Verify(hash, vchSig)) {
       //printf("cpubkey::verify: !key.Verify\n");
       return false;
+      }*/
+    secp256k1_pubkey pubkey;
+    secp256k1_ecdsa_signature sig;
+    if (!secp256k1_ec_pubkey_parse(secp256k1_context_static, &pubkey, vch, size())) {
+        return false;
     }
-    return true;
+    if (!ecdsa_signature_parse_der_lax(&sig, vchSig.data(), vchSig.size())) {
+        return false;
+    }
+    /* libsecp256k1's ECDSA verification requires lower-S signatures, which have
+     * not historically been enforced in Bitmark, so normalize them first. */
+    secp256k1_ecdsa_signature_normalize(secp256k1_context_static, &sig, &sig);
+    return secp256k1_ecdsa_verify(secp256k1_context_static, &sig, hash.begin(), &pubkey);
 }
 
 bool CPubKey::RecoverCompact(const uint256 &hash, const std::vector<unsigned char>& vchSig) {

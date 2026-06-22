@@ -6,7 +6,13 @@ set -e
 source assert.sh
 
 datadir="$(pwd)/.bitmark"
-bitmarkcli="bitmark-cli -datadir=$datadir"
+datadirD="$datadir"
+unameS="`uname -s`"
+if [[ "$unameS" == "CYGWIN"* ]]
+then
+  datadirD="$(cygpath -w -- "$datadir")"
+fi
+bitmarkcli="bitmark-cli -datadir=$datadirD"
 
 ms0=$($bitmarkcli getmoneysupply 0 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
 ms1=$($bitmarkcli getmoneysupply 1 880 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
@@ -126,12 +132,12 @@ txidmatch=$($bitmarkcli getblock $blockhash | grep $txid)
 set -e
 ASSERT_EQUALS "$txidmatch" ""
 
-ms1a=$($bitmarkcli getmoneysupply 1 1193 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ms1b=$($bitmarkcli getmoneysupply 1 1194 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms1a=$($bitmarkcli getmoneysupply 1 1193 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}' | tr -d '\n\r')
+ms1b=$($bitmarkcli getmoneysupply 1 1194 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}' | tr -d '\n\r')
 res=$(echo $ms1b'-'$ms1a | bc -l)
 ASSERT_EQUALS "$res" "15.00000000"
-ms2a=$($bitmarkcli getmoneysupply 2 1194 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ms2b=$($bitmarkcli getmoneysupply 2 1195 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms2a=$($bitmarkcli getmoneysupply 2 1194 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}' | tr -d '\n\r')
+ms2b=$($bitmarkcli getmoneysupply 2 1195 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}' | tr -d '\n\r')
 res=$(echo $ms2b'-'$ms2a | bc -l)
 ASSERT_EQUALS "$res" "15.00000000"
 
@@ -145,8 +151,8 @@ height=$($bitmarkcli getblock "$blockhash" | grep '"height' | awk '{ print $3 }'
 ASSERT_EQUALS "$height" 1196
 algo=$($bitmarkcli getblock $blockhash | grep algo | awk '{ print $3 }' | awk -F ',' '{print $1}')
 ASSERT_EQUALS "$algo" \"LYRA2REv2\"
-ms5a=$($bitmarkcli getmoneysupply 5 1195 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
-ms5b=$($bitmarkcli getmoneysupply 5 1196 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}')
+ms5a=$($bitmarkcli getmoneysupply 5 1195 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}' | tr -d '\n\r')
+ms5b=$($bitmarkcli getmoneysupply 5 1196 | grep '"money supply' | awk '{ print $4 }' | awk -F ',' '{print $1}' | tr -d '\n\r')
 res=$(echo $ms5b'-'$ms5a | bc -l)
 ASSERT_LESSTHAN "$res" "15.0"
 ASSERT_GREATERTHAN "$res" "0.0"

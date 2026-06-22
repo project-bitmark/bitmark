@@ -607,6 +607,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     bSpendZeroConfChange = GetArg("-spendzeroconfchange", true);
 
     strWalletFile = GetArg("-wallet", "wallet.dat");
+    boost::filesystem::path pathWalletFile(strWalletFile);
 #endif
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
     if (!InitSanityCheck())
@@ -615,7 +616,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     std::string strDataDir = GetDataDir().string();
 #ifdef ENABLE_WALLET
     // Wallet file must be a plain filename without a directory
-    if (strWalletFile != boost::filesystem::basename(strWalletFile) + boost::filesystem::extension(strWalletFile))
+    if (pathWalletFile.string() != pathWalletFile.stem().string()+pathWalletFile.extension().string())
         return InitError(strprintf(_("Wallet %s resides outside data directory %s"), strWalletFile, strDataDir));
 #endif
     // Make sure only a single Bitmark process is using the data directory.

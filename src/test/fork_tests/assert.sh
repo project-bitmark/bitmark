@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function ASSERT_EQUALS {
-    if [[ "$1" != "$2" ]]
+    if [[ "$(echo "$1" | tr -d '\n\r')" != "$(echo "$2" | tr -d '\n\r')" ]]
     then
 	echo "ASSERT EQUALS FAILS: $1 != $2"
 	return 1
@@ -9,7 +9,9 @@ function ASSERT_EQUALS {
 }
 
 function ASSERT_LESSTHAN {
-    res=$(echo $1'<'$2 | bc -l)
+    a="$(echo "$1" | tr -d '\n\r')"
+    b="$(echo "$2" | tr -d '\n\r')"
+    res="$(echo "$a"'<'"$b" | bc -l | tr -d '\n\r')"
     if [[ "$res" == "0" ]]
     then
 	echo "ASSERT LESSTHAN FAILS: $1 >= $2"
@@ -18,7 +20,9 @@ function ASSERT_LESSTHAN {
 }
 
 function ASSERT_GREATERTHAN {
-    res=$(echo $1'>'$2 | bc -l)
+    a="$(echo "$1" | tr -d '\n\r')"
+    b="$(echo "$2" | tr -d '\n\r')"
+    res="$(echo "$a"'>'"$b" | bc -l | tr -d '\n\r')"
     if [[ "$res" == "0" ]]
     then
 	echo "ASSERT GREATERTHAN FAILS: $1 <= $2"

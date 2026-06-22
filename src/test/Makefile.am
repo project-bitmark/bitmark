@@ -1,6 +1,6 @@
 include $(top_srcdir)/src/Makefile.include
 
-CXX = g++ -fPIC -std=c++11
+#CXX = g++ -fPIC -std=c++11
 
 AM_CPPFLAGS += -I$(top_srcdir)/src
 
@@ -26,8 +26,8 @@ BUILT_SOURCES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.raw.h)
 
 # test_bitmark binary #
 test_bitmark_CPPFLAGS = $(AM_CPPFLAGS) $(TESTDEFS)
-test_bitmark_LDADD = $(LIBBITMARK_SERVER) $(LIBBITMARK_CLI) $(LIBBITMARK_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
-  $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
+test_bitmark_LDADD = $(LIBBITMARK_SERVER) $(LIBBITMARK_CLI) $(LIBBITMARK_COMMON) $(LIBSECP256K1) $(LIBLEVELDB) $(LIBMEMENV) \
+$(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
 if ENABLE_WALLET
 test_bitmark_LDADD += $(LIBBITMARK_WALLET)
 endif

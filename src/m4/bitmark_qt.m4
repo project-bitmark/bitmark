@@ -49,7 +49,7 @@ AC_DEFUN([BITMARK_QT_INIT],[
   dnl enable qt support
   AC_ARG_WITH([gui],
     [AS_HELP_STRING([--with-gui],
-    [with GUI (no|qt4|qt5|auto. default is auto, qt4 tried first.)])],
+    [with GUI (no|qt4|qt5|auto. default is auto, qt5 tried first.)])],
     [
      bitmark_qt_want_version=$withval
      if test x$bitmark_qt_want_version = xyes; then
@@ -79,13 +79,13 @@ dnl Outputs: See _BITMARK_QT_FIND_LIBS_*
 dnl Outputs: Sets variables for all qt-related tools.
 dnl Outputs: bitmark_enable_qt, bitmark_enable_qt_dbus, bitmark_enable_qt_test
 AC_DEFUN([BITMARK_QT_CONFIGURE],[
-  use_pkgconfig=$1
+  use_pkgconfig_qt=$1
 
-  if test x$use_pkgconfig == x; then
-    use_pkgconfig=yes
+  if test x$use_pkgconfig_qt == x; then
+    use_pkgconfig_qt=yes
   fi
 
-  if test x$use_pkgconfig = xyes; then
+  if test x$use_pkgconfig_qt = xyes; then
     if test x$PKG_CONFIG == x; then
       AC_MSG_ERROR(pkg-config not found.)
     fi
@@ -205,13 +205,13 @@ AC_DEFUN([_BITMARK_QT_CHECK_STATIC_PLUGINS],[
   AC_MSG_CHECKING(for static Qt plugins: $2)
   CHECK_STATIC_PLUGINS_TEMP_LIBS="$LIBS"
   LIBS="$2 $QT_LIBS $LIBS"
-  AC_TRY_LINK([
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
     #define QT_STATICPLUGIN
     #include <QtPlugin>
-    $1],
-    [return 0;],
+    $1]],
+    [[return 0;]])],
     [AC_MSG_RESULT(yes); QT_LIBS="$2 $QT_LIBS"],
-    [AC_MSG_RESULT(no)]; BITMARK_QT_FAIL(Could not resolve: $2))
+    [AC_MSG_RESULT(no); BITMARK_QT_FAIL(Could not resolve: $2)])
   LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
 ])
 
@@ -280,7 +280,7 @@ AC_DEFUN([_BITMARK_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
   TEMP_LIBS="$LIBS"
   BITMARK_QT_CHECK([
     if test x$qt_include_path != x; then
-      QT_INCLUDES="-I$qt_include_path -I$qt_include_path/QtCore -I$qt_include_path/QtGui -I$qt_include_path/QtWidgets -I$qt_include_path/QtNetwork -I$qt_include_path/QtTest -I$qt_include_path/QtDBus"
+      QT_INCLUDES="-I$qt_include_path -DQT_CORE_LIB -I$qt_include_path/QtCore -DQT_GUILIB -I$qt_include_path/QtGui -DQT_WIDGETS_LIB -I$qt_include_path/QtWidgets -D_QT_NETWORK_LIB -I$qt_include_path/QtNetwork -DQT_TEST_LIB -I$qt_include_path/QtTest -DQT_DBUS_LIB -I$qt_include_path/QtDBus"
       CPPFLAGS="$QT_INCLUDES $CPPFLAGS"
     fi
   ])
@@ -308,10 +308,10 @@ AC_DEFUN([_BITMARK_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
       LIBS="$LIBS -L$qt_lib_path"
     fi
     if test x$qt_plugin_path != x; then
-      LIBS="$LIBS -L$qt_plugin_path/accessible"
       if test x$bitmark_qt_got_major_vers == x5; then
         LIBS="$LIBS -L$qt_plugin_path/platforms"
       else
+        LIBS="$LIBS -L$qt_plugin_path/accessible"
         LIBS="$LIBS -L$qt_plugin_path/codecs"
       fi
     fi
@@ -346,9 +346,18 @@ AC_DEFUN([_BITMARK_QT_FIND_LIBS_WITHOUT_PKGCONFIG],[
       _BITMARK_QT_IS_STATIC
       if test x$bitmark_cv_static_qt == xyes; then 
         AC_DEFINE(QT_STATICPLUGIN, 1, [Define this symbol if qt plugins are static])
-        _BITMARK_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(AccessibleFactory)], [-lqtaccessiblewidgets])
+	dnl libqtaccessiblewidgets only needed for Qt version < 5.4
+        dnl _BITMARK_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(AccessibleFactory)], [-lqtaccessiblewidgets])
         if test x$TARGET_OS == xwindows; then
-          _BITMARK_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindows])
+	  QT_LIBS=""
+	  if test x$qt_lib_path != x; then
+      	    QT_LIBS="$QT_LIBS -L$qt_lib_path"
+    	  fi
+	  if test x$qt_plugin_path != x; then
+	    QT_LIBS="$QT_LIBS -L$qt_plugin_path/platforms -L$qt_plugin_path/styles -L$qt_plugin_path/imageformats -L$qt_plugin_path/bearer"
+	  fi
+	  dnl These linker flags were derived from qmake output from the bitmark-qt.pro file
+          _BITMARK_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindowsvistastyle -lqwindows -lwinspool -lwtsapi32 -lQt5EventDispatcherSupport -lQt5FontDatabaseSupport -lQt5ThemeSupport -lQt5AccessibilitySupport -lQt5WindowsUIAutomationSupport -lqgif -lqicns -lqico -lqjp2 -ljasper -lqjpeg -lqmng -lmng -llcms2 -lpthread -lqtga -lqtiff -ltiff -llzma -ljpeg -lqwbmp -lqwebp -lwebpmux -lwebpdemux -lwebp -lqgenericbearer -lQt5Widgets -luxtheme -ldwmapi -lQt5Gui -ld3d11 -ldxgi -ldxguid -lharfbuzz -lcairo -lgobject-2.0 -lfontconfig -lfreetype -lm -lusp10 -lmsimg32 -lpixman-1 -lffi -lexpat -lbz2 -lpng16 -lharfbuzz_too -lfreetype_too -lglib-2.0 -lshlwapi -lpcre -lintl -liconv -lcomdlg32 -loleaut32 -limm32 -lQt5Network -ldnsapi -lssl -lcrypto -lgdi32 -lcrypt32 /home/ak/git/mxe/usr/i686-w64-mingw32.static/qt5/lib/libQt5DBus.a -ldbus-1 -liphlpapi -ldbghelp -lQt5Core -lmpr -luserenv -lversion -lz -lpcre2-16 -lzstd -lnetapi32 -lws2_32 -ladvapi32 -lkernel32 -lole32 -lshell32 -luuid -luser32 -lwinmm -lmingw32 -lqtmain -lshell32])
         fi
       fi
     else

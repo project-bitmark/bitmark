@@ -164,7 +164,7 @@ uint32_t index_alpha(const argon2_instance_t *instance,
  * @return ARGON2_OK if everything is all right, otherwise one of error codes
  * (all defined in <argon2.h>
  */
-int validate_inputs(const argon2_context *context);
+int ar2_validate_inputs(const argon2_context *context);
 
 /*
  * Hashes all the inputs into @a blockhash[PREHASH_DIGEST_LENGTH], clears
@@ -176,7 +176,7 @@ int validate_inputs(const argon2_context *context);
  * @pre    @a blockhash must have at least @a PREHASH_DIGEST_LENGTH bytes
  * allocated
  */
-void initial_hash(uint8_t *blockhash, argon2_context *context,
+void ar2_initial_hash(uint8_t *blockhash, argon2_context *context,
                   argon2_type type);
 
 /*
@@ -185,7 +185,7 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
  * @param blockhash Pointer to the pre-hashing digest
  * @pre blockhash must point to @a PREHASH_SEED_LENGTH allocated values
  */
-void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance);
+void ar2_fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance);
 
 /*
  * Function allocates memory, hashes the inputs with Blake,  and creates first
@@ -197,7 +197,7 @@ void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance);
  * @return Zero if successful, -1 if memory failed to allocate. @context->state
  * will be modified if successful.
  */
-int initialize(argon2_instance_t *instance, argon2_context *context);
+int ar2_initialize(argon2_instance_t *instance, argon2_context *context);
 
 /*
  * XORing the last block of each lane, hashing it, making the tag. Deallocates
@@ -210,7 +210,7 @@ int initialize(argon2_instance_t *instance, argon2_context *context);
  * @pre if context->free_cbk is not NULL, it should point to a function that
  * deallocates memory
  */
-void finalize(const argon2_context *context, argon2_instance_t *instance);
+void ar2_finalize(const argon2_context *context, argon2_instance_t *instance);
 
 /*
  * Function that fills the segment using previous segments also from other
@@ -229,6 +229,6 @@ void fill_segment(const argon2_instance_t *instance,
  * @param instance Pointer to the current instance
  * @return ARGON2_OK if successful, @context->state
  */
-int fill_memory_blocks(argon2_instance_t *instance);
+int ar2_fill_memory_blocks(argon2_instance_t *instance);
 
 #endif
